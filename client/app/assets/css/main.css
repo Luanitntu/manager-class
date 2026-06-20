@@ -1,0 +1,16 @@
+:root {
+  --st-content-max: 1400px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+.st-content {
+  max-width: var(--st-content-max);
+  margin: 0 auto;
+  width: 100%;
+}

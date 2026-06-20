@@ -1,0 +1,100 @@
+import { Injectable } from '@nestjs/common';
+import { Prisma, Role } from '@prisma/client';
+import { PrismaService } from '../../infra/prisma/prisma.service';
+
+const ASSISTANT_SELECT = {
+  id: true,
+  email: true,
+  fullName: true,
+  phone: true,
+  avatarUrl: true,
+  status: true,
+  createdAt: true,
+  assistantProfile: true,
+  _count: { select: { classAssignments: true } },
+} satisfies Prisma.UserSelect;
+
+@Injectable()
+export class AssistantRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  listByTeacher(teacherId: string, search: string | undefined, skip: number, take: number) {
+    const where: Prisma.UserWhereInput = {
+      teacherId,
+      role: Role.ASSISTANT,
+      deletedAt: null,
+      ...(search
+        ? {
+            OR: [
+              { fullName: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+    return this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        select: ASSISTANT_SELECT,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+  }
+
+  findForTenant(assistantId: string, teacherId: string) {
+    return this.prisma.user.findFirst({
+      where: { id: assistantId, teacherId, role: Role.ASSISTANT, deletedAt: null },
+      select: {
+        ...ASSISTANT_SELECT,
+        classAssignments: {
+          include: { class: { select: { id: true, name: true, level: true } } },
+        },
+      },
+    });
+  }
+
+  exists(assistantId: string, teacherId: string) {
+    return this.prisma.user.findFirst({
+      where: { id: assistantId, teacherId, role: Role.ASSISTANT, deletedAt: null },
+      select: { id: true },
+    });
+  }
+
+  upsertSalary(assistantId: string, data: Prisma.AssistantProfileCreateWithoutUserInput) {
+    return this.prisma.assistantProfile.upsert({
+      where: { userId: assistantId },
+      create: { ...data, user: { connect: { id: assistantId } } },
+      update: data,
+    });
+  }
+
+  getProfile(assistantId: string) {
+    return this.prisma.assistantProfile.findUnique({ where: { userId: assistantId } });
+  }
+
+  /**
+   * Sessions the assistant is assigned to (non-cancelled), grouped per class,
+   * for salary calculation. Optionally bounded by a date range.
+   */
+  findAssignedSessions(assistantId: string, from?: Date, to?: Date) {
+    return this.prisma.teachingSession.findMany({
+      where: {
+        deletedAt: null,
+        status: { not: 'CANCELLED' },
+        assistants: { some: { assistantId } },
+        ...(from || to
+          ? { startTime: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } }
+          : {}),
+      },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        class: { select: { id: true, name: true } },
+      },
+    });
+  }
+}
