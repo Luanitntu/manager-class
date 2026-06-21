@@ -50,9 +50,65 @@ async function main(): Promise<void> {
     },
   });
 
+  // Sample Student for student-portal smoke tests.
+  const student = await prisma.user.upsert({
+    where: { email: 'student@schedule-teacher.local' },
+    update: {
+      username: 'student01',
+      passwordHash,
+      role: Role.STUDENT,
+      status: UserStatus.ACTIVE,
+      teacherId: teacher.id,
+    },
+    create: {
+      email: 'student@schedule-teacher.local',
+      username: 'student01',
+      passwordHash,
+      role: Role.STUDENT,
+      status: UserStatus.ACTIVE,
+      fullName: 'Demo Student',
+      emailVerified: true,
+      teacherId: teacher.id,
+      studentProfile: {
+        create: {
+          learningGoal: 'Prepare for Japanese N5',
+          educationLevel: 'Beginner',
+        },
+      },
+    },
+  });
+
+  await prisma.studentProfile.upsert({
+    where: { userId: student.id },
+    update: {
+      learningGoal: 'Prepare for Japanese N5',
+      educationLevel: 'Beginner',
+    },
+    create: {
+      userId: student.id,
+      learningGoal: 'Prepare for Japanese N5',
+      educationLevel: 'Beginner',
+    },
+  });
+
+  await prisma.classEnrollment.upsert({
+    where: {
+      classId_studentId: {
+        classId: klass.id,
+        studentId: student.id,
+      },
+    },
+    update: {},
+    create: {
+      classId: klass.id,
+      studentId: student.id,
+    },
+  });
+
   console.log('Seed complete:', {
     superAdmin: superAdmin.email,
     teacher: teacher.email,
+    student: student.email,
     sampleClass: klass.name,
   });
 }

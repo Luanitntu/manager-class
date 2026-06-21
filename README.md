@@ -37,7 +37,7 @@ cd server
 cp .env.example .env
 npm install
 npx prisma migrate deploy   # apply schema
-npm run prisma:seed         # demo admin + teacher
+npm run prisma:seed         # demo admin + teacher + student
 npm run start:dev           # http://localhost:3001/api/v1
 
 # 3. Frontend
@@ -53,8 +53,9 @@ API docs (dev only): http://localhost:3001/api/v1/docs
 
 | Role        | Email                              | Password       |
 | ----------- | ---------------------------------- | -------------- |
-| Super Admin | admin@schedule-teacher.local       | Password123!   |
-| Teacher     | teacher@schedule-teacher.local     | Password123!   |
+| Super Admin | admin@schedule-teacher.local       | admin123!      |
+| Teacher     | teacher@schedule-teacher.local     | admin123!      |
+| Student     | student@schedule-teacher.local     | admin123!      |
 
 ## Full stack via Docker
 
