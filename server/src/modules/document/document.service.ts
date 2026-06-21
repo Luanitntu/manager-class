@@ -129,7 +129,7 @@ export class DocumentService {
     if (!doc.fileKey) {
       throw new BadRequestException('Document has no downloadable file');
     }
-    return { stream: this.storage.getObjectStream(doc.fileKey), title: doc.title };
+    return { stream: await this.storage.getObjectStream(doc.fileKey), title: doc.title };
   }
 
   // ----- Assignments -----

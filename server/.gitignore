@@ -4,5 +4,5 @@ dist
 .env.local
 *.log
 coverage
-storage
+/storage
 .DS_Store
