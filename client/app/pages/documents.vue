@@ -7,17 +7,17 @@ import { useSnackbar } from '~/composables/useSnackbar';
 const category = ref<string | undefined>(undefined);
 const { data, isLoading, error, refetch } = useDocuments(category);
 const { createLink, upload, assign, remove } = useDocumentMutations();
-const { data: classesData } = useClasses();
-const { data: studentsData } = useStudents();
 const auth = useAuthStore();
 const config = useRuntimeConfig();
 const { success: showSuccess, error: showError } = useSnackbar();
 
+const categories = ['A1', 'A2', 'B1', 'B2'];
+const canManage = computed(() => auth.role === 'TEACHER' || auth.role === 'ASSISTANT');
+const { data: classesData } = useClasses(undefined, { enabled: canManage });
+const { data: studentsData } = useStudents(undefined, { enabled: canManage });
 const documents = computed(() => data.value?.data ?? []);
 const classes = computed(() => classesData.value?.data ?? []);
 const students = computed(() => studentsData.value?.data ?? []);
-const categories = ['A1', 'A2', 'B1', 'B2'];
-const canManage = computed(() => auth.role === 'TEACHER' || auth.role === 'ASSISTANT');
 
 const typeIcon: Record<string, string> = {
   PDF: 'mdi-file-pdf-box',
@@ -112,6 +112,11 @@ async function destroy(doc: DocumentItem) {
 function downloadUrl(doc: DocumentItem) {
   return `${config.public.apiBase}/documents/${doc.id}/download`;
 }
+
+function assignmentContext(doc: DocumentItem) {
+  if (doc._count?.assignments) return `${doc._count.assignments} assignment${doc._count.assignments === 1 ? '' : 's'}`;
+  return 'Shared material';
+}
 </script>
 
 <template>
@@ -166,6 +171,9 @@ function downloadUrl(doc: DocumentItem) {
                 </div>
               </div>
             </div>
+            <div v-if="!canManage" class="text-caption text-medium-emphasis mb-3">
+              {{ assignmentContext(d) }}
+            </div>
             <div class="d-flex ga-2">
               <v-btn
                 v-if="d.type === 'LINK'"
@@ -199,8 +207,8 @@ function downloadUrl(doc: DocumentItem) {
       <AppState
         v-else
         variant="empty"
-        title="No documents yet"
-        body="Upload files or add links to educational resources."
+        :title="canManage ? 'No documents yet' : 'No shared documents yet'"
+        :body="canManage ? 'Upload files or add links to educational resources.' : 'Your teacher\'s materials will appear here when assigned.'"
         :action-label="canManage ? 'Add Material' : undefined"
         @action="openCreate"
       />

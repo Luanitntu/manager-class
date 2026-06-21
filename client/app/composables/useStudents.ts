@@ -39,10 +39,14 @@ export interface StudentComment {
   createdAt: string;
 }
 
-export function useStudents(search?: MaybeRefOrGetter<string | undefined>) {
+export function useStudents(
+  search?: MaybeRefOrGetter<string | undefined>,
+  options: { enabled?: MaybeRefOrGetter<boolean> } = {},
+) {
   const { requestPaged } = useApi();
   return useQuery({
     queryKey: ['students', search],
+    enabled: computed(() => toValue(options.enabled) !== false),
     queryFn: () => {
       const term = toValue(search);
       const qs = term ? `?search=${encodeURIComponent(term)}&limit=100` : '?limit=100';
@@ -75,6 +79,24 @@ export function useStudentComments(id: Ref<string | null>) {
     queryKey: ['student-comments', id],
     enabled: computed(() => !!id.value),
     queryFn: () => request<StudentComment[]>(`/students/${id.value}/comments`),
+  });
+}
+
+export function useMyScores(options: { enabled?: MaybeRefOrGetter<boolean> } = {}) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['student-me-scores'],
+    enabled: computed(() => toValue(options.enabled) !== false),
+    queryFn: () => request<Score[]>('/students/me/scores'),
+  });
+}
+
+export function useMyComments(options: { enabled?: MaybeRefOrGetter<boolean> } = {}) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['student-me-comments'],
+    enabled: computed(() => toValue(options.enabled) !== false),
+    queryFn: () => request<StudentComment[]>('/students/me/comments'),
   });
 }
 

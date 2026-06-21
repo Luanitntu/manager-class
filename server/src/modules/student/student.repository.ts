@@ -56,6 +56,13 @@ export class StudentRepository {
     });
   }
 
+  findStudentTenant(studentId: string) {
+    return this.prisma.user.findFirst({
+      where: { id: studentId, role: Role.STUDENT, deletedAt: null },
+      select: { id: true, teacherId: true },
+    });
+  }
+
   async updateProfile(
     studentId: string,
     userData: Prisma.UserUpdateInput,

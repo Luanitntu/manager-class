@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
+import { computed } from 'vue';
 import type { MaybeRefOrGetter } from 'vue';
 
 export interface ClassItem {
@@ -11,11 +12,15 @@ export interface ClassItem {
   _count?: { enrollments: number; sessions: number; assistants?: number };
 }
 
-export function useClasses(search?: MaybeRefOrGetter<string | undefined>) {
+export function useClasses(
+  search?: MaybeRefOrGetter<string | undefined>,
+  options: { enabled?: MaybeRefOrGetter<boolean> } = {},
+) {
   const { requestPaged } = useApi();
 
   return useQuery({
     queryKey: ['classes', search],
+    enabled: computed(() => toValue(options.enabled) !== false),
     queryFn: () => {
       const term = toValue(search);
       const qs = term ? `?search=${encodeURIComponent(term)}&limit=100` : '?limit=100';

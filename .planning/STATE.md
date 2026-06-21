@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 4 — Student Portal Polish & Fixes
-status: Ready to plan
-stopped_at: Phase 3 complete
-last_updated: "2026-06-21T13:44:09.086Z"
+status: Implementation complete - automated and API smoke verification passed
+stopped_at: Phase 4 automated/API smoke passed; browser visual smoke pending Phase 5
+last_updated: "2026-06-21T14:52:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 8
+  total_plans: 11
   completed_plans: 9
   percent: 60
 ---
@@ -37,7 +37,7 @@ See: `.planning/ROADMAP.md`
 | 1 | Complete | Audit current UI/data-display bugs |
 | 2 | Complete | Visual system and app shell refresh |
 | 3 | Complete | Teacher workflow polish and fixes |
-| 4 | Pending | Student portal polish and fixes |
+| 4 | API smoke passed | Student portal polish and fixes implemented; browser visual smoke pending Phase 5 |
 | 5 | Pending | QA, regression tests, release readiness |
 
 ## Key Constraints
@@ -60,15 +60,15 @@ See: `.planning/ROADMAP.md`
 
 ## Next Command
 
-`$gsd-plan-phase 4`
+`$gsd-execute-phase 4`
 
 ## Last Session
 
-- **Stopped at:** Phase 3 complete
+- **Stopped at:** Phase 4 implemented; automated/API smoke passed; browser visual smoke pending Phase 5
 - **Resume file:** none
 - **Bug ledger:** `.planning/phases/01-audit-data-flow-baseline/01-BUG-LEDGER.md`
-- **Plan count:** 1/1 plans complete
-- **Phase 3 note:** Phase 3 completed and verified. All teacher-facing workflows, app shell styling, and key data-display bugs resolved and tested.
+- **Plan count:** 3 plans ready for Phase 4
+- **Phase 4 note:** Phase 4 execution created student self score/comment APIs/composables/tests, student dashboard/documents/payments UI fixes, complete seed smoke data, README notes, and `04-STUDENT-SMOKE.md`. Backend targeted Jest, backend lint/build, frontend typecheck/lint/build, seed, and authenticated student API smoke passed using absolute Node/npm paths. Browser-level visual smoke remains for Phase 5 responsive QA.
 
 ---
-*State updated: 2026-06-21 after Phase 3 complete*
+*State updated: 2026-06-21 after Phase 4 implementation*

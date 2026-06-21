@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { computed } from 'vue';
-import type { Ref } from 'vue';
+import type { MaybeRefOrGetter, Ref } from 'vue';
 
 export interface Tuition {
   id: string;
@@ -26,10 +26,11 @@ export interface TuitionDetail extends Tuition {
   payments: PaymentRecord[];
 }
 
-export function useTuitions() {
+export function useTuitions(options: { enabled?: MaybeRefOrGetter<boolean> } = {}) {
   const { requestPaged } = useApi();
   return useQuery({
     queryKey: ['tuitions'],
+    enabled: computed(() => toValue(options.enabled) !== false),
     queryFn: () => requestPaged<Tuition[]>('/payments/tuitions?limit=100'),
   });
 }

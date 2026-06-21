@@ -57,6 +57,10 @@ API docs (dev only): http://localhost:3001/api/v1/docs
 | Teacher     | teacher@schedule-teacher.local     | admin123!      |
 | Student     | student@schedule-teacher.local     | admin123!      |
 
+The seeded student account is enrolled in Japanese N5 and has a complete smoke-test path:
+one upcoming session, one shared N5 document, one partial tuition payment with receipt
+history, one score, and one teacher progress comment.
+
 ## Full stack via Docker
 
 ```bash

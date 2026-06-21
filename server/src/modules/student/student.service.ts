@@ -39,7 +39,7 @@ export class StudentService {
 
   async getOne(actor: AuthenticatedUser, studentId: string) {
     await this.assertCanAccessStudent(actor, studentId);
-    const teacherId = this.teacherScope(actor);
+    const teacherId = await this.resolveStudentTeacherId(actor, studentId);
     const student = await this.repo.findStudentForTenant(studentId, teacherId);
     if (!student) {
       throw new NotFoundException('Student not found');
@@ -86,8 +86,15 @@ export class StudentService {
 
   async listScores(actor: AuthenticatedUser, studentId: string) {
     await this.assertCanAccessStudent(actor, studentId);
-    const teacherId = this.teacherScope(actor);
+    const teacherId = await this.resolveStudentTeacherId(actor, studentId);
     return this.repo.listScores(studentId, teacherId);
+  }
+
+  async listMyScores(actor: AuthenticatedUser) {
+    if (actor.role !== Role.STUDENT) {
+      throw new ForbiddenException('Only students can access their own scores');
+    }
+    return this.listScores(actor, actor.id);
   }
 
   async updateScore(actor: AuthenticatedUser, scoreId: string, dto: UpdateScoreDto) {
@@ -128,8 +135,15 @@ export class StudentService {
 
   async listComments(actor: AuthenticatedUser, studentId: string) {
     await this.assertCanAccessStudent(actor, studentId);
-    const teacherId = this.teacherScope(actor);
+    const teacherId = await this.resolveStudentTeacherId(actor, studentId);
     return this.repo.listComments(studentId, teacherId);
+  }
+
+  async listMyComments(actor: AuthenticatedUser) {
+    if (actor.role !== Role.STUDENT) {
+      throw new ForbiddenException('Only students can access their own comments');
+    }
+    return this.listComments(actor, actor.id);
   }
 
   async deleteComment(actor: AuthenticatedUser, commentId: string) {
@@ -157,6 +171,29 @@ export class StudentService {
       return;
     }
     await this.assertStudentInTenant(studentId, this.teacherScope(actor));
+  }
+
+  private async resolveStudentTeacherId(
+    actor: AuthenticatedUser,
+    studentId: string,
+  ): Promise<string> {
+    if (actor.role !== Role.STUDENT) {
+      return this.teacherScope(actor);
+    }
+
+    if (actor.id !== studentId) {
+      throw new ForbiddenException('Cannot access another student');
+    }
+
+    if (actor.tenantId) {
+      return actor.tenantId;
+    }
+
+    const student = await this.repo.findStudentTenant(studentId);
+    if (!student?.teacherId) {
+      throw new ForbiddenException('No tenant context');
+    }
+    return student.teacherId;
   }
 
   private async assertCanEditStudent(actor: AuthenticatedUser, studentId: string): Promise<void> {

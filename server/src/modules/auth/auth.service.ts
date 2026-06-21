@@ -43,10 +43,7 @@ export class AuthService {
     const username = dto.username?.toLowerCase();
     const existing = await this.prisma.user.findFirst({
       where: {
-        OR: [
-          { email: dto.email.toLowerCase() },
-          ...(username ? [{ username }] : []),
-        ],
+        OR: [{ email: dto.email.toLowerCase() }, ...(username ? [{ username }] : [])],
       },
     });
     if (existing) {

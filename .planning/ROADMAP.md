@@ -67,6 +67,22 @@ This roadmap turns the existing broad MVP into a polished teacher/student releas
 **Goal:** Make the student experience usable and trustworthy for classes, schedules, documents, scores/comments, payments, and profile.
 **Mode:** mvp
 **Requirements:** UI-02, DATA-04, DATA-05, BUG-05
+**Status:** Implemented - automated and API smoke verification passed - 2026-06-21
+**Plans:**
+
+- **Wave 1:** `04-01-PLAN.md` - Create student self score/comment endpoints, composables, and access tests. **Complete**
+- **Wave 2** *(blocked on Wave 1 completion)*: `04-02-PLAN.md` - Polish student dashboard, documents, and payments with role-safe data display. **Complete**
+- **Wave 3** *(blocked on Wave 2 completion)*: `04-03-PLAN.md` - Complete demo student smoke data, README notes, and manual smoke checklist. **Complete**
+
+**Execution note:** All plans have summaries. Backend targeted Jest, backend lint/build, frontend typecheck/lint/build, seed, and authenticated student API smoke passed. Browser-level visual smoke remains for Phase 5 responsive QA.
+
+**Cross-cutting constraints:**
+
+- Student dashboard data must come from targeted role-scoped queries rather than bloating `/dashboard`.
+- Student pages must not execute teacher-only helper queries such as `useStudents()` or `useClasses()`.
+- Score/comment reads, document visibility, and tuition history must preserve tenant isolation and student self-scope.
+- Empty/loading/error/permission states must stay distinct so data-display bugs are not hidden.
+
 **Success Criteria:**
 
 1. Student dashboard summarizes the student's own classes, schedule, materials, scores/comments, and payments.

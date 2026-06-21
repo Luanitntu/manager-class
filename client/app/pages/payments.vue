@@ -29,8 +29,8 @@ async function remind() {
     showError(extractApiError(e) ?? 'Could not send reminder');
   }
 }
-const { data: classesData } = useClasses();
-const { data: studentsData } = useStudents();
+const { data: classesData } = useClasses(undefined, { enabled: canManage });
+const { data: studentsData } = useStudents(undefined, { enabled: canManage });
 
 const tuitions = computed(() => data.value?.data ?? []);
 const classes = computed(() => classesData.value?.data ?? []);
@@ -43,6 +43,14 @@ const rules = {
 
 function money(n: string | number) {
   return Number(n).toLocaleString();
+}
+
+function dueDate(date?: string | null) {
+  return date ? new Date(date).toLocaleDateString() : 'No due date';
+}
+
+function remaining(t: Tuition) {
+  return Number(t.totalAmount) - Number(t.paidAmount);
 }
 
 // --- Create tuition ---
@@ -133,7 +141,7 @@ async function pay() {
     />
 
     <template v-else>
-      <v-card v-if="tuitions.length" class="st-card-soft">
+      <v-card v-if="tuitions.length && canManage" class="st-card-soft">
         <v-table>
           <thead>
             <tr>
@@ -152,7 +160,7 @@ async function pay() {
               <td>{{ t.class?.name }}</td>
               <td class="text-right">{{ money(t.totalAmount) }}</td>
               <td class="text-right">{{ money(t.paidAmount) }}</td>
-              <td class="text-right">{{ money(Number(t.totalAmount) - Number(t.paidAmount)) }}</td>
+              <td class="text-right">{{ money(remaining(t)) }}</td>
               <td>
                 <v-chip :color="statusColor[t.status]" size="small" variant="tonal">
                   {{ t.status.replace('_', ' ') }}
@@ -165,11 +173,46 @@ async function pay() {
           </tbody>
         </v-table>
       </v-card>
+
+      <v-row v-else-if="tuitions.length">
+        <v-col v-for="t in tuitions" :key="t.id" cols="12" md="6">
+          <v-card class="pa-4 st-card-soft">
+            <div class="d-flex align-start justify-space-between ga-3 mb-4">
+              <div>
+                <div class="text-subtitle-1 font-weight-bold">{{ t.class?.name || 'Tuition' }}</div>
+                <div class="text-caption text-medium-emphasis">Due {{ dueDate(t.dueDate) }}</div>
+              </div>
+              <v-chip :color="statusColor[t.status]" size="small" variant="tonal">
+                {{ t.status.replace('_', ' ') }}
+              </v-chip>
+            </div>
+            <v-row dense>
+              <v-col cols="4">
+                <div class="text-h6 font-weight-bold">{{ money(t.totalAmount) }}</div>
+                <div class="text-caption text-medium-emphasis">Total</div>
+              </v-col>
+              <v-col cols="4">
+                <div class="text-h6 font-weight-bold">{{ money(t.paidAmount) }}</div>
+                <div class="text-caption text-medium-emphasis">Paid</div>
+              </v-col>
+              <v-col cols="4">
+                <div class="text-h6 font-weight-bold">{{ money(remaining(t)) }}</div>
+                <div class="text-caption text-medium-emphasis">Remaining</div>
+              </v-col>
+            </v-row>
+            <div class="mt-4 d-flex justify-end">
+              <v-btn size="small" variant="tonal" prepend-icon="mdi-receipt-text" @click="openDetail(t)">
+                View history
+              </v-btn>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
       <AppState
         v-else
         variant="empty"
         title="No payments yet"
-        body="Create your first tuition bill to track student payments."
+        :body="canManage ? 'Create your first tuition bill to track student payments.' : 'Tuition balances and receipts will appear here when your teacher shares them.'"
         :action-label="canManage ? 'New Tuition' : undefined"
         @action="createOpen = true"
       />
@@ -228,7 +271,7 @@ async function pay() {
     <v-dialog v-model="detailOpen" max-width="600" scrollable>
       <v-card v-if="detail">
         <v-card-title class="d-flex align-center justify-space-between">
-          <span>{{ detail.student?.fullName }} — {{ detail.class?.name }}</span>
+          <span>{{ canManage ? detail.student?.fullName : 'Payment history' }} - {{ detail.class?.name }}</span>
           <v-chip :color="statusColor[detail.status]" size="small" variant="tonal">
             {{ detail.status.replace('_', ' ') }}
           </v-chip>
@@ -237,7 +280,7 @@ async function pay() {
           <div class="d-flex ga-6 mb-4">
             <div><div class="text-h6 font-weight-bold">{{ money(detail.totalAmount) }}</div><div class="text-caption text-medium-emphasis">Total</div></div>
             <div><div class="text-h6 font-weight-bold">{{ money(detail.paidAmount) }}</div><div class="text-caption text-medium-emphasis">Paid</div></div>
-            <div><div class="text-h6 font-weight-bold">{{ money(Number(detail.totalAmount) - Number(detail.paidAmount)) }}</div><div class="text-caption text-medium-emphasis">Remaining</div></div>
+            <div><div class="text-h6 font-weight-bold">{{ money(remaining(detail)) }}</div><div class="text-caption text-medium-emphasis">Remaining</div></div>
           </div>
 
           <template v-if="canManage && detail.status !== 'PAID'">

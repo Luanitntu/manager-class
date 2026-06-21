@@ -48,10 +48,7 @@ export class UserController {
 
   @Roles(Role.TEACHER)
   @Get()
-  listMyMembers(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Query() query: ListUsersQueryDto,
-  ) {
+  listMyMembers(@CurrentUser() actor: AuthenticatedUser, @Query() query: ListUsersQueryDto) {
     return this.users.listMyMembers(actor.tenantId ?? actor.id, query);
   }
 

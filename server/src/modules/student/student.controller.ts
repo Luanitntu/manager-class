@@ -52,6 +52,12 @@ export class StudentController {
   }
 
   // ----- Scores -----
+  @Roles(Role.STUDENT)
+  @Get('me/scores')
+  listMyScores(@CurrentUser() actor: AuthenticatedUser) {
+    return this.students.listMyScores(actor);
+  }
+
   @Get(':id/scores')
   listScores(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.students.listScores(actor, id);
@@ -87,6 +93,12 @@ export class StudentController {
   }
 
   // ----- Comments -----
+  @Roles(Role.STUDENT)
+  @Get('me/comments')
+  listMyComments(@CurrentUser() actor: AuthenticatedUser) {
+    return this.students.listMyComments(actor);
+  }
+
   @Get(':id/comments')
   listComments(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.students.listComments(actor, id);

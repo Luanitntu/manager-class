@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 import { Readable } from 'stream';
 
@@ -14,7 +19,7 @@ export class StorageService {
     const accountId = this.configService.get<string>('R2_ACCOUNT_ID');
     const accessKeyId = this.configService.get<string>('R2_ACCESS_KEY_ID');
     const secretAccessKey = this.configService.get<string>('R2_SECRET_ACCESS_KEY');
-    
+
     this.bucketName = this.configService.get<string>('R2_BUCKET') || '';
 
     if (accountId && accessKeyId && secretAccessKey) {
@@ -37,7 +42,7 @@ export class StorageService {
     const key = `${uuidv4()}.${extension}`;
 
     if (!this.s3Client) {
-        throw new Error('Storage service is not configured');
+      throw new Error('Storage service is not configured');
     }
 
     const command = new PutObjectCommand({
@@ -63,7 +68,7 @@ export class StorageService {
 
   async getObjectStream(key: string): Promise<Readable> {
     if (!this.s3Client) {
-        throw new Error('Storage service is not configured');
+      throw new Error('Storage service is not configured');
     }
 
     const command = new GetObjectCommand({

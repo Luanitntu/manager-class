@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
+import { computed } from 'vue';
 import type { MaybeRefOrGetter } from 'vue';
 
 export interface DocumentItem {
@@ -12,10 +13,14 @@ export interface DocumentItem {
   _count?: { assignments: number };
 }
 
-export function useDocuments(category?: MaybeRefOrGetter<string | undefined>) {
+export function useDocuments(
+  category?: MaybeRefOrGetter<string | undefined>,
+  options: { enabled?: MaybeRefOrGetter<boolean> } = {},
+) {
   const { requestPaged } = useApi();
   return useQuery({
     queryKey: ['documents', category],
+    enabled: computed(() => toValue(options.enabled) !== false),
     queryFn: () => {
       const cat = toValue(category);
       const qs = cat ? `?category=${encodeURIComponent(cat)}&limit=100` : '?limit=100';
