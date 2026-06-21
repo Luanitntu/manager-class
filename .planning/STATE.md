@@ -19,8 +19,8 @@ See: `.planning/ROADMAP.md`
 | Phase | Status | Focus |
 |-------|--------|-------|
 | 1 | Complete | Audit current UI/data-display bugs |
-| 2 | Planned | Visual system and app shell refresh |
-| 3 | Pending | Teacher workflow polish and fixes |
+| 2 | Complete | Visual system and app shell refresh |
+| 3 | Planned | Teacher workflow polish and fixes |
 | 4 | Pending | Student portal polish and fixes |
 | 5 | Pending | QA, regression tests, release readiness |
 
@@ -44,15 +44,15 @@ See: `.planning/ROADMAP.md`
 
 ## Next Command
 
-`/gsd-discuss-phase 2`
+`$gsd-execute-phase 3`
 
 ## Last Session
 
-- **Stopped at:** Phase 1 complete
-- **Resume file:** None
+- **Stopped at:** Phase 3 planned
+- **Resume file:** `.planning/phases/03-teacher-workflow-polish-fixes/03-01-PLAN.md`
 - **Bug ledger:** `.planning/phases/01-audit-data-flow-baseline/01-BUG-LEDGER.md`
-- **Plan count:** 4/4 plans complete across 3 waves
-- **Phase 1 note:** Runtime smoke testing blocked because Node/npm are unavailable on PATH; static audit found high-confidence student shared-page and seed/doc issues.
+- **Plan count:** 1/1 plans complete
+- **Phase 3 note:** Plan created and verified for teacher workflow polish and fixes. Ready to execute.
 
 ---
-*State updated: 2026-06-21 after Phase 1 execution*
+*State updated: 2026-06-21 after Phase 3 planning*

@@ -43,6 +43,9 @@ This roadmap turns the existing broad MVP into a polished teacher/student releas
 **Goal:** Make teacher daily workflows polished and reliable across dashboard, calendar, classes, students, documents, payments, reports, and profile.
 **Mode:** mvp
 **Requirements:** UI-04, DATA-01, DATA-02, DATA-03, BUG-03, BUG-04
+**Status:** Planned
+**Plans:**
+- **Wave 1:** `03-01-PLAN.md` - Refine teacher workflows, adopt visual shell, and fix key bugs.
 **Success Criteria:**
 1. Teacher dashboard and calendar display live data correctly.
 2. Teacher CRUD/list/detail pages show existing data and clear form states.
