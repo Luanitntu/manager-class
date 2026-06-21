@@ -95,6 +95,20 @@ This roadmap turns the existing broad MVP into a polished teacher/student releas
 **Goal:** Prove the refreshed v1 is stable enough for real teacher/student validation.
 **Mode:** mvp
 **Requirements:** UI-06, VER-01, VER-02, VER-03, VER-04, VER-05
+**Status:** Planned - 2026-06-21
+**Plans:**
+
+- **Wave 1:** `05-01-PLAN.md` - Add repeatable smoke scripts, remove low-risk lint warnings, and record automated regression evidence.
+- **Wave 2** *(blocked on Wave 1 completion)*: `05-02-PLAN.md` - Run teacher/student desktop and mobile browser smoke, fixing or documenting UI regressions.
+- **Wave 3** *(blocked on Wave 2 completion)*: `05-03-PLAN.md` - Consolidate release readiness, requirements traceability, and final handoff docs.
+
+**Cross-cutting constraints:**
+
+- Do not introduce center-role scope or new product modules during release readiness.
+- Existing backend/frontend verification commands remain the release gate.
+- Browser-level teacher/student desktop and mobile checks must be recorded; API smoke alone is insufficient for UI-06.
+- Known remaining issues must include severity and next action.
+
 **Success Criteria:**
 
 1. Frontend lint, typecheck, and build pass.
