@@ -26,6 +26,13 @@ const snackbar = reactive({ show: false, text: '', color: 'error' });
 const events = ref<Record<string, unknown>[]>([]);
 const loading = ref(false);
 let currentRange: { from: string; to: string } | null = null;
+let activeRangeKey: string | null = null;
+let loadedRangeKey: string | null = null;
+let requestId = 0;
+
+function rangeKey(from: string, to: string) {
+  return `${from}|${to}`;
+}
 
 function notify(text: string, color = 'error') {
   snackbar.text = text;
@@ -46,21 +53,34 @@ function toEvent(s: TeachingSession) {
   };
 }
 
-async function loadRange(from: string, to: string) {
+async function loadRange(from: string, to: string, options: { force?: boolean } = {}) {
+  const key = rangeKey(from, to);
+  if (!options.force && (activeRangeKey === key || loadedRangeKey === key)) {
+    return;
+  }
+
   currentRange = { from, to };
+  activeRangeKey = key;
+  const request = ++requestId;
   loading.value = true;
   try {
     const sessions = await fetchSessionRange(from, to);
+    if (request !== requestId) return;
     events.value = sessions.map(toEvent);
+    loadedRangeKey = key;
   } catch (e) {
+    if (request !== requestId) return;
     notify(extractApiError(e) ?? 'Failed to load sessions');
   } finally {
-    loading.value = false;
+    if (request === requestId) {
+      loading.value = false;
+      activeRangeKey = null;
+    }
   }
 }
 
 function reload() {
-  if (currentRange) loadRange(currentRange.from, currentRange.to);
+  if (currentRange) loadRange(currentRange.from, currentRange.to, { force: true });
 }
 
 function onDatesSet(arg: DatesSetArg) {
@@ -170,20 +190,16 @@ function fmt(iso: string) {
       </template>
     </AppPageHeader>
 
-    <AppState
-      v-if="loading && !events.length"
-      variant="loading"
-      title="Loading calendar"
-      body="Fetching sessions for this date range."
-    />
-
-    <v-card v-else class="pa-3 pa-sm-4 st-card-soft st-calendar-card">
+    <v-card class="pa-3 pa-sm-4 st-card-soft st-calendar-card position-relative">
       <client-only>
         <FullCalendar :options="calendarOptions" />
         <template #fallback>
           <AppState variant="loading" title="Loading calendar" />
         </template>
       </client-only>
+      <div v-if="loading" class="st-calendar-loading">
+        <div class="st-calendar-loading-bar"><span /></div>
+      </div>
     </v-card>
 
     <v-card v-if="smAndDown && agendaSessions.length" class="mt-4 st-card-soft">

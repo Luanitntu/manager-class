@@ -70,6 +70,43 @@ body {
   background: #eef6ff;
 }
 
+.st-calendar-loading {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--st-radius) var(--st-radius) 0 0;
+  background: #dbe7f6;
+}
+
+.st-calendar-loading-bar {
+  position: relative;
+  height: 100%;
+}
+
+.st-calendar-loading-bar span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 40%;
+  border-radius: 999px;
+  background: #2563eb;
+  animation: st-calendar-loading-slide 900ms ease-in-out infinite;
+}
+
+@keyframes st-calendar-loading-slide {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(350%);
+  }
+}
+
 @media (max-width: 959px) {
   .st-content-shell {
     padding: var(--st-space-md);
