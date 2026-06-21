@@ -1,3 +1,5 @@
+import { getDefaultRoute } from '~/utils/navigation';
+
 const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
 
 export default defineNuxtRouteMiddleware((to) => {
@@ -9,6 +11,6 @@ export default defineNuxtRouteMiddleware((to) => {
   }
 
   if (auth.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
-    return navigateTo('/calendar');
+    return navigateTo(getDefaultRoute(auth.role));
   }
 });

@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import { getDefaultRoute } from '~/utils/navigation';
+
 // Land users on the right home screen for their role.
 // Super Admin has no tenant (no calendar) -> dashboard; everyone else -> calendar.
 definePageMeta({ layout: false });
 
 onMounted(() => {
   const auth = useAuthStore();
-  const target = auth.role === 'SUPER_ADMIN' ? '/dashboard' : '/calendar';
-  navigateTo(target);
+  navigateTo(getDefaultRoute(auth.role));
 });
 </script>
 

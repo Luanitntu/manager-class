@@ -1,5 +1,17 @@
 :root {
   --st-content-max: 1400px;
+  --st-space-xs: 4px;
+  --st-space-sm: 8px;
+  --st-space-md: 16px;
+  --st-space-lg: 24px;
+  --st-space-xl: 32px;
+  --st-border: #d8e0ea;
+  --st-text: #172033;
+  --st-text-muted: #64748b;
+  --st-nav-width: 272px;
+  --st-bottom-nav-height: 68px;
+  --st-radius: 8px;
+  --st-shadow-soft: 0 10px 30px rgba(23, 32, 51, 0.06);
 }
 
 html,
@@ -7,10 +19,60 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', 'Roboto', sans-serif;
+  color: var(--st-text);
 }
 
 .st-content {
   max-width: var(--st-content-max);
   margin: 0 auto;
   width: 100%;
+}
+
+.st-content-shell {
+  padding-bottom: var(--st-space-lg);
+}
+
+.st-card-soft {
+  box-shadow: var(--st-shadow-soft);
+  border-color: var(--st-border);
+}
+
+.st-nav-active {
+  color: #2563eb;
+  background: #eef6ff;
+  position: relative;
+}
+
+.st-nav-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: #2563eb;
+}
+
+.st-calendar-card .fc {
+  color: var(--st-text);
+}
+
+.st-calendar-card .fc .fc-button-primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  border-radius: var(--st-radius);
+  text-transform: none;
+}
+
+.st-calendar-card .fc .fc-daygrid-day.fc-day-today,
+.st-calendar-card .fc .fc-timegrid-col.fc-day-today {
+  background: #eef6ff;
+}
+
+@media (max-width: 959px) {
+  .st-content-shell {
+    padding: var(--st-space-md);
+    padding-bottom: calc(var(--st-bottom-nav-height) + env(safe-area-inset-bottom) + var(--st-space-lg));
+  }
 }

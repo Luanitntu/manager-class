@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useDashboard, type DashboardStats } from '~/composables/useDashboard';
 
-const { data, isLoading } = useDashboard();
+const { data, isLoading, error, refetch } = useDashboard();
 
 function money(n?: number) {
   return (n ?? 0).toLocaleString();
@@ -49,6 +49,11 @@ const cards = computed<Stat[]>(() => {
 });
 
 const upcoming = computed(() => data.value?.upcomingSessions ?? []);
+const dashboardSubtitle = computed(() => {
+  if (data.value?.role === 'STUDENT') return 'Your classes, scores, tuition, and upcoming schedule at a glance.';
+  if (data.value?.role === 'TEACHER') return 'Your teaching activity, classes, students, and tuition snapshot.';
+  return 'Quick overview of your learning operations.';
+});
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleString([], {
@@ -63,12 +68,31 @@ function fmt(iso: string) {
 
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-1">Dashboard</h1>
-    <p class="text-medium-emphasis mb-6">Quick overview of your teaching activity.</p>
+    <AppPageHeader
+      title="Dashboard"
+      :subtitle="dashboardSubtitle"
+      icon="mdi-view-dashboard-outline"
+    />
 
-    <v-row>
+    <AppState
+      v-if="isLoading"
+      variant="loading"
+      title="Loading dashboard"
+      body="Preparing your latest class activity."
+    />
+
+    <AppState
+      v-else-if="error"
+      variant="error"
+      title="Could not load dashboard"
+      body="Try again, or check your connection if the problem continues."
+      action-label="Try again"
+      @action="refetch()"
+    />
+
+    <v-row v-else-if="cards.length">
       <v-col v-for="s in cards" :key="s.label" cols="12" sm="6" md="3">
-        <v-card class="pa-4">
+        <v-card class="pa-4 st-card-soft">
           <div class="d-flex align-center ga-3">
             <v-avatar :color="s.color" rounded="lg" size="44">
               <v-icon color="white">{{ s.icon }}</v-icon>
@@ -82,7 +106,14 @@ function fmt(iso: string) {
       </v-col>
     </v-row>
 
-    <v-card v-if="upcoming.length" class="mt-6">
+    <AppState
+      v-else
+      variant="empty"
+      title="Nothing here yet"
+      body="When your class activity is ready, dashboard cards will appear here."
+    />
+
+    <v-card v-if="!isLoading && !error && upcoming.length" class="mt-6 st-card-soft">
       <v-card-title class="text-subtitle-1 font-weight-bold">Upcoming Sessions</v-card-title>
       <v-list>
         <v-list-item v-for="u in upcoming" :key="u.id" :to="'/calendar'">
@@ -98,8 +129,15 @@ function fmt(iso: string) {
       </v-list>
     </v-card>
 
-    <v-card v-else-if="!isLoading" class="mt-6 pa-8 text-center text-medium-emphasis">
-      No upcoming sessions. Head to the Calendar to schedule one.
-    </v-card>
+    <AppState
+      v-else-if="!isLoading && !error && cards.length"
+      class="mt-6"
+      variant="empty"
+      icon="mdi-calendar-heart"
+      title="No upcoming sessions"
+      body="Scheduled classes will appear here as soon as they are available."
+      action-label="Open calendar"
+      @action="navigateTo('/calendar')"
+    />
   </div>
 </template>

@@ -10,9 +10,11 @@ import type {
   DatesSetArg,
 } from '@fullcalendar/core';
 import type { EventResizeDoneArg } from '@fullcalendar/interaction';
+import { useDisplay } from 'vuetify';
 import { fetchSessionRange, type TeachingSession } from '~/composables/useSessions';
 
 const auth = useAuthStore();
+const { smAndDown } = useDisplay();
 const { update } = useSessionMutations();
 const canEdit = computed(() => auth.role === 'TEACHER');
 
@@ -22,6 +24,7 @@ const prefill = ref<{ start: string; end: string } | null>(null);
 const snackbar = reactive({ show: false, text: '', color: 'error' });
 
 const events = ref<Record<string, unknown>[]>([]);
+const loading = ref(false);
 let currentRange: { from: string; to: string } | null = null;
 
 function notify(text: string, color = 'error') {
@@ -31,25 +34,28 @@ function notify(text: string, color = 'error') {
 }
 
 function toEvent(s: TeachingSession) {
-  const color = s.class.color || '#5D87FF';
+  const color = s.class.color || '#2563EB';
   return {
     id: s.id,
-    title: `${s.class.name}${s.lessonTopic ? ' — ' + s.lessonTopic : ''}`,
+    title: `${s.class.name}${s.lessonTopic ? ' - ' + s.lessonTopic : ''}`,
     start: s.startTime,
     end: s.endTime,
-    backgroundColor: s.status === 'CANCELLED' ? '#bdbdbd' : color,
-    borderColor: s.status === 'CANCELLED' ? '#bdbdbd' : color,
+    backgroundColor: s.status === 'CANCELLED' ? '#94a3b8' : color,
+    borderColor: s.status === 'CANCELLED' ? '#94a3b8' : color,
     extendedProps: { session: s },
   };
 }
 
 async function loadRange(from: string, to: string) {
   currentRange = { from, to };
+  loading.value = true;
   try {
     const sessions = await fetchSessionRange(from, to);
     events.value = sessions.map(toEvent);
   } catch (e) {
     notify(extractApiError(e) ?? 'Failed to load sessions');
+  } finally {
+    loading.value = false;
   }
 }
 
@@ -96,11 +102,11 @@ async function reschedule(arg: EventDropArg | EventResizeDoneArg) {
 
 const calendarOptions = computed<CalendarOptions>(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-  initialView: 'dayGridMonth',
+  initialView: smAndDown.value ? 'timeGridDay' : 'dayGridMonth',
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
-    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+    right: smAndDown.value ? 'timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay',
   },
   height: 'auto',
   nowIndicator: true,
@@ -118,39 +124,102 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   eventDrop: reschedule,
   eventResize: reschedule,
 }));
+
+const agendaSessions = computed(() =>
+  events.value
+    .map((event) => (event.extendedProps as { session?: TeachingSession } | undefined)?.session)
+    .filter((session): session is TeachingSession => !!session)
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()),
+);
+
+function fmt(iso: string) {
+  return new Date(iso).toLocaleString([], {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 </script>
 
 <template>
   <div>
-    <div class="d-flex align-center justify-space-between mb-6">
-      <div>
-        <h1 class="text-h5 font-weight-bold mb-1">Calendar</h1>
-        <p class="text-medium-emphasis ma-0">
-          Click a slot to create a session. Drag to reschedule.
-        </p>
-      </div>
-      <v-btn
-        v-if="canEdit"
-        color="primary"
-        prepend-icon="mdi-plus"
-        @click="
-          selected = null;
-          prefill = null;
-          dialog = true;
-        "
-      >
-        New Session
-      </v-btn>
-    </div>
+    <AppPageHeader
+      title="Calendar"
+      icon="mdi-calendar-month-outline"
+      :subtitle="
+        canEdit
+          ? 'Create sessions, open details, and drag to reschedule.'
+          : 'Follow your upcoming class schedule.'
+      "
+    >
+      <template #actions>
+        <v-btn
+          v-if="canEdit"
+          color="primary"
+          prepend-icon="mdi-plus"
+          @click="
+            selected = null;
+            prefill = null;
+            dialog = true;
+          "
+        >
+          New Session
+        </v-btn>
+      </template>
+    </AppPageHeader>
 
-    <v-card class="pa-4">
+    <AppState
+      v-if="loading && !events.length"
+      variant="loading"
+      title="Loading calendar"
+      body="Fetching sessions for this date range."
+    />
+
+    <v-card v-else class="pa-3 pa-sm-4 st-card-soft st-calendar-card">
       <client-only>
         <FullCalendar :options="calendarOptions" />
         <template #fallback>
-          <div class="text-center pa-12 text-medium-emphasis">Loading calendar…</div>
+          <AppState variant="loading" title="Loading calendar" />
         </template>
       </client-only>
     </v-card>
+
+    <v-card v-if="smAndDown && agendaSessions.length" class="mt-4 st-card-soft">
+      <v-card-title class="text-subtitle-1 font-weight-bold">Agenda</v-card-title>
+      <v-list>
+        <v-list-item
+          v-for="session in agendaSessions"
+          :key="session.id"
+          @click="
+            selected = session;
+            prefill = null;
+            dialog = true;
+          "
+        >
+          <template #prepend>
+            <v-avatar :color="session.class.color || 'primary'" size="10" />
+          </template>
+          <v-list-item-title>{{ session.class.name }}</v-list-item-title>
+          <v-list-item-subtitle>{{ session.lessonTopic || 'No topic' }}</v-list-item-subtitle>
+          <template #append>
+            <span class="text-caption text-medium-emphasis">
+              {{ fmt(session.startTime) }}
+            </span>
+          </template>
+        </v-list-item>
+      </v-list>
+    </v-card>
+
+    <AppState
+      v-else-if="!loading && !events.length"
+      class="mt-4"
+      variant="empty"
+      icon="mdi-calendar-heart"
+      title="No sessions in this range"
+      body="Sessions will appear here when they are scheduled for the selected dates."
+    />
 
     <SessionDialog
       v-model="dialog"

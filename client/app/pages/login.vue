@@ -2,6 +2,7 @@
 import { toTypedSchema } from '@vee-validate/zod';
 import { useForm } from 'vee-validate';
 import { z } from 'zod';
+import { getDefaultRoute } from '~/utils/navigation';
 
 definePageMeta({ layout: 'auth' });
 
@@ -26,7 +27,7 @@ const onSubmit = handleSubmit(async (values) => {
   loading.value = true;
   try {
     const res = await login(values.identifier, values.password);
-    const home = res.user.role === 'SUPER_ADMIN' ? '/dashboard' : '/calendar';
+    const home = getDefaultRoute(res.user.role);
     const redirect = (route.query.redirect as string) || home;
     await navigateTo(redirect);
   } catch (e: unknown) {
