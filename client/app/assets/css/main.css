@@ -12,14 +12,22 @@
   --st-bottom-nav-height: 68px;
   --st-radius: 8px;
   --st-shadow-soft: 0 10px 30px rgba(23, 32, 51, 0.06);
+  --st-font-family: 'Nunito', 'Segoe UI Rounded', 'Arial Rounded MT Bold', 'Roboto', sans-serif;
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', 'Roboto', sans-serif;
+  font-family: var(--st-font-family);
   color: var(--st-text);
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: var(--st-font-family);
 }
 
 .st-content {

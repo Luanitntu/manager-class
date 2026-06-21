@@ -1,5 +1,5 @@
-// Vuetify SCSS variable overrides (Spike-inspired)
+// Vuetify SCSS variable overrides.
 @use 'vuetify/settings' with (
   $border-radius-root: 8px,
-  $body-font-family: ('Inter', 'Roboto', sans-serif)
+  $body-font-family: ('Nunito', 'Segoe UI Rounded', 'Arial Rounded MT Bold', 'Roboto', sans-serif)
 );
