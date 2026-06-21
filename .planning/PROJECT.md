@@ -70,6 +70,12 @@ Teachers and students can reliably see and act on the right class data through a
 | Use PREP-like education SaaS feel as reference | User likes that interface direction | Pending |
 | Center role deferred to v2 | Prevents scope creep while teacher/student flows are still being refined | Pending |
 
+## Phase Notes
+
+- Phase 1 audit complete: static route/API/composable baseline, teacher audit, student/auth audit, bug ledger, and handoff summary now live under `.planning/phases/01-audit-data-flow-baseline/`.
+- Runtime smoke testing remains blocked until Node/npm are available on PATH.
+- Highest-confidence Phase 1 findings: student `/documents` and `/payments` call teacher-only helper queries; README seed password mismatch; seed lacks student smoke-test data.
+
 ## Evolution
 
 After each phase:
@@ -79,4 +85,4 @@ After each phase:
 4. Re-check whether the app still feels teacher/student first.
 
 ---
-*Last updated: 2026-06-21 after project initialization*
+*Last updated: 2026-06-21 after Phase 1 audit execution*

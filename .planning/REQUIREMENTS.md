@@ -79,9 +79,9 @@
 | DATA-03 | Phase 3 | Pending |
 | DATA-04 | Phase 4 | Pending |
 | DATA-05 | Phase 4 | Pending |
-| DATA-06 | Phase 1 | Pending |
-| BUG-01 | Phase 1 | Pending |
-| BUG-02 | Phase 1 | Pending |
+| DATA-06 | Phase 1 | Complete - audit baseline |
+| BUG-01 | Phase 1 | Complete - audit baseline |
+| BUG-02 | Phase 1 | Complete - audit baseline |
 | BUG-03 | Phase 3 | Pending |
 | BUG-04 | Phase 3 | Pending |
 | BUG-05 | Phase 4 | Pending |
@@ -112,4 +112,4 @@
 
 ---
 *Requirements defined: 2026-06-21*
-*Last updated: 2026-06-21 after initial definition*
+*Last updated: 2026-06-21 after Phase 1 audit execution*

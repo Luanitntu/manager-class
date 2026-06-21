@@ -13,12 +13,12 @@ This roadmap turns the existing broad MVP into a polished teacher/student releas
 **Goal:** Reproduce current data-display bugs and identify the exact API/composable/page causes before redesign work hides them.
 **Mode:** mvp
 **Requirements:** DATA-06, BUG-01, BUG-02
-**Status:** Planned
+**Status:** Complete - 2026-06-21
 **Plans:**
-- **Wave 1:** `01-01-PLAN.md` - Establish audit setup and route/API/composable matrix.
-- **Wave 2** *(blocked on Wave 1 completion)*: `01-02-PLAN.md` - Audit teacher-facing data display and navigation flows.
-- **Wave 2** *(blocked on Wave 1 completion)*: `01-03-PLAN.md` - Audit student-facing and auth/session data flows.
-- **Wave 3** *(blocked on Wave 2 completion)*: `01-04-PLAN.md` - Consolidate findings into bug ledger and audit summary.
+- **Wave 1:** `01-01-PLAN.md` - Establish audit setup and route/API/composable matrix. **Complete**
+- **Wave 2** *(blocked on Wave 1 completion)*: `01-02-PLAN.md` - Audit teacher-facing data display and navigation flows. **Complete**
+- **Wave 2** *(blocked on Wave 1 completion)*: `01-03-PLAN.md` - Audit student-facing and auth/session data flows. **Complete**
+- **Wave 3** *(blocked on Wave 2 completion)*: `01-04-PLAN.md` - Consolidate findings into bug ledger and audit summary. **Complete**
 **Cross-cutting constraints:**
 - Audit findings must stay focused on teacher/student flows; center role remains deferred.
 - Evidence must distinguish runtime reproduction, static mismatch, not reproducible, and environment blockers.
