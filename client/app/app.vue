@@ -33,14 +33,17 @@ onMounted(async () => {
     <div v-if="isBooting || isNavigating" class="st-app-loader-screen">
       <div class="st-app-loader-brand">
         <div class="st-app-loader-mark">
-          <v-icon color="white" size="32">mdi-school</v-icon>
+          <span class="st-app-loader-mark-roof" />
+          <span class="st-app-loader-mark-book" />
         </div>
         <div>
           <div class="st-app-loader-title">Schedule Teacher</div>
           <div class="st-app-loader-subtitle">Preparing your workspace</div>
         </div>
       </div>
-      <v-progress-linear color="primary" indeterminate rounded class="st-app-loader-progress" />
+      <div class="st-app-loader-progress" aria-hidden="true">
+        <span />
+      </div>
     </div>
   </Transition>
 </template>
@@ -66,6 +69,7 @@ onMounted(async () => {
 }
 
 .st-app-loader-mark {
+  position: relative;
   display: grid;
   width: 56px;
   height: 56px;
@@ -73,6 +77,37 @@ onMounted(async () => {
   border-radius: 8px;
   background: #2563eb;
   box-shadow: 0 14px 36px rgba(37, 99, 235, 0.22);
+}
+
+.st-app-loader-mark-roof {
+  position: absolute;
+  top: 16px;
+  width: 28px;
+  height: 10px;
+  border: 3px solid #ffffff;
+  border-bottom: 0;
+  transform: skewX(-18deg);
+}
+
+.st-app-loader-mark-book {
+  position: absolute;
+  bottom: 16px;
+  width: 30px;
+  height: 16px;
+  border: 3px solid #ffffff;
+  border-top: 0;
+  border-radius: 0 0 5px 5px;
+}
+
+.st-app-loader-mark-book::before {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: 3px;
+  height: 15px;
+  background: #ffffff;
+  content: '';
+  transform: translateX(-50%);
 }
 
 .st-app-loader-title {
@@ -88,7 +123,33 @@ onMounted(async () => {
 }
 
 .st-app-loader-progress {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dbe7f6;
   width: min(320px, calc(100vw - 48px));
+}
+
+.st-app-loader-progress span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -45%;
+  width: 45%;
+  border-radius: inherit;
+  background: #2563eb;
+  animation: st-app-loader-slide 900ms ease-in-out infinite;
+}
+
+@keyframes st-app-loader-slide {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(320%);
+  }
 }
 
 .st-app-loader-enter-active,
