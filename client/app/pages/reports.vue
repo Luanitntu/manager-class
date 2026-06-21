@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { useClasses } from '~/composables/useClasses';
+import { useSnackbar } from '~/composables/useSnackbar';
 
 const config = useRuntimeConfig();
 const auth = useAuthStore();
 const { data: classesData } = useClasses();
+const { success: showSuccess, error: showError } = useSnackbar();
+
 const classes = computed(() => classesData.value?.data ?? []);
 const scoreClassId = ref<string | undefined>(undefined);
-const error = ref<string | null>(null);
 
 async function download(path: string, filename: string) {
-  error.value = null;
   try {
     const blob = await $fetch<Blob>(path, {
       baseURL: config.public.apiBase,
@@ -22,24 +23,24 @@ async function download(path: string, filename: string) {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+    showSuccess(`${filename} exported successfully.`);
   } catch (e) {
-    error.value = extractApiError(e) ?? 'Could not generate report';
+    showError(extractApiError(e) ?? 'Could not generate report');
   }
 }
 </script>
 
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-1">Reports</h1>
-    <p class="text-medium-emphasis mb-6">Export your data to Excel.</p>
+    <AppPageHeader
+      title="Reports"
+      subtitle="Export your data to Excel."
+      icon="mdi-chart-line"
+    />
 
-    <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mb-4">
-      {{ error }}
-    </v-alert>
-
-    <v-row>
+    <v-row class="mt-2">
       <v-col cols="12" md="6">
-        <v-card class="pa-6">
+        <v-card class="pa-6 st-card-soft">
           <div class="d-flex align-center ga-3 mb-3">
             <v-avatar color="success" rounded="lg"><v-icon color="white">mdi-cash-multiple</v-icon></v-avatar>
             <div>
@@ -58,7 +59,7 @@ async function download(path: string, filename: string) {
       </v-col>
 
       <v-col cols="12" md="6">
-        <v-card class="pa-6">
+        <v-card class="pa-6 st-card-soft">
           <div class="d-flex align-center ga-3 mb-3">
             <v-avatar color="info" rounded="lg"><v-icon color="white">mdi-chart-box</v-icon></v-avatar>
             <div>

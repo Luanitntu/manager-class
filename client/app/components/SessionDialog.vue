@@ -13,8 +13,9 @@ const emit = defineEmits<{
   saved: [];
 }>();
 
-const { data: classesData } = useClasses();
+const { data: classesData, isPending } = useClasses();
 const { create, update, bulkCreate, remove } = useSessionMutations();
+const { success: showSuccess, error: showError } = useSnackbar();
 
 const classes = computed(() => classesData.value?.data ?? []);
 const isEdit = computed(() => !!props.session);
@@ -22,6 +23,7 @@ const isEdit = computed(() => !!props.session);
 type Mode = 'single' | 'recurring';
 const mode = ref<Mode>('single');
 const error = ref<string | null>(null);
+const formRef = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
 
 const form = reactive({
   classId: '',
@@ -34,6 +36,13 @@ const form = reactive({
   endDate: '',
   daysOfWeek: [] as number[],
 });
+
+// Inline Validation Rules
+const rules = {
+  required: (v: unknown) => !!v || 'Field is required',
+  endTime: (v: string) => !v || v > form.startTime || 'End time must be after start time',
+  endDate: (v: string) => !v || !form.startDate || new Date(v) >= new Date(form.startDate) || 'End date must be after or equal to start date',
+};
 
 const weekdays = [
   { label: 'Sun', value: 0 },
@@ -97,6 +106,18 @@ function close() {
 
 async function save() {
   error.value = null;
+  if (!formRef.value) return;
+  const { valid } = await formRef.value.validate();
+  if (!valid) {
+    showError('Please fix the validation errors.');
+    return;
+  }
+
+  if (mode.value === 'recurring' && !isEdit.value && form.daysOfWeek.length === 0) {
+    showError('Please select at least one repeat day.');
+    return;
+  }
+
   try {
     if (mode.value === 'recurring' && !isEdit.value) {
       await bulkCreate.mutateAsync({
@@ -108,6 +129,7 @@ async function save() {
         endTime: form.endTime,
         lessonTopic: form.lessonTopic || undefined,
       });
+      showSuccess('Recurring sessions scheduled successfully.');
     } else {
       const payload = {
         classId: form.classId,
@@ -117,26 +139,34 @@ async function save() {
       };
       if (isEdit.value && props.session) {
         await update.mutateAsync({ id: props.session.id, body: payload });
+        showSuccess('Session updated successfully.');
       } else {
         await create.mutateAsync(payload);
+        showSuccess('Session created successfully.');
       }
     }
     emit('saved');
     close();
   } catch (e: unknown) {
-    error.value = extractApiError(e) ?? 'Could not save session';
+    const apiError = extractApiError(e) ?? 'Could not save session';
+    error.value = apiError;
+    showError(apiError);
   }
 }
 
 async function deleteSession() {
   if (!props.session) return;
+  if (!confirm(`Delete this session?`)) return;
   error.value = null;
   try {
     await remove.mutateAsync(props.session.id);
+    showSuccess('Session deleted successfully.');
     emit('saved');
     close();
   } catch (e: unknown) {
-    error.value = extractApiError(e) ?? 'Could not delete session';
+    const apiError = extractApiError(e) ?? 'Could not delete session';
+    error.value = apiError;
+    showError(apiError);
   }
 }
 </script>
@@ -149,83 +179,91 @@ async function deleteSession() {
         <v-btn icon="mdi-close" variant="text" size="small" @click="close" />
       </v-card-title>
 
-      <v-card-text>
-        <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mb-4">
-          {{ error }}
-        </v-alert>
+      <v-form ref="formRef" @submit.prevent="save">
+        <v-card-text>
+          <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mb-4">
+            {{ error }}
+          </v-alert>
 
-        <v-btn-toggle
-          v-if="!isEdit"
-          v-model="mode"
-          mandatory
-          density="comfortable"
-          color="primary"
-          class="mb-4"
-        >
-          <v-btn value="single" size="small">Single</v-btn>
-          <v-btn value="recurring" size="small">Recurring</v-btn>
-        </v-btn-toggle>
+          <v-alert v-if="!classes.length && !isPending" type="warning" variant="tonal" density="compact" class="mb-4">
+            You must create a Class before you can schedule sessions.
+          </v-alert>
 
-        <v-select
-          v-model="form.classId"
-          :items="classes"
-          item-title="name"
-          item-value="id"
-          label="Class"
-          prepend-inner-icon="mdi-google-classroom"
-        />
+          <v-btn-toggle
+            v-if="!isEdit"
+            v-model="mode"
+            mandatory
+            density="comfortable"
+            color="primary"
+            class="mb-4"
+          >
+            <v-btn value="single" size="small">Single</v-btn>
+            <v-btn value="recurring" size="small">Recurring</v-btn>
+          </v-btn-toggle>
 
-        <template v-if="mode === 'single' || isEdit">
-          <v-text-field v-model="form.date" type="date" label="Date" />
-        </template>
+          <v-select
+            v-model="form.classId"
+            :items="classes"
+            item-title="name"
+            item-value="id"
+            label="Class"
+            prepend-inner-icon="mdi-google-classroom"
+            :rules="[rules.required]"
+            class="mb-2"
+          />
 
-        <template v-else>
-          <div class="d-flex ga-3">
-            <v-text-field v-model="form.startDate" type="date" label="From" />
-            <v-text-field v-model="form.endDate" type="date" label="To" />
+          <template v-if="mode === 'single' || isEdit">
+            <v-text-field v-model="form.date" type="date" label="Date" :rules="[rules.required]" class="mb-2" />
+          </template>
+
+          <template v-else>
+            <div class="d-flex ga-3 mb-2">
+              <v-text-field v-model="form.startDate" type="date" label="From" :rules="[rules.required]" />
+              <v-text-field v-model="form.endDate" type="date" label="To" :rules="[rules.required, rules.endDate]" />
+            </div>
+            <div class="mb-2 text-caption text-medium-emphasis">Repeat on</div>
+            <v-chip-group v-model="form.daysOfWeek" multiple column class="mb-2">
+              <v-chip
+                v-for="d in weekdays"
+                :key="d.value"
+                :value="d.value"
+                filter
+                variant="outlined"
+              >
+                {{ d.label }}
+              </v-chip>
+            </v-chip-group>
+          </template>
+
+          <div class="d-flex ga-3 mb-2">
+            <v-text-field v-model="form.startTime" type="time" label="Start" :rules="[rules.required]" />
+            <v-text-field v-model="form.endTime" type="time" label="End" :rules="[rules.required, rules.endTime]" />
           </div>
-          <div class="mb-2 text-caption text-medium-emphasis">Repeat on</div>
-          <v-chip-group v-model="form.daysOfWeek" multiple column class="mb-2">
-            <v-chip
-              v-for="d in weekdays"
-              :key="d.value"
-              :value="d.value"
-              filter
-              variant="outlined"
-            >
-              {{ d.label }}
-            </v-chip>
-          </v-chip-group>
-        </template>
 
-        <div class="d-flex ga-3">
-          <v-text-field v-model="form.startTime" type="time" label="Start" />
-          <v-text-field v-model="form.endTime" type="time" label="End" />
-        </div>
+          <v-text-field
+            v-model="form.lessonTopic"
+            label="Lesson topic"
+            prepend-inner-icon="mdi-book-open-variant"
+          />
+        </v-card-text>
 
-        <v-text-field
-          v-model="form.lessonTopic"
-          label="Lesson topic"
-          prepend-inner-icon="mdi-book-open-variant"
-        />
-      </v-card-text>
-
-      <v-card-actions class="px-4 pb-4">
-        <v-btn
-          v-if="isEdit"
-          color="error"
-          variant="text"
-          prepend-icon="mdi-delete"
-          @click="deleteSession"
-        >
-          Delete
-        </v-btn>
-        <v-spacer />
-        <v-btn variant="text" @click="close">Cancel</v-btn>
-        <v-btn color="primary" :loading="saving" :disabled="!form.classId" @click="save">
-          Save
-        </v-btn>
-      </v-card-actions>
+        <v-card-actions class="px-4 pb-4">
+          <v-btn
+            v-if="isEdit"
+            color="error"
+            variant="text"
+            prepend-icon="mdi-delete"
+            @click="deleteSession"
+          >
+            Delete
+          </v-btn>
+          <v-spacer />
+          <v-btn variant="text" @click="close">Cancel</v-btn>
+          <v-btn color="primary" type="submit" :loading="saving" :disabled="!form.classId">
+            Save
+          </v-btn>
+        </v-card-actions>
+      </v-form>
     </v-card>
   </v-dialog>
 </template>

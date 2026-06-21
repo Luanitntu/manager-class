@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useAuditLogs } from '~/composables/useAudit';
 
-const { data, isLoading } = useAuditLogs();
+const { data, isLoading, error, refetch } = useAuditLogs();
 const logs = computed(() => data.value?.data ?? []);
 
 const actionColor: Record<string, string> = {
@@ -23,40 +23,64 @@ function fmt(iso: string) {
 
 <template>
   <div>
-    <h1 class="text-h5 font-weight-bold mb-1">Audit Logs</h1>
-    <p class="text-medium-emphasis mb-6">Important actions performed in your tenant.</p>
+    <AppPageHeader
+      title="Audit Logs"
+      subtitle="Important actions performed in your tenant."
+      icon="mdi-history"
+    />
 
-    <v-card>
-      <v-table>
-        <thead>
-          <tr>
-            <th>When</th>
-            <th>Actor</th>
-            <th>Action</th>
-            <th>Entity</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="l in logs" :key="l.id">
-            <td class="text-caption">{{ fmt(l.createdAt) }}</td>
-            <td>
-              {{ l.actor?.fullName ?? '—' }}
-              <span class="text-caption text-medium-emphasis">({{ l.actor?.role }})</span>
-            </td>
-            <td>
-              <v-chip :color="colorFor(l.action)" size="small" variant="tonal">
-                {{ l.action.replace(/_/g, ' ') }}
-              </v-chip>
-            </td>
-            <td class="text-caption">
-              {{ l.entityType }}<span v-if="l.entityId"> · {{ l.entityId.slice(0, 8) }}</span>
-            </td>
-          </tr>
-          <tr v-if="!logs.length && !isLoading">
-            <td colspan="4" class="text-center text-medium-emphasis pa-6">No audit entries yet.</td>
-          </tr>
-        </tbody>
-      </v-table>
-    </v-card>
+    <AppState
+      v-if="isLoading"
+      variant="loading"
+      title="Loading logs"
+      body="Fetching security and audit event history..."
+    />
+
+    <AppState
+      v-else-if="error"
+      variant="error"
+      title="Could not load audit logs"
+      body="Failed to retrieve logs. Please check your network connection."
+      action-label="Try again"
+      @action="refetch()"
+    />
+
+    <template v-else>
+      <v-card v-if="logs.length" class="st-card-soft">
+        <v-table>
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Entity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="l in logs" :key="l.id">
+              <td class="text-caption">{{ fmt(l.createdAt) }}</td>
+              <td>
+                {{ l.actor?.fullName ?? '—' }}
+                <span class="text-caption text-medium-emphasis">({{ l.actor?.role }})</span>
+              </td>
+              <td>
+                <v-chip :color="colorFor(l.action)" size="small" variant="tonal">
+                  {{ l.action.replace(/_/g, ' ') }}
+                </v-chip>
+              </td>
+              <td class="text-caption">
+                {{ l.entityType }}<span v-if="l.entityId"> · {{ l.entityId.slice(0, 8) }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+      </v-card>
+      <AppState
+        v-else
+        variant="empty"
+        title="No audit entries yet"
+        body="Security events will appear here once actions are performed on the platform."
+      />
+    </template>
   </div>
 </template>

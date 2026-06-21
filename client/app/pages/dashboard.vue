@@ -72,7 +72,19 @@ function fmt(iso: string) {
       title="Dashboard"
       :subtitle="dashboardSubtitle"
       icon="mdi-view-dashboard-outline"
-    />
+    >
+      <template #actions>
+        <v-btn
+          color="primary"
+          variant="outlined"
+          prepend-icon="mdi-refresh"
+          :loading="isLoading"
+          @click="refetch"
+        >
+          Refresh
+        </v-btn>
+      </template>
+    </AppPageHeader>
 
     <AppState
       v-if="isLoading"

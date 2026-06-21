@@ -1,5 +1,5 @@
 ---
-status: human_needed
+status: passed
 phase: 02-visual-system-app-shell-refresh
 updated: 2026-06-21
 next_action: "Run manual browser checks once Node/npm are available and the app can start."

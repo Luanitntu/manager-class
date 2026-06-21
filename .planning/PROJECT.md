@@ -24,12 +24,12 @@ Teachers and students can reliably see and act on the right class data through a
 - Existing MVP modules are implemented: auth, classes, sessions/calendar, students, assistants, documents, payments, reports, notifications, dashboard, audit logs.
 - Architecture is already multi-tenant with `teacherId` as tenant key.
 - Calendar-first teacher workflow remains the product anchor.
+- Stabilize teacher workflows: dashboard, calendar, classes, students, documents, payments, reports, and profile (Validated in Phase 3: Teacher Workflow Polish & Fixes).
 
 ### Active
 
 - [ ] Refresh the teacher and student UI with a modern, approachable SaaS style inspired by `app.prepedu.vn`, without copying PREP branding, assets, or protected UI.
 - [ ] Audit and fix current data-display bugs where pages have backend data but the frontend does not show it.
-- [ ] Stabilize teacher workflows: dashboard, calendar, classes, students, documents, payments, reports, and profile.
 - [ ] Stabilize student workflows: dashboard, enrolled classes, schedule, assigned documents, scores/comments, payments, and profile.
 - [ ] Add targeted verification so bug fixes and UI refresh do not regress core teacher/student flows.
 
@@ -85,4 +85,4 @@ After each phase:
 4. Re-check whether the app still feels teacher/student first.
 
 ---
-*Last updated: 2026-06-21 after Phase 1 audit execution*
+*Last updated: 2026-06-21 after Phase 3 complete*

@@ -7,18 +7,18 @@
 
 ### UI Refresh
 
-- [ ] **UI-01**: Teacher-facing pages use a consistent modern education SaaS visual style inspired by PREP, with original colors, spacing, typography, and component treatment.
+- [x] **UI-01**: Teacher-facing pages use a consistent modern education SaaS visual style inspired by PREP, with original colors, spacing, typography, and component treatment.
 - [ ] **UI-02**: Student-facing pages use the same visual system while emphasizing clarity around upcoming classes, documents, scores, and payments.
-- [ ] **UI-03**: The app shell provides clear role-aware navigation for teacher and student routes without crowding or confusing center/admin concepts.
-- [ ] **UI-04**: Calendar remains the primary teacher workspace and supports create, view/edit, drag, resize, and recurring-session flows without visual breakage.
-- [ ] **UI-05**: Empty, loading, error, and success states are polished and consistent across teacher/student pages.
+- [x] **UI-03**: The app shell provides clear role-aware navigation for teacher and student routes without crowding or confusing center/admin concepts.
+- [x] **UI-04**: Calendar remains the primary teacher workspace and supports create, view/edit, drag, resize, and recurring-session flows without visual breakage.
+- [x] **UI-05**: Empty, loading, error, and success states are polished and consistent across teacher/student pages.
 - [ ] **UI-06**: Main pages remain usable on common laptop and mobile-width viewports, with no overlapping text or broken controls.
 
 ### Data Display Reliability
 
-- [ ] **DATA-01**: Teacher dashboard displays live counts, upcoming sessions, tuition summaries, and relevant alerts when data exists.
-- [ ] **DATA-02**: Teacher calendar displays existing sessions from the API for the selected date range.
-- [ ] **DATA-03**: Teacher class, student, assistant, document, payment, report, and audit pages display existing API data correctly.
+- [x] **DATA-01**: Teacher dashboard displays live counts, upcoming sessions, tuition summaries, and relevant alerts when data exists.
+- [x] **DATA-02**: Teacher calendar displays existing sessions from the API for the selected date range.
+- [x] **DATA-03**: Teacher class, student, assistant, document, payment, report, and audit pages display existing API data correctly.
 - [ ] **DATA-04**: Student dashboard displays enrolled classes, upcoming sessions, assigned documents, scores/comments, and payment status where data exists.
 - [ ] **DATA-05**: Student-accessible lists do not silently appear empty when API data exists or when role scoping requires a different API path.
 - [ ] **DATA-06**: API envelope and pagination handling are consistent in frontend composables so pages do not lose data due to unwrap/meta mismatches.
@@ -27,8 +27,8 @@
 
 - [ ] **BUG-01**: Known page-level bugs where data exists but the UI does not show it are audited, reproduced, fixed, and recorded.
 - [ ] **BUG-02**: Auth/session edge cases that block teacher or student navigation are fixed.
-- [ ] **BUG-03**: Form submit/update flows for teacher/student core pages show validation errors and successful updates clearly.
-- [ ] **BUG-04**: Upload/download/share flows for documents are verified for teacher-created and student-visible materials.
+- [x] **BUG-03**: Form submit/update flows for teacher/student core pages show validation errors and successful updates clearly.
+- [x] **BUG-04**: Upload/download/share flows for documents are verified for teacher-created and student-visible materials.
 - [ ] **BUG-05**: Payment status and payment history display correctly for teachers and students.
 
 ### Verification
@@ -68,22 +68,22 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UI-01 | Phase 2 | Pending |
+| UI-01 | Phase 2 | Complete |
 | UI-02 | Phase 4 | Pending |
-| UI-03 | Phase 2 | Pending |
-| UI-04 | Phase 3 | Pending |
-| UI-05 | Phase 2 | Pending |
+| UI-03 | Phase 2 | Complete |
+| UI-04 | Phase 3 | Complete |
+| UI-05 | Phase 2 | Complete |
 | UI-06 | Phase 5 | Pending |
-| DATA-01 | Phase 3 | Pending |
-| DATA-02 | Phase 3 | Pending |
-| DATA-03 | Phase 3 | Pending |
+| DATA-01 | Phase 3 | Complete |
+| DATA-02 | Phase 3 | Complete |
+| DATA-03 | Phase 3 | Complete |
 | DATA-04 | Phase 4 | Pending |
 | DATA-05 | Phase 4 | Pending |
 | DATA-06 | Phase 1 | Complete - audit baseline |
 | BUG-01 | Phase 1 | Complete - audit baseline |
 | BUG-02 | Phase 1 | Complete - audit baseline |
-| BUG-03 | Phase 3 | Pending |
-| BUG-04 | Phase 3 | Pending |
+| BUG-03 | Phase 3 | Complete |
+| BUG-04 | Phase 3 | Complete |
 | BUG-05 | Phase 4 | Pending |
 | VER-01 | Phase 5 | Pending |
 | VER-02 | Phase 5 | Pending |
@@ -92,6 +92,7 @@
 | VER-05 | Phase 5 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 22 total
 - Mapped to phases: 22
 - Unmapped: 0

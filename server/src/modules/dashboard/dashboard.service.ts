@@ -31,9 +31,11 @@ export class DashboardService {
     );
     return { role: Role.SUPER_ADMIN, totalTeachers, totalStudents, totalClasses, totalUsers };
   }
-
   private async teacherStats(teacherId: string) {
     const now = new Date();
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(now.getDate() + 7);
+
     const [totalClasses, totalStudents, tuitionAgg, upcoming] = await this.prisma.$transaction([
       this.prisma.class.count({ where: { teacherId, deletedAt: null } }),
       this.prisma.user.count({
@@ -44,10 +46,15 @@ export class DashboardService {
         _sum: { totalAmount: true, paidAmount: true },
       }),
       this.prisma.teachingSession.findMany({
-        where: { teacherId, deletedAt: null, startTime: { gte: now }, status: 'SCHEDULED' },
+        where: {
+          teacherId,
+          deletedAt: null,
+          startTime: { gte: now, lte: sevenDaysFromNow },
+          status: 'SCHEDULED',
+        },
         include: { class: { select: { name: true, color: true } } },
         orderBy: { startTime: 'asc' },
-        take: 5,
+        take: 20,
       }),
     ]);
 
@@ -65,19 +72,22 @@ export class DashboardService {
 
   private async assistantStats(assistantId: string) {
     const now = new Date();
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(now.getDate() + 7);
+
     const [assignedClasses, totalSessions, upcoming] = await this.prisma.$transaction([
       this.prisma.classAssistant.count({ where: { assistantId } }),
       this.prisma.sessionAssistant.count({ where: { assistantId } }),
       this.prisma.teachingSession.findMany({
         where: {
           deletedAt: null,
-          startTime: { gte: now },
+          startTime: { gte: now, lte: sevenDaysFromNow },
           status: 'SCHEDULED',
           assistants: { some: { assistantId } },
         },
         include: { class: { select: { name: true, color: true } } },
         orderBy: { startTime: 'asc' },
-        take: 5,
+        take: 20,
       }),
     ]);
     return { role: Role.ASSISTANT, assignedClasses, totalSessions, upcomingSessions: upcoming };
@@ -85,6 +95,9 @@ export class DashboardService {
 
   private async studentStats(studentId: string) {
     const now = new Date();
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(now.getDate() + 7);
+
     const [currentClasses, tuitionAgg, upcoming, scoreCount] = await this.prisma.$transaction([
       this.prisma.classEnrollment.count({
         where: { studentId, status: 'ACTIVE' },
@@ -96,13 +109,13 @@ export class DashboardService {
       this.prisma.teachingSession.findMany({
         where: {
           deletedAt: null,
-          startTime: { gte: now },
+          startTime: { gte: now, lte: sevenDaysFromNow },
           status: 'SCHEDULED',
           class: { enrollments: { some: { studentId } } },
         },
         include: { class: { select: { name: true, color: true } } },
         orderBy: { startTime: 'asc' },
-        take: 5,
+        take: 20,
       }),
       this.prisma.score.count({ where: { studentId } }),
     ]);

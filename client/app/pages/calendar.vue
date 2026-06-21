@@ -2,6 +2,7 @@
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import listPlugin from '@fullcalendar/list';
 import type {
   CalendarOptions,
   DateSelectArg,
@@ -12,16 +13,17 @@ import type {
 import type { EventResizeDoneArg } from '@fullcalendar/interaction';
 import { useDisplay } from 'vuetify';
 import { fetchSessionRange, type TeachingSession } from '~/composables/useSessions';
+import { useSnackbar } from '~/composables/useSnackbar';
 
 const auth = useAuthStore();
-const { smAndDown } = useDisplay();
+const { smAndDown, xs } = useDisplay();
 const { update } = useSessionMutations();
 const canEdit = computed(() => auth.role === 'TEACHER');
+const { show: showSnackbar, error: showError } = useSnackbar();
 
 const dialog = ref(false);
 const selected = ref<TeachingSession | null>(null);
 const prefill = ref<{ start: string; end: string } | null>(null);
-const snackbar = reactive({ show: false, text: '', color: 'error' });
 
 const events = ref<Record<string, unknown>[]>([]);
 const loading = ref(false);
@@ -34,14 +36,18 @@ function rangeKey(from: string, to: string) {
   return `${from}|${to}`;
 }
 
-function notify(text: string, color = 'error') {
-  snackbar.text = text;
-  snackbar.color = color;
-  snackbar.show = true;
+function getColorFromId(id: string) {
+  const colors = ['#2563EB', '#14B8A6', '#22C55E', '#F97316', '#0EA5E9', '#F59E0B', '#EF4444', '#EC4899', '#8B5CF6'];
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
 }
 
 function toEvent(s: TeachingSession) {
-  const color = s.class.color || '#2563EB';
+  const color = s.class.color || getColorFromId(s.class.id);
   return {
     id: s.id,
     title: `${s.class.name}${s.lessonTopic ? ' - ' + s.lessonTopic : ''}`,
@@ -70,7 +76,7 @@ async function loadRange(from: string, to: string, options: { force?: boolean } 
     loadedRangeKey = key;
   } catch (e) {
     if (request !== requestId) return;
-    notify(extractApiError(e) ?? 'Failed to load sessions');
+    showError(extractApiError(e) ?? 'Failed to load sessions');
   } finally {
     if (request === requestId) {
       loading.value = false;
@@ -113,20 +119,23 @@ async function reschedule(arg: EventDropArg | EventResizeDoneArg) {
         endTime: arg.event.end.toISOString(),
       },
     });
-    notify('Session rescheduled', 'success');
+    showSnackbar('Session rescheduled successfully.');
   } catch (e) {
     arg.revert();
-    notify(extractApiError(e) ?? 'Could not reschedule');
+    showError(extractApiError(e) ?? 'Could not reschedule');
   }
 }
 
 const calendarOptions = computed<CalendarOptions>(() => ({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-  initialView: smAndDown.value ? 'timeGridDay' : 'dayGridMonth',
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
+  initialView: xs.value ? 'listMonth' : 'dayGridMonth',
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
-    right: smAndDown.value ? 'timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay',
+    right: xs.value ? 'listMonth,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay',
+  },
+  views: {
+    listMonth: { buttonText: 'schedule' }
   },
   height: 'auto',
   nowIndicator: true,
@@ -202,7 +211,7 @@ function fmt(iso: string) {
       </div>
     </v-card>
 
-    <v-card v-if="smAndDown && agendaSessions.length" class="mt-4 st-card-soft">
+    <v-card v-if="smAndDown && !xs && agendaSessions.length" class="mt-4 st-card-soft">
       <v-card-title class="text-subtitle-1 font-weight-bold">Agenda</v-card-title>
       <v-list>
         <v-list-item
@@ -243,9 +252,5 @@ function fmt(iso: string) {
       :prefill="prefill"
       @saved="reload"
     />
-
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
-      {{ snackbar.text }}
-    </v-snackbar>
   </div>
 </template>

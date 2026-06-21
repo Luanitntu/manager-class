@@ -47,6 +47,21 @@ export class CreateSessionDto {
 }
 
 export class UpdateSessionDto extends PartialType(CreateSessionDto) {
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  classId?: string;
+
+  @ApiPropertyOptional({ example: '2026-07-15T19:30:00.000Z' })
+  @IsOptional()
+  @IsDateString()
+  startTime?: string;
+
+  @ApiPropertyOptional({ example: '2026-07-15T21:00:00.000Z' })
+  @IsOptional()
+  @IsDateString()
+  endTime?: string;
+
   @ApiPropertyOptional({ enum: SessionStatus })
   @IsOptional()
   @IsEnum(SessionStatus)

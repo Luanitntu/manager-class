@@ -5,10 +5,12 @@ import {
   getQuickAction,
   getRoleLabel,
 } from '~/utils/navigation';
+import { useSnackbar } from '~/composables/useSnackbar';
 
 const drawer = ref(true);
 const auth = useAuthStore();
 const { logout } = useAuth();
+const { state: snackbar } = useSnackbar();
 const route = useRoute();
 
 const navGroups = computed(() => getNavigation(auth.role));
@@ -108,5 +110,17 @@ function isActive(to: string) {
         <span>{{ item.title }}</span>
       </v-btn>
     </v-bottom-navigation>
+
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      timeout="3000"
+      rounded="lg"
+    >
+      {{ snackbar.text }}
+      <template #actions>
+        <v-btn icon="mdi-close" variant="text" size="small" @click="snackbar.show = false" />
+      </template>
+    </v-snackbar>
   </v-app>
 </template>
