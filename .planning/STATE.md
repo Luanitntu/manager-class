@@ -18,7 +18,7 @@ See: `.planning/ROADMAP.md`
 
 | Phase | Status | Focus |
 |-------|--------|-------|
-| 1 | Context gathered | Audit current UI/data-display bugs |
+| 1 | Planned | Audit current UI/data-display bugs |
 | 2 | Pending | Visual system and app shell refresh |
 | 3 | Pending | Teacher workflow polish and fixes |
 | 4 | Pending | Student portal polish and fixes |
@@ -44,13 +44,14 @@ See: `.planning/ROADMAP.md`
 
 ## Next Command
 
-`/gsd-plan-phase 1`
+`/gsd-execute-phase 1`
 
 ## Last Session
 
-- **Stopped at:** Phase 1 context gathered
-- **Resume file:** `.planning/phases/01-audit-data-flow-baseline/01-CONTEXT.md`
+- **Stopped at:** Phase 1 planned
+- **Resume file:** `.planning/phases/01-audit-data-flow-baseline/01-01-PLAN.md`
 - **Bug ledger:** `.planning/phases/01-audit-data-flow-baseline/01-BUG-LEDGER.md`
+- **Plan count:** 4 plans across 3 waves
 
 ---
-*State updated: 2026-06-21 after Phase 1 context gathering*
+*State updated: 2026-06-21 after Phase 1 planning*
