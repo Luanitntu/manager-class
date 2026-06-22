@@ -65,7 +65,14 @@ async function main(): Promise<void> {
   // Sample class owned by the teacher
   const klass = await prisma.class.upsert({
     where: { id: '00000000-0000-0000-0000-000000000001' },
-    update: {},
+    update: {
+      teacherId: teacher.id,
+      name: 'Japanese N5',
+      level: 'N5',
+      color: '#5D87FF',
+      deletedAt: null,
+      isActive: true,
+    },
     create: {
       id: '00000000-0000-0000-0000-000000000001',
       teacherId: teacher.id,

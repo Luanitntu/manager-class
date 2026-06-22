@@ -21,7 +21,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "ts-node prisma/seed.ts"
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "smoke:student": "node scripts/smoke-student.cjs",
+    "smoke:teacher": "node scripts/smoke-teacher.cjs"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

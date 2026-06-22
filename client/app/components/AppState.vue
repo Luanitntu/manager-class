@@ -9,6 +9,10 @@ const props = withDefaults(defineProps<{
   actionLabel?: string;
   skeletonLines?: number;
 }>(), {
+  title: undefined,
+  body: undefined,
+  icon: undefined,
+  actionLabel: undefined,
   skeletonLines: 3,
 });
 
