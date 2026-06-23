@@ -2,221 +2,1367 @@
 definePageMeta({ layout: false });
 
 const stats = [
-  { value: '1,200+', label: 'Giáo viên sử dụng' },
-  { value: '80k+', label: 'Học viên được quản lý' },
-  { value: '35%', label: 'Giảm thời gian vận hành' },
-  { value: '99%', label: 'Dữ liệu đúng lớp' },
+  { value: '10.000+', label: 'Giáo viên sử dụng' },
+  { value: '2.500+', label: 'Trung tâm tin dùng' },
+  { value: '500k+', label: 'Học viên quản lý' },
+  { value: '99%', label: 'Khách hàng hài lòng' },
 ];
 
 const features = [
-  ['mdi-calendar-clock', 'Lịch dạy calendar-first', 'Xếp lịch, theo dõi buổi học, điểm danh và tránh trùng lịch trong cùng một màn hình quen thuộc.'],
-  ['mdi-account-school-outline', 'Quản lý học viên tập trung', 'Hồ sơ, lớp đang học, lịch sử học tập, nhận xét và trạng thái học phí luôn nằm đúng ngữ cảnh.'],
-  ['mdi-file-document-multiple-outline', 'Tài liệu và bài tập rõ ràng', 'Giáo viên chia sẻ tài liệu theo lớp; học viên xem đúng tài nguyên được giao.'],
-  ['mdi-cash-check', 'Theo dõi học phí', 'Nắm nhanh khoản đã thu, còn thiếu, quá hạn và lịch sử thanh toán theo từng học viên.'],
-  ['mdi-chart-box-outline', 'Báo cáo dễ đọc', 'Tổng hợp tiến độ lớp, điểm số, nhận xét và dữ liệu vận hành thành các bảng biểu gọn gàng.'],
-  ['mdi-shield-check-outline', 'Dữ liệu tách biệt theo giáo viên', 'Thiết kế multi-tenant giúp dữ liệu lớp học được phân tách theo teacher/tenant rõ ràng.'],
+  {
+    icon: 'mdi-clock-outline',
+    title: 'Tiết kiệm 80% thời gian',
+    desc: 'Không còn phải tổng hợp file Excel hay sổ sách thủ công. Mọi báo cáo tự động xuất ra trong 1 giây.',
+  },
+  {
+    icon: 'mdi-account-group-outline',
+    title: 'Quản lý tập trung 1 nơi',
+    desc: 'Từ lịch dạy, học phí, điểm số đến tài liệu học tập đều nằm gọn trên một nền tảng duy nhất.',
+  },
+  {
+    icon: 'mdi-school-outline',
+    title: 'Tăng tương tác học viên',
+    desc: 'Không gian học tập riêng biệt cho học viên giúp theo dõi lộ trình và nộp bài tập dễ dàng.',
+  },
+  {
+    icon: 'mdi-shield-check-outline',
+    title: 'Bảo mật dữ liệu tuyệt đối',
+    desc: 'Dữ liệu trung tâm, học viên được lưu trữ an toàn trên nền tảng điện toán đám mây.',
+  },
+  {
+    icon: 'mdi-cellphone',
+    title: 'Sử dụng cực kỳ đơn giản',
+    desc: 'Giao diện trực quan, thân thiện. Không rành công nghệ vẫn có thể thành thạo sau 15 phút.',
+  },
+  {
+    icon: 'mdi-chart-line',
+    title: 'Báo cáo tài chính rõ ràng',
+    desc: 'Kiểm soát chính xác doanh thu, công nợ học phí. Tự động nhắc nhở khi đến hạn.',
+  },
 ];
 
-const checklist = [
-  'Hiển thị lịch theo ngày, tuần, tháng cho giáo viên.',
-  'Điểm danh và ghi chú buổi học nhanh trên desktop hoặc mobile.',
-  'Theo dõi học viên, tài liệu, học phí, báo cáo từ một luồng làm việc.',
-  'Cổng học viên riêng để xem lịch, tài liệu, điểm số và thanh toán.',
+const scheduleBenefits = [
+  'Hiển thị lịch học trực quan theo Ngày/Tuần/Tháng.',
+  'Điểm danh nhanh chóng trên cả máy tính và điện thoại.',
+  'Tự động tính toán số buổi nghỉ, đi trễ của học viên.',
+  'Gửi thông báo nhắc nhở tự động trước khi lớp bắt đầu.',
 ];
 
-const heroDelay = ['[animation-delay:0ms]', '[animation-delay:90ms]', '[animation-delay:170ms]', '[animation-delay:250ms]', '[animation-delay:330ms]'];
+const workspaceBenefits = [
+  'Giao bài tập về nhà và đặt thời hạn (Deadline) dễ dàng.',
+  'Học viên nộp bài trực tiếp lên hệ thống, giáo viên chấm điểm ngay lập tức.',
+  'Quản lý kho tài liệu, giáo trình tập trung.',
+  'Hệ thống tự động nhắc nhở học viên khi sắp đến hạn nộp bài.',
+];
+
+const footerGroups = [
+  {
+    title: 'Sản phẩm',
+    links: ['Tính năng nổi bật', 'Bảng giá dịch vụ', 'Ứng dụng di động', 'Cập nhật mới'],
+  },
+  {
+    title: 'Tài nguyên',
+    links: ['Hướng dẫn sử dụng', 'Blog chia sẻ', 'Tài liệu biểu mẫu', 'Câu hỏi thường gặp'],
+  },
+  {
+    title: 'Công ty',
+    links: ['Về chúng tôi', 'Liên hệ hợp tác', 'Điều khoản dịch vụ', 'Chính sách bảo mật'],
+  },
+];
 </script>
 
 <template>
-  <main class="min-h-screen bg-white font-sans text-slate-900 [--brand-blue:#0071F9] [--brand-orange:#FF6B00] motion-reduce:[&_*,&_*::before,&_*::after]:!animate-none motion-reduce:[&_*,&_*::before,&_*::after]:!transition-none">
-    <div class="animate-slide-down bg-[var(--brand-blue)] px-4 py-2 text-xs text-white sm:px-6 lg:px-8">
-      <div class="mx-auto flex min-h-5 w-[min(1180px,calc(100%-32px))] flex-col items-center justify-between gap-2 sm:flex-row">
-        <div class="flex items-center gap-6">
-          <span class="flex items-center gap-1.5"><v-icon icon="mdi-phone-outline" size="14" /> Hotline: 0909 123 456</span>
-          <span class="hidden items-center gap-1.5 sm:flex"><v-icon icon="mdi-email-outline" size="14" /> Email: hello@scheduleteacher.vn</span>
+  <v-app>
+    <main class="landing-page">
+      <div class="topbar">
+        <div class="topbar__left">
+          <span><v-icon icon="mdi-phone-outline" size="14" /> Hotline: 0909 123 456</span>
+          <span class="topbar__email"><v-icon icon="mdi-email-outline" size="14" /> Email: support@prepteacher.vn</span>
         </div>
-        <span class="hidden font-semibold opacity-90 md:block">Phần mềm quản lý lớp học dành cho giáo viên ngoại ngữ</span>
-      </div>
-    </div>
-
-    <header class="sticky top-0 z-20 animate-slide-down border-b border-slate-200 bg-white/95 shadow-[0_8px_20px_rgba(15,23,42,0.04)] backdrop-blur [animation-delay:80ms]">
-      <div class="mx-auto flex min-h-20 w-[min(1180px,calc(100%-32px))] flex-wrap items-center justify-center gap-4 py-3 md:justify-between md:py-0">
-        <NuxtLink to="/" class="group inline-flex items-center gap-2.5 text-xl font-black tracking-normal text-[var(--brand-blue)] no-underline transition hover:-translate-y-px md:text-2xl" aria-label="Schedule Teacher">
-          <span class="inline-flex size-10 items-center justify-center rounded-xl bg-[var(--brand-blue)] text-white shadow-[0_12px_24px_rgba(0,113,249,0.24)] transition group-hover:rotate-[-4deg] group-hover:scale-105 group-hover:shadow-[0_16px_30px_rgba(0,113,249,0.32)]"><v-icon icon="mdi-calendar-check" size="24" /></span>
-          <span>Schedule<span class="text-slate-900">Teacher</span></span>
-        </NuxtLink>
-
-        <nav class="hidden gap-7 text-sm font-extrabold text-slate-700 lg:flex" aria-label="Landing navigation">
-          <a href="#features" class="relative no-underline transition after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:rounded-full after:bg-[var(--brand-blue)] after:transition hover:text-[var(--brand-blue)] hover:after:scale-x-100">Tính năng</a>
-          <a href="#workflow" class="relative no-underline transition after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:rounded-full after:bg-[var(--brand-blue)] after:transition hover:text-[var(--brand-blue)] hover:after:scale-x-100">Quy trình</a>
-          <a href="#student" class="relative no-underline transition after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:rounded-full after:bg-[var(--brand-blue)] after:transition hover:text-[var(--brand-blue)] hover:after:scale-x-100">Học viên</a>
-          <a href="#contact" class="relative no-underline transition after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:rounded-full after:bg-[var(--brand-blue)] after:transition hover:text-[var(--brand-blue)] hover:after:scale-x-100">Liên hệ</a>
-        </nav>
-
-        <div class="flex items-center gap-2.5">
-          <NuxtLink to="/login" class="hidden min-h-11 items-center justify-center rounded-xl px-5 font-black leading-none text-[var(--brand-blue)] no-underline transition hover:-translate-y-0.5 hover:bg-blue-50 sm:inline-flex">Đăng nhập</NuxtLink>
-          <NuxtLink to="/register" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--brand-orange)] px-6 font-black leading-none text-white no-underline shadow-[0_14px_28px_rgba(255,107,0,0.24)] transition hover:-translate-y-0.5 hover:bg-orange-600 hover:shadow-[0_18px_34px_rgba(255,107,0,0.34)]">Dùng thử miễn phí</NuxtLink>
+        <div class="topbar__claim">
+          Phần mềm quản lý lớp học và giảng dạy số 1 Việt Nam
         </div>
       </div>
-    </header>
 
-    <section class="relative overflow-hidden bg-[linear-gradient(90deg,rgba(248,250,252,.98)_0%,rgba(248,250,252,.94)_42%,rgba(248,250,252,.72)_100%),url('https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1800&q=82')] bg-cover bg-center py-16 after:absolute after:inset-x-0 after:bottom-0 after:h-36 after:bg-gradient-to-b after:from-transparent after:to-slate-50 lg:py-24">
-      <div class="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,113,249,.06)_25%,transparent_25%,transparent_50%,rgba(0,113,249,.06)_50%,rgba(0,113,249,.06)_75%,transparent_75%,transparent)] bg-[length:24px_24px] opacity-40" />
-      <div class="relative z-10 mx-auto grid w-[min(1180px,calc(100%-32px))] items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(420px,.9fr)]">
-        <div class="grid justify-items-center gap-6 text-center lg:justify-items-start lg:text-left">
-          <div :class="['inline-flex w-fit animate-fade-lift items-center gap-2.5 rounded-full border border-orange-200 bg-orange-100 px-4 py-2 text-sm font-black text-[var(--brand-orange)]', heroDelay[0]]">
-            <span class="size-2.5 animate-soft-pulse rounded-full bg-[var(--brand-orange)]" />
-            Giải pháp tối ưu cho giáo viên và lớp học nhỏ
+      <header class="site-header">
+        <div class="site-header__inner">
+          <NuxtLink to="/" class="brand">
+            <span class="brand__icon"><v-icon icon="mdi-calendar-check" size="24" /></span>
+            <span>Prep<span class="brand__dark">Teacher</span></span>
+          </NuxtLink>
+
+          <nav class="main-nav" aria-label="Landing navigation">
+            <a href="#" class="main-nav__link main-nav__link--active">Trang chủ</a>
+            <a href="#features" class="main-nav__link">Tính năng</a>
+            <a href="#pricing" class="main-nav__link">Bảng giá</a>
+            <a href="#customers" class="main-nav__link">Khách hàng</a>
+            <a href="#" class="main-nav__link">Hướng dẫn</a>
+          </nav>
+
+          <div class="site-header__actions">
+            <NuxtLink to="/login" class="login-link">Đăng nhập</NuxtLink>
+            <NuxtLink to="/register" class="trial-link">Dùng thử miễn phí</NuxtLink>
           </div>
-          <h1 :class="['max-w-3xl animate-fade-lift text-[clamp(42px,6vw,72px)] font-black leading-[1.12] tracking-normal text-slate-900', heroDelay[1]]">
-            Phần mềm quản lý
-            <span class="block text-[var(--brand-blue)]">lớp học & học viên</span>
-            toàn diện
-          </h1>
-          <p :class="['max-w-2xl animate-fade-lift text-lg leading-8 text-slate-600', heroDelay[2]]">
-            Schedule Teacher giúp giáo viên xếp lịch, điểm danh, quản lý học viên, tài liệu, học phí và báo cáo trên một nền tảng sạch, nhanh, dễ dùng.
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="texture texture--hero" />
+        <div class="hero__inner">
+          <div class="hero__copy">
+            <div class="hero__badge">
+              <span class="badge-dot"><span /><span /></span>
+              Giải pháp tối ưu cho trung tâm & giáo viên
+            </div>
+
+            <h1>
+              Phần mềm quản lý
+              <br>
+              <span>lớp học & học viên</span>
+              <br>
+              toàn diện nhất
+            </h1>
+
+            <p>
+              Chấm dứt sổ sách cồng kềnh. PrepTeacher giúp bạn điểm danh, xếp lịch, giao bài tập và theo dõi học phí tự động chỉ trên 1 nền tảng duy nhất.
+            </p>
+
+            <div class="hero__actions">
+              <NuxtLink to="/register" class="primary-cta">
+                Đăng ký dùng thử
+                <v-icon icon="mdi-arrow-right" size="20" />
+              </NuxtLink>
+              <button class="video-cta" type="button">
+                <v-icon icon="mdi-play-circle-outline" size="24" />
+                Xem Video Demo
+              </button>
+            </div>
+
+            <div class="hero__checks">
+              <span><v-icon icon="mdi-check-circle" size="18" /> Miễn phí 14 ngày</span>
+              <span><v-icon icon="mdi-check-circle" size="18" /> Không cần thẻ Visa</span>
+            </div>
+          </div>
+
+          <div class="hero__media">
+            <div class="hero__glow" />
+            <div class="hero__frame">
+              <img
+                src="https://images.unsplash.com/photo-1625297671662-f073f2a91528?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080"
+                alt="Phần mềm quản lý lớp học"
+              >
+            </div>
+            <div class="attendance-card">
+              <div class="attendance-card__icon"><v-icon icon="mdi-check" size="20" /></div>
+              <div>
+                <small>Điểm danh</small>
+                <strong>Hoàn tất 100%</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-band">
+        <div class="stats-band__blob stats-band__blob--one" />
+        <div class="stats-band__blob stats-band__blob--two" />
+        <div class="stats-grid">
+          <div v-for="(stat, index) in stats" :key="stat.label" :class="['stat-item', { 'stat-item--first': index === 0 }]">
+            <strong>{{ stat.value }}</strong>
+            <span>{{ stat.label }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="features-section">
+        <div class="section-inner">
+          <div class="section-title">
+            <h2>TẠI SAO CHỌN CHÚNG TÔI?</h2>
+            <h3>Lợi ích tuyệt vời khi sử dụng PrepTeacher</h3>
+            <p>
+              Phần mềm được phát triển dựa trên quy trình nghiệp vụ thực tế, giải quyết đúng "nỗi đau" của các giáo viên và quản lý trung tâm.
+            </p>
+          </div>
+
+          <div class="feature-grid">
+            <article v-for="feature in features" :key="feature.title" class="feature-card">
+              <div class="feature-card__icon">
+                <v-icon :icon="feature.icon" size="28" />
+              </div>
+              <h4>{{ feature.title }}</h4>
+              <p>{{ feature.desc }}</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="showcase-section">
+        <div class="section-inner">
+          <div class="showcase-row">
+            <div class="showcase-copy">
+              <div class="showcase-copy__icon showcase-copy__icon--blue">
+                <v-icon icon="mdi-calendar-check" size="24" />
+              </div>
+              <h2>Quản lý lịch dạy & Điểm danh thông minh</h2>
+              <p>
+                Loại bỏ hoàn toàn rủi ro trùng lịch, quên lịch. Theo dõi sát sao tình hình đi học của học viên với hệ thống điểm danh 1 chạm.
+              </p>
+              <ul>
+                <li v-for="item in scheduleBenefits" :key="item">
+                  <v-icon icon="mdi-check-circle" class="showcase-copy__check showcase-copy__check--orange" size="20" />
+                  <span>{{ item }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="showcase-image showcase-image--blue">
+              <img
+                src="https://images.unsplash.com/photo-1509062522246-3755977927d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080"
+                alt="Quản lý lịch học"
+              >
+            </div>
+          </div>
+
+          <div class="showcase-row showcase-row--second">
+            <div class="showcase-image showcase-image--orange">
+              <img
+                src="https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080"
+                alt="Góc học tập của học viên"
+              >
+            </div>
+
+            <div class="showcase-copy">
+              <div class="showcase-copy__icon showcase-copy__icon--orange">
+                <v-icon icon="mdi-account-group-outline" size="24" />
+              </div>
+              <h2>Không gian học tập (Workspace) Độc quyền</h2>
+              <p>
+                Cung cấp cho học viên một "Góc học tập" chuyên nghiệp để theo dõi tiến độ, nộp bài tập và xem lại tài liệu bài giảng.
+              </p>
+              <ul>
+                <li v-for="item in workspaceBenefits" :key="item">
+                  <v-icon icon="mdi-check-circle" class="showcase-copy__check showcase-copy__check--blue" size="20" />
+                  <span>{{ item }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta">
+        <div class="texture texture--final" />
+        <div class="final-cta__glow" />
+        <div class="final-cta__content">
+          <h2>
+            Chuyển đổi số lớp học của bạn
+            <br>
+            ngay hôm nay!
+          </h2>
+          <p>
+            Hàng ngàn giáo viên đã thoát khỏi cảnh quản lý sổ sách bù đầu. Hãy để PrepTeacher đồng hành cùng bạn.
           </p>
-          <div :class="['flex w-full animate-fade-lift flex-col items-center gap-4 sm:w-auto sm:flex-row', heroDelay[3]]">
-            <NuxtLink to="/register" class="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand-blue)] px-8 text-lg font-black leading-none text-white no-underline shadow-[0_18px_34px_rgba(0,113,249,0.22)] transition hover:-translate-y-1 hover:bg-blue-700 hover:shadow-[0_22px_44px_rgba(0,113,249,0.32)] sm:w-auto">
-              <span>Đăng ký dùng thử</span>
-              <v-icon icon="mdi-arrow-right" />
+          <NuxtLink to="/register">
+            Đăng ký dùng thử miễn phí 14 ngày
+          </NuxtLink>
+          <small>Không yêu cầu thẻ tín dụng • Hỗ trợ cài đặt miễn phí 24/7</small>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <div class="footer-grid">
+          <div class="footer-about">
+            <NuxtLink to="/" class="footer-brand">
+              <span><v-icon icon="mdi-calendar-check" size="24" /></span>
+              PrepTeacher
             </NuxtLink>
-            <a href="#workflow" class="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-8 text-lg font-black leading-none text-slate-700 no-underline transition hover:-translate-y-1 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:shadow-[0_16px_34px_rgba(15,23,42,0.08)] sm:w-auto">
-              <v-icon icon="mdi-play-circle-outline" class="text-[var(--brand-orange)]" />
-              <span>Xem cách hoạt động</span>
-            </a>
-          </div>
-          <div :class="['flex animate-fade-lift flex-wrap items-center justify-center gap-4 text-sm font-bold text-slate-500 lg:justify-start', heroDelay[4]]">
-            <span class="flex items-center gap-1.5"><v-icon icon="mdi-check-circle" class="text-green-500" /> Miễn phí 14 ngày</span>
-            <span class="flex items-center gap-1.5"><v-icon icon="mdi-check-circle" class="text-green-500" /> Không cần thẻ thanh toán</span>
-          </div>
-        </div>
-
-        <div class="relative min-h-[480px] animate-fade-lift [animation-delay:180ms] max-sm:min-h-0" aria-label="Schedule Teacher product preview">
-          <div class="absolute inset-[40px_-20px_-10px_40px] animate-glow-drift rounded-full bg-gradient-to-br from-blue-500/25 to-orange-500/20 blur-3xl" />
-          <div class="relative animate-float-preview overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_30px_70px_rgba(15,23,42,0.18)] transition duration-500 hover:-translate-y-1.5 hover:rotate-0 hover:shadow-[0_38px_90px_rgba(15,23,42,0.22)]">
-            <div class="flex h-11 items-center gap-2 border-b border-slate-200 bg-slate-50 px-4">
-              <span class="size-2.5 rounded-full bg-slate-300" /><span class="size-2.5 rounded-full bg-slate-300" /><span class="size-2.5 rounded-full bg-slate-300" />
-            </div>
-            <div class="grid min-h-[390px] grid-cols-[78px_1fr] max-sm:grid-cols-1">
-              <div class="grid content-start gap-3.5 bg-slate-100 p-4 max-sm:hidden">
-                <span class="h-10 rounded-xl bg-[var(--brand-blue)]" />
-                <span class="h-10 rounded-xl bg-blue-100" />
-                <span class="h-10 rounded-xl bg-blue-100" />
-                <span class="h-10 rounded-xl bg-blue-100" />
-              </div>
-              <div class="grid gap-5 p-6">
-                <div class="flex items-center justify-between gap-4">
-                  <div><small class="block font-bold text-slate-500">Hôm nay</small><strong class="mt-1 block text-[22px] text-slate-900">IELTS Speaking Part 2</strong></div>
-                  <span class="rounded-lg bg-sky-100 px-3 py-2 font-black text-[var(--brand-blue)]">09:00</span>
-                </div>
-                <div class="grid grid-cols-7 gap-2.5">
-                  <div v-for="day in 14" :key="day" :class="['min-h-14 rounded-xl border p-2', [2, 6, 9].includes(day) ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-white']">
-                    <small class="font-black text-slate-400">{{ day }}</small>
-                    <span v-if="[2, 6, 9].includes(day)" class="mt-3.5 block h-1.5 animate-bar-grow rounded-full bg-[var(--brand-blue)]" />
-                  </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3.5">
-                  <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50"><v-icon icon="mdi-account-group-outline" class="text-[var(--brand-blue)]" /><strong class="mt-2 block text-2xl">12</strong><small class="font-bold text-slate-500">Học viên</small></div>
-                  <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50"><v-icon icon="mdi-check-decagram-outline" class="text-[var(--brand-blue)]" /><strong class="mt-2 block text-2xl">100%</strong><small class="font-bold text-slate-500">Điểm danh</small></div>
-                </div>
-              </div>
+            <p>
+              Giải pháp phần mềm quản lý lớp học, trung tâm ngoại ngữ và học viên toàn diện, dễ sử dụng nhất hiện nay.
+            </p>
+            <div class="footer-contact">
+              <p><v-icon icon="mdi-phone-outline" size="18" /> 0909 123 456</p>
+              <p><v-icon icon="mdi-email-outline" size="18" /> support@prepteacher.vn</p>
             </div>
           </div>
-          <div class="absolute left-[-22px] top-1/4 flex animate-float-card items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_18px_40px_rgba(15,23,42,0.16)] max-sm:relative max-sm:left-auto max-sm:top-auto max-sm:mx-auto max-sm:mt-4 max-sm:w-fit">
-            <v-icon icon="mdi-check-circle-outline" class="text-green-600" />
-            <div><small class="block font-bold text-slate-500">Điểm danh</small><strong>Hoàn tất 100%</strong></div>
+
+          <div v-for="group in footerGroups" :key="group.title" class="footer-group">
+            <h4>{{ group.title }}</h4>
+            <ul>
+              <li v-for="link in group.links" :key="link">
+                <a href="#">{{ link }}</a>
+              </li>
+            </ul>
           </div>
         </div>
-      </div>
-    </section>
 
-    <section class="bg-[var(--brand-blue)] py-11 text-white">
-      <div class="mx-auto grid w-[min(1180px,calc(100%-32px))] grid-cols-1 text-center sm:grid-cols-2 lg:grid-cols-4">
-        <div v-for="(stat, index) in stats" :key="stat.label" :style="{ animationDelay: `${index * 80}ms` }" :class="['animate-fade-lift border-white/25 px-6 py-5 sm:border-l lg:py-0', index === 0 ? 'sm:border-l-0' : '']">
-          <strong class="mb-2 block text-[clamp(30px,4vw,48px)] font-black">{{ stat.value }}</strong>
-          <span class="font-bold text-blue-100">{{ stat.label }}</span>
+        <div class="footer-bottom">
+          <p>© 2026 PrepTeacher Vietnam. All rights reserved.</p>
+          <div>
+            <span>Facebook</span>
+            <span>Youtube</span>
+            <span>Tiktok</span>
+          </div>
         </div>
-      </div>
-    </section>
-
-    <section id="features" class="bg-white py-20 lg:py-24">
-      <div class="mx-auto w-[min(1180px,calc(100%-32px))]">
-        <div class="mx-auto mb-14 max-w-3xl text-center">
-          <span class="text-[13px] font-black uppercase tracking-[.08em] text-[var(--brand-orange)]">Tại sao chọn Schedule Teacher?</span>
-          <h2 class="mt-3 text-[clamp(32px,4vw,46px)] font-black leading-tight tracking-normal text-slate-900">Lợi ích rõ ràng cho lớp học thật</h2>
-          <p class="mt-4 text-lg leading-8 text-slate-600">Giao diện lấy cảm hứng từ các sản phẩm giáo dục hiện đại: sáng, gọn, tập trung vào hành động hằng ngày.</p>
-        </div>
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <article v-for="([icon, title, desc], index) in features" :key="title" :style="{ animationDelay: `${index * 60}ms` }" class="group animate-fade-lift rounded-[18px] border border-slate-200 bg-slate-50 p-7 transition hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
-            <div class="flex size-14 items-center justify-center rounded-[14px] border border-slate-200 bg-white text-[var(--brand-blue)] transition group-hover:rotate-[-3deg] group-hover:scale-110 group-hover:bg-[var(--brand-blue)] group-hover:text-white"><v-icon :icon="icon" size="28" /></div>
-            <h3 class="mt-5 text-xl font-black text-slate-900">{{ title }}</h3>
-            <p class="mt-2.5 leading-7 text-slate-600">{{ desc }}</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="workflow" class="border-t border-slate-200 bg-slate-50 py-20 lg:py-24">
-      <div class="mx-auto grid w-[min(1180px,calc(100%-32px))] items-center gap-16 lg:grid-cols-2">
-        <div>
-          <div class="mb-6 flex size-14 items-center justify-center rounded-[14px] border border-slate-200 bg-white text-[var(--brand-blue)]"><v-icon icon="mdi-calendar-month-outline" /></div>
-          <h2 class="text-[clamp(32px,4vw,46px)] font-black leading-tight tracking-normal text-slate-900">Quản lý lịch dạy và điểm danh thông minh</h2>
-          <p class="mt-4 text-lg leading-8 text-slate-600">Calendar-first giúp giáo viên nhìn ngay việc cần làm hôm nay, lớp nào sắp diễn ra, học viên nào cần theo dõi và tài liệu nào phải chuẩn bị.</p>
-          <ul class="mt-7 grid gap-4 p-0">
-            <li v-for="item in checklist" :key="item" class="flex animate-fade-lift gap-3.5 font-bold text-slate-700"><v-icon icon="mdi-check-bold" class="mt-0.5 text-[var(--brand-orange)]" /><span>{{ item }}</span></li>
-          </ul>
-        </div>
-        <div class="relative before:absolute before:inset-0 before:rotate-3 before:rounded-[20px] before:bg-[var(--brand-blue)] before:opacity-10">
-          <img class="relative h-[420px] w-full rounded-[20px] object-cover shadow-[0_24px_55px_rgba(15,23,42,0.16)] transition duration-500 hover:scale-[1.025] hover:saturate-105 max-sm:h-[300px]" src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80" alt="Giáo viên đang hướng dẫn học viên trong lớp học">
-        </div>
-      </div>
-    </section>
-
-    <section id="student" class="bg-slate-50 pb-20 lg:pb-24">
-      <div class="mx-auto grid w-[min(1180px,calc(100%-32px))] items-center gap-16 lg:grid-cols-2">
-        <div class="relative order-2 before:absolute before:inset-0 before:rotate-[-3deg] before:rounded-[20px] before:bg-[var(--brand-orange)] before:opacity-10 lg:order-1">
-          <img class="relative h-[420px] w-full rounded-[20px] object-cover shadow-[0_24px_55px_rgba(15,23,42,0.16)] transition duration-500 hover:scale-[1.025] hover:saturate-105 max-sm:h-[300px]" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80" alt="Nhóm học viên học cùng nhau">
-        </div>
-        <div class="order-1 lg:order-2">
-          <div class="mb-6 flex size-14 items-center justify-center rounded-[14px] border border-slate-200 bg-white text-[var(--brand-orange)]"><v-icon icon="mdi-school-outline" /></div>
-          <h2 class="text-[clamp(32px,4vw,46px)] font-black leading-tight tracking-normal text-slate-900">Cổng học viên riêng, rõ việc cần làm</h2>
-          <p class="mt-4 text-lg leading-8 text-slate-600">Học viên có một không gian riêng để xem lịch học, tài liệu, bài tập, điểm số, nhận xét và trạng thái thanh toán mà không phụ thuộc vào tin nhắn rời rạc.</p>
-          <ul class="mt-7 grid gap-4 p-0">
-            <li class="flex gap-3.5 font-bold text-slate-700"><v-icon icon="mdi-check-bold" class="mt-0.5 text-[var(--brand-blue)]" /><span>Xem lịch học và link lớp trực tuyến.</span></li>
-            <li class="flex gap-3.5 font-bold text-slate-700"><v-icon icon="mdi-check-bold" class="mt-0.5 text-[var(--brand-blue)]" /><span>Nhận tài liệu đúng lớp, đúng giáo viên.</span></li>
-            <li class="flex gap-3.5 font-bold text-slate-700"><v-icon icon="mdi-check-bold" class="mt-0.5 text-[var(--brand-blue)]" /><span>Theo dõi điểm số, nhận xét và học phí.</span></li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section id="contact" class="relative overflow-hidden bg-[var(--brand-blue)] py-20 text-white">
-      <div class="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,.08)_25%,transparent_25%,transparent_50%,rgba(255,255,255,.08)_50%,rgba(255,255,255,.08)_75%,transparent_75%,transparent)] bg-[length:24px_24px] opacity-40" />
-      <div class="relative z-10 mx-auto max-w-4xl px-4 text-center">
-        <h2 class="text-[clamp(32px,4vw,46px)] font-black leading-tight tracking-normal text-white">Chuyển đổi số lớp học của bạn ngay hôm nay</h2>
-        <p class="mx-auto my-8 max-w-2xl text-xl text-blue-100">Thử một quy trình quản lý gọn hơn cho lịch dạy, học viên, tài liệu và học phí.</p>
-        <NuxtLink to="/register" class="inline-flex min-h-16 items-center justify-center rounded-xl bg-[var(--brand-orange)] px-10 text-xl font-black leading-none text-white no-underline shadow-[0_22px_48px_rgba(120,53,15,0.42)] transition hover:-translate-y-1 hover:bg-orange-600 hover:shadow-[0_26px_56px_rgba(120,53,15,0.5)]">Đăng ký dùng thử miễn phí 14 ngày</NuxtLink>
-        <small class="mt-5 block text-blue-200">Không yêu cầu thẻ thanh toán - hỗ trợ cài đặt ban đầu</small>
-      </div>
-    </section>
-
-    <footer class="bg-slate-900 py-16 pb-7 text-slate-400">
-      <div class="mx-auto grid w-[min(1180px,calc(100%-32px))] gap-10 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
-        <div class="grid gap-3.5">
-          <NuxtLink to="/" class="inline-flex items-center gap-2.5 text-2xl font-black text-white no-underline"><span class="inline-flex size-10 items-center justify-center rounded-xl bg-[var(--brand-blue)] text-white"><v-icon icon="mdi-calendar-check" size="24" /></span><span>ScheduleTeacher</span></NuxtLink>
-          <p class="max-w-md leading-7">Phần mềm quản lý lớp học, học viên, lịch dạy và tài liệu dành cho giáo viên hiện đại.</p>
-          <span class="inline-flex items-center gap-2.5"><v-icon icon="mdi-phone-outline" size="18" /> 0909 123 456</span>
-          <span class="inline-flex items-center gap-2.5"><v-icon icon="mdi-email-outline" size="18" /> hello@scheduleteacher.vn</span>
-        </div>
-        <div class="grid content-start gap-3.5"><h3 class="mb-2 text-lg font-bold text-white">Sản phẩm</h3><a href="#features" class="text-inherit no-underline hover:text-white">Tính năng nổi bật</a><a href="#workflow" class="text-inherit no-underline hover:text-white">Lịch dạy</a><a href="#student" class="text-inherit no-underline hover:text-white">Cổng học viên</a></div>
-        <div class="grid content-start gap-3.5"><h3 class="mb-2 text-lg font-bold text-white">Tài nguyên</h3><a href="#" class="text-inherit no-underline hover:text-white">Hướng dẫn sử dụng</a><a href="#" class="text-inherit no-underline hover:text-white">Câu hỏi thường gặp</a><a href="#" class="text-inherit no-underline hover:text-white">Chính sách bảo mật</a></div>
-        <div class="grid content-start gap-3.5"><h3 class="mb-2 text-lg font-bold text-white">Truy cập</h3><NuxtLink to="/login" class="text-inherit no-underline hover:text-white">Đăng nhập</NuxtLink><NuxtLink to="/register" class="text-inherit no-underline hover:text-white">Tạo tài khoản</NuxtLink><NuxtLink to="/calendar" class="text-inherit no-underline hover:text-white">Lịch dạy</NuxtLink></div>
-      </div>
-      <div class="mx-auto mt-14 flex w-[min(1180px,calc(100%-32px))] flex-col items-center justify-between gap-5 border-t border-slate-800 pt-6 text-center md:flex-row md:text-left">
-        <span>© 2026 Schedule Teacher. All rights reserved.</span>
-        <span>Facebook · YouTube · TikTok</span>
-      </div>
-    </footer>
-  </main>
+      </footer>
+    </main>
+  </v-app>
 </template>
+
+<style scoped lang="scss">
+$brand-blue: #0071f9;
+$brand-orange: #ff6b00;
+$slate-50: #f8fafc;
+$slate-100: #f1f5f9;
+$slate-200: #e2e8f0;
+$slate-400: #94a3b8;
+$slate-500: #64748b;
+$slate-600: #475569;
+$slate-700: #334155;
+$slate-800: #1e293b;
+$slate-900: #0f172a;
+$content-max: 1280px;
+
+@mixin content-shell {
+  max-width: $content-max;
+  margin: 0 auto;
+  padding-inline: 32px;
+}
+
+@mixin center-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-page {
+  min-height: 100vh;
+  background: #fff;
+  color: $slate-800;
+  font-family: var(--st-font-family);
+
+  :deep(.v-icon) {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
+  }
+}
+
+.topbar {
+  min-height: 32px;
+  background: $brand-blue;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 32px;
+  font-size: 12px;
+  line-height: 1.3;
+
+  &__left,
+  &__left span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+  }
+
+  &__left {
+    gap: 24px;
+  }
+
+  &__claim {
+    font-weight: 600;
+  }
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #fff;
+  border-bottom: 1px solid $slate-200;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 8%);
+
+  &__inner {
+    @include content-shell;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+.brand,
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: $brand-blue;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+
+.brand {
+  &__dark {
+    color: $slate-800;
+  }
+
+  &__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: $brand-blue;
+    color: #fff;
+    @include center-flex;
+    box-shadow: 0 8px 18px rgb(0 113 249 / 22%);
+  }
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  color: $slate-700;
+  font-size: 14px;
+  font-weight: 800;
+
+  &__link {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    color: inherit;
+    line-height: 1;
+    text-decoration: none;
+    transition: color 160ms ease;
+
+    &:hover,
+    &--active {
+      color: $brand-blue;
+    }
+  }
+}
+
+.login-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: $brand-blue;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+
+  &:hover {
+    background: #eff6ff;
+  }
+}
+
+.trial-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: $brand-orange;
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 12px 22px rgb(255 107 0 / 22%);
+  transition: transform 160ms ease, background 160ms ease;
+
+  &:hover {
+    background: #ea580c;
+    transform: translateY(-2px);
+  }
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: $slate-50;
+  padding: 80px 0 112px;
+
+  &__inner {
+    @include content-shell;
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 48px;
+  }
+
+  &__copy {
+    display: grid;
+    justify-items: start;
+    gap: 24px;
+    padding-right: 32px;
+
+    h1 {
+      margin: 0;
+      color: $slate-900;
+      font-size: 60px;
+      line-height: 1.15;
+      font-weight: 900;
+      letter-spacing: 0;
+
+      span {
+        color: transparent;
+        background: linear-gradient(90deg, $brand-blue, #3b82f6);
+        -webkit-background-clip: text;
+        background-clip: text;
+      }
+    }
+
+    > p {
+      max-width: 672px;
+      margin: 0;
+      color: $slate-600;
+      font-size: 18px;
+      line-height: 1.65;
+    }
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    border: 1px solid #fed7aa;
+    border-radius: 999px;
+    background: #ffedd5;
+    color: $brand-orange;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 16px;
+    padding-top: 16px;
+  }
+
+  &__checks {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-top: 24px;
+    color: $slate-500;
+    font-size: 14px;
+    font-weight: 600;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.25;
+    }
+
+    :deep(.v-icon) {
+      color: #22c55e;
+    }
+  }
+
+  &__media {
+    position: relative;
+  }
+
+  &__glow {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 999px;
+    background: linear-gradient(45deg, $brand-blue, $brand-orange);
+    opacity: 0.2;
+    filter: blur(64px);
+    transform: translate(40px, 40px);
+  }
+
+  &__frame {
+    border: 1px solid $slate-200;
+    border-radius: 20px;
+    background: #fff;
+    padding: 8px;
+    box-shadow: 0 25px 70px rgb(15 23 42 / 22%);
+    transform: rotate(1deg);
+    transition: transform 500ms ease;
+
+    &:hover {
+      transform: rotate(0deg);
+    }
+
+    img {
+      width: 100%;
+      border-radius: 14px;
+      object-fit: cover;
+      display: block;
+    }
+  }
+}
+
+.texture {
+  position: absolute;
+  inset: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/diagonal-stripes.png");
+
+  &--hero {
+    opacity: 0.2;
+  }
+
+  &--final {
+    opacity: 0.1;
+  }
+}
+
+.badge-dot {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+
+  span:first-child {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #fb923c;
+    animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  span:last-child {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: $brand-orange;
+  }
+}
+
+.primary-cta,
+.video-cta {
+  box-sizing: border-box;
+  min-height: 58px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 16px 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.primary-cta {
+  background: $brand-blue;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 18px 28px rgb(0 113 249 / 20%);
+
+  &:hover {
+    background: #0064df;
+    transform: translateY(-4px);
+  }
+}
+
+.video-cta {
+  border: 2px solid $slate-200;
+  background: #fff;
+  color: $slate-700;
+  font-family: inherit;
+  cursor: pointer;
+
+  :deep(.v-icon) {
+    color: $brand-orange;
+  }
+}
+
+.attendance-card {
+  position: absolute;
+  left: -24px;
+  top: 25%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid $slate-100;
+  border-radius: 12px;
+  background: #fff;
+  padding: 16px;
+  box-shadow: 0 20px 35px rgb(15 23 42 / 18%);
+  animation: bounce 3s infinite;
+
+  &__icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #16a34a;
+    @include center-flex;
+  }
+
+  small {
+    display: block;
+    color: $slate-500;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  strong {
+    color: $slate-800;
+    font-weight: 800;
+  }
+}
+
+.stats-band {
+  position: relative;
+  overflow: hidden;
+  background: $brand-blue;
+  padding: 48px 0;
+
+  &__blob {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(40px);
+
+    &--one {
+      top: 0;
+      right: 0;
+      width: 256px;
+      height: 256px;
+      background: rgb(255 255 255 / 5%);
+      transform: translate(33%, -50%);
+    }
+
+    &--two {
+      left: 0;
+      bottom: 0;
+      width: 192px;
+      height: 192px;
+      background: rgb(255 107 0 / 20%);
+      transform: translate(-25%, 50%);
+    }
+  }
+}
+
+.stats-grid {
+  @include content-shell;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  text-align: center;
+}
+
+.stat-item {
+  border-left: 1px solid rgb(96 165 250 / 50%);
+
+  &--first {
+    border-left: 0;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #fff;
+    font-size: 48px;
+    line-height: 1;
+    font-weight: 900;
+  }
+
+  span {
+    color: #dbeafe;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.features-section {
+  background: #fff;
+  padding: 96px 0;
+}
+
+.section-inner {
+  @include content-shell;
+}
+
+.section-title {
+  max-width: 768px;
+  margin: 0 auto 64px;
+  text-align: center;
+
+  h2 {
+    margin: 0 0 12px;
+    color: $brand-orange;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+  }
+
+  h3 {
+    margin: 0;
+    color: $slate-900;
+    font-size: 40px;
+    line-height: 1.15;
+    font-weight: 900;
+    letter-spacing: 0;
+  }
+
+  p {
+    margin: 24px 0 0;
+    color: $slate-600;
+    font-size: 18px;
+    line-height: 1.6;
+  }
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.feature-card {
+  border: 1px solid $slate-100;
+  border-radius: 20px;
+  background: $slate-50;
+  padding: 32px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+
+  &:hover {
+    border-color: rgb(0 113 249 / 30%);
+    box-shadow: 0 20px 50px rgb(15 23 42 / 8%);
+    transform: translateY(-2px);
+
+    .feature-card__icon {
+      background: $brand-blue;
+      color: #fff;
+      transform: scale(1.1);
+    }
+  }
+
+  &__icon {
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    border: 1px solid $slate-100;
+    border-radius: 12px;
+    background: #fff;
+    color: $brand-blue;
+    @include center-flex;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 8%);
+    transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+  }
+
+  h4 {
+    margin: 0 0 12px;
+    color: $slate-900;
+    font-size: 20px;
+    font-weight: 900;
+  }
+
+  p {
+    margin: 0;
+    color: $slate-600;
+    line-height: 1.65;
+  }
+}
+
+.showcase-section {
+  border-block: 1px solid $slate-200;
+  background: $slate-50;
+  padding: 96px 0;
+}
+
+.showcase-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: 64px;
+  margin-bottom: 96px;
+
+  &--second {
+    margin-bottom: 0;
+  }
+}
+
+.showcase-copy {
+  &__icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border-radius: 10px;
+    @include center-flex;
+    margin-bottom: 24px;
+
+    &--blue {
+      background: #dbeafe;
+      color: $brand-blue;
+    }
+
+    &--orange {
+      background: #ffedd5;
+      color: $brand-orange;
+    }
+  }
+
+  h2 {
+    margin: 0;
+    color: $slate-900;
+    font-size: 40px;
+    line-height: 1.15;
+    font-weight: 900;
+    letter-spacing: 0;
+  }
+
+  > p {
+    margin: 24px 0 32px;
+    color: $slate-600;
+    font-size: 18px;
+    line-height: 1.65;
+  }
+
+  ul {
+    display: grid;
+    gap: 20px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    color: $slate-700;
+    font-weight: 700;
+    line-height: 1.55;
+  }
+
+  &__check {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    margin-top: 2px;
+
+    &--orange {
+      color: $brand-orange;
+    }
+
+    &--blue {
+      color: $brand-blue;
+    }
+  }
+}
+
+.showcase-image {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    opacity: 0.1;
+  }
+
+  &--blue::before {
+    background: $brand-blue;
+    transform: rotate(3deg);
+  }
+
+  &--orange::before {
+    background: $brand-orange;
+    transform: rotate(-3deg);
+  }
+
+  img {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    border-radius: 20px;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 22px 55px rgb(15 23 42 / 18%);
+  }
+}
+
+.final-cta {
+  position: relative;
+  overflow: hidden;
+  background: $brand-blue;
+  padding: 80px 0;
+
+  &__glow {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 384px;
+    height: 384px;
+    border-radius: 999px;
+    background: rgb(255 107 0 / 20%);
+    filter: blur(64px);
+    transform: translate(33%, -50%);
+  }
+
+  &__content {
+    position: relative;
+    z-index: 1;
+    max-width: 896px;
+    margin: 0 auto;
+    padding: 0 32px;
+    text-align: center;
+
+    h2 {
+      margin: 0;
+      color: #fff;
+      font-size: 48px;
+      line-height: 1.15;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    p {
+      max-width: 672px;
+      margin: 24px auto 40px;
+      color: #dbeafe;
+      font-size: 20px;
+      line-height: 1.55;
+    }
+
+    a {
+      min-height: 68px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: $brand-orange;
+      color: #fff;
+      padding: 20px 40px;
+      font-size: 20px;
+      font-weight: 900;
+      line-height: 1.2;
+      text-align: center;
+      text-decoration: none;
+      box-shadow: 0 24px 50px rgb(124 45 18 / 45%);
+      transition: transform 160ms ease, background 160ms ease;
+
+      &:hover {
+        background: #ea580c;
+        transform: translateY(-4px);
+      }
+    }
+
+    small {
+      display: block;
+      margin-top: 24px;
+      color: #bfdbfe;
+      font-size: 14px;
+    }
+  }
+}
+
+.site-footer {
+  background: #111827;
+  color: $slate-400;
+  padding: 64px 0 0;
+  font-weight: 600;
+}
+
+.footer-grid {
+  @include content-shell;
+  display: grid;
+  grid-template-columns: 2fr repeat(3, 1fr);
+  gap: 48px 32px;
+}
+
+.footer-brand {
+  color: #fff;
+  margin-bottom: 24px;
+
+  span {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: $brand-blue;
+    color: #fff;
+    @include center-flex;
+  }
+}
+
+.footer-about {
+  > p {
+    max-width: 440px;
+    margin: 0 0 24px;
+    line-height: 1.65;
+  }
+}
+
+.footer-contact {
+  display: grid;
+  gap: 12px;
+
+  p {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    line-height: 1.35;
+  }
+
+  :deep(.v-icon) {
+    color: $brand-blue;
+  }
+}
+
+.footer-group {
+  h4 {
+    margin: 0 0 24px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  ul {
+    display: grid;
+    gap: 16px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+}
+
+.footer-bottom {
+  @include content-shell;
+  margin-top: 64px;
+  border-top: 1px solid $slate-800;
+  padding-block: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  p {
+    margin: 0;
+  }
+
+  div {
+    display: flex;
+    gap: 24px;
+  }
+
+  span:hover {
+    color: #fff;
+    cursor: pointer;
+  }
+}
+
+@keyframes ping {
+  75%,
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+@media (max-width: 1023px) {
+  .main-nav {
+    display: none;
+  }
+
+  .hero__inner,
+  .showcase-row {
+    grid-template-columns: 1fr;
+  }
+
+  .hero__copy {
+    padding-right: 0;
+    text-align: center;
+    justify-items: center;
+
+    h1 {
+      font-size: 48px;
+    }
+  }
+
+  .hero__actions,
+  .hero__checks {
+    justify-content: center;
+  }
+
+  .showcase-row--second {
+    .showcase-image {
+      order: 2;
+    }
+
+    .showcase-copy {
+      order: 1;
+    }
+  }
+
+  .feature-grid,
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .topbar {
+    flex-direction: column;
+    justify-content: center;
+
+    &__claim,
+    &__email {
+      display: none;
+    }
+  }
+
+  .site-header__inner,
+  .section-inner,
+  .stats-grid,
+  .footer-grid,
+  .footer-bottom,
+  .hero__inner,
+  .final-cta__content {
+    padding-inline: 16px;
+  }
+
+  .site-header__inner {
+    height: auto;
+    min-height: 80px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-block: 12px;
+  }
+
+  .brand {
+    font-size: 22px;
+  }
+
+  .login-link {
+    display: none;
+  }
+
+  .hero {
+    padding: 48px 0 80px;
+
+    &__copy {
+      h1 {
+        font-size: 40px;
+      }
+
+      > p {
+        font-size: 16px;
+      }
+    }
+
+    &__actions,
+    &__checks {
+      flex-direction: column;
+      width: 100%;
+    }
+  }
+
+  .primary-cta,
+  .video-cta {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .attendance-card {
+    left: 12px;
+  }
+
+  .stats-grid,
+  .feature-grid,
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-item {
+    border-left: 0;
+    border-top: 1px solid rgb(96 165 250 / 50%);
+    padding-top: 20px;
+
+    &--first {
+      border-top: 0;
+      padding-top: 0;
+    }
+  }
+
+  .section-title {
+    h3 {
+      font-size: 32px;
+    }
+
+    p {
+      font-size: 16px;
+    }
+  }
+
+  .showcase-copy {
+    h2 {
+      font-size: 32px;
+    }
+
+    > p {
+      font-size: 16px;
+    }
+  }
+
+  .final-cta__content h2 {
+    font-size: 34px;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+</style>

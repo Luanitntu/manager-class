@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 
 @theme {
+  --font-sans: var(--st-font-family);
+
   --animate-fade-lift: fadeLift 700ms ease-out both;
   --animate-slide-down: slideDown 520ms ease-out both;
   --animate-soft-pulse: softPulse 1.8s ease-in-out infinite;
@@ -47,6 +49,7 @@
 
 :root {
   --st-content-max: 1400px;
+  --st-font-family: 'Nunito', 'Roboto', sans-serif;
 }
 
 html {
@@ -57,7 +60,18 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', 'Roboto', sans-serif;
+  font-family: var(--st-font-family);
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+.v-application {
+  font-family: var(--st-font-family), sans-serif;
 }
 
 .st-content {
