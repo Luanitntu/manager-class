@@ -2,17 +2,16 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { SessionRepository } from './session.repository';
 
 export interface ConflictCheck {
-  teacherId: string;
+  instructorId: string;
   start: Date;
   end: Date;
-  assistantIds: string[];
   excludeId?: string;
 }
 
 /**
- * Enforces the scheduling invariants from the product spec:
- *   - A teacher cannot teach two sessions at the same time.
- *   - An assistant cannot be assigned to overlapping sessions.
+ * Enforces the scheduling invariant from the product spec:
+ *   - The assigned instructor (teacher or assistant) cannot teach two
+ *     sessions at the same time.
  * Validation always runs before a write.
  */
 @Injectable()
@@ -20,27 +19,17 @@ export class SessionConflictService {
   constructor(private readonly repo: SessionRepository) {}
 
   async assertNoConflicts(check: ConflictCheck): Promise<void> {
-    const { teacherId, start, end, assistantIds, excludeId } = check;
+    const { instructorId, start, end, excludeId } = check;
 
     if (end <= start) {
       throw new ConflictException('End time must be after start time');
     }
 
-    const teacherOverlaps = await this.repo.findTeacherOverlaps(teacherId, start, end, excludeId);
-    if (teacherOverlaps.length > 0) {
-      throw new ConflictException('Teacher already has a session in this time slot');
-    }
-
-    if (assistantIds.length > 0) {
-      const assistantOverlaps = await this.repo.findAssistantOverlaps(
-        assistantIds,
-        start,
-        end,
-        excludeId,
+    const overlaps = await this.repo.findInstructorOverlaps(instructorId, start, end, excludeId);
+    if (overlaps.length > 0) {
+      throw new ConflictException(
+        'The assigned instructor already has a session in this time slot',
       );
-      if (assistantOverlaps.length > 0) {
-        throw new ConflictException('An assistant is already assigned to an overlapping session');
-      }
     }
   }
 
@@ -49,11 +38,9 @@ export class SessionConflictService {
    * each other (so a bulk request can't internally conflict).
    */
   async assertNoConflictsBatch(
-    teacherId: string,
+    instructorId: string,
     slots: Array<{ start: Date; end: Date }>,
-    assistantIds: string[],
   ): Promise<void> {
-    // Internal overlap check within the batch.
     const sorted = [...slots].sort((a, b) => a.start.getTime() - b.start.getTime());
     for (let i = 1; i < sorted.length; i++) {
       if (sorted[i].start < sorted[i - 1].end) {
@@ -61,13 +48,11 @@ export class SessionConflictService {
       }
     }
 
-    // Each slot vs existing sessions.
     for (const slot of slots) {
       await this.assertNoConflicts({
-        teacherId,
+        instructorId,
         start: slot.start,
         end: slot.end,
-        assistantIds,
       });
     }
   }

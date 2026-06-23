@@ -14,10 +14,26 @@ const emit = defineEmits<{
 }>();
 
 const { data: classesData } = useClasses();
+const { data: assistantsData } = useAssistants();
 const { create, update, bulkCreate, remove } = useSessionMutations();
+const userTz = useUserTimezone();
+const auth = useAuthStore();
+const { t } = useI18n();
 
 const classes = computed(() => classesData.value?.data ?? []);
 const isEdit = computed(() => !!props.session);
+
+// Who can teach: the current teacher (you) + their assistants. Pick exactly one.
+const instructorOptions = computed(() => {
+  const me = auth.user
+    ? [{ id: auth.user.id, fullName: `${auth.user.fullName} (${t('session.you')})` }]
+    : [];
+  const assistants = (assistantsData.value?.data ?? []).map((a) => ({
+    id: a.id,
+    fullName: a.fullName,
+  }));
+  return [...me, ...assistants];
+});
 
 type Mode = 'single' | 'recurring';
 const mode = ref<Mode>('single');
@@ -29,6 +45,7 @@ const form = reactive({
   startTime: '19:30',
   endTime: '21:00',
   lessonTopic: '',
+  instructorId: '',
   // recurring
   startDate: '',
   endDate: '',
@@ -36,26 +53,22 @@ const form = reactive({
 });
 
 const weekdays = [
-  { label: 'Sun', value: 0 },
-  { label: 'Mon', value: 1 },
-  { label: 'Tue', value: 2 },
-  { label: 'Wed', value: 3 },
-  { label: 'Thu', value: 4 },
-  { label: 'Fri', value: 5 },
-  { label: 'Sat', value: 6 },
+  { label: t('session.weekdays.sun'), value: 0 },
+  { label: t('session.weekdays.mon'), value: 1 },
+  { label: t('session.weekdays.tue'), value: 2 },
+  { label: t('session.weekdays.wed'), value: 3 },
+  { label: t('session.weekdays.thu'), value: 4 },
+  { label: t('session.weekdays.fri'), value: 5 },
+  { label: t('session.weekdays.sat'), value: 6 },
 ];
 
+// Interpret/display times in the viewer's timezone.
 function toLocalParts(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return {
-    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
-    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
-  };
+  return utcToWallParts(iso, userTz.value);
 }
 
 function combineToISO(date: string, time: string): string {
-  return new Date(`${date}T${time}:00`).toISOString();
+  return wallTimeToUtcISO(date, time, userTz.value);
 }
 
 watch(
@@ -72,6 +85,7 @@ watch(
       form.startTime = s.time;
       form.endTime = e.time;
       form.lessonTopic = props.session.lessonTopic ?? '';
+      form.instructorId = props.session.instructorId;
     } else if (props.prefill) {
       const s = toLocalParts(props.prefill.start);
       const e = toLocalParts(props.prefill.end);
@@ -82,6 +96,7 @@ watch(
       form.endTime = e.time;
       form.classId = classes.value[0]?.id ?? '';
       form.lessonTopic = '';
+      form.instructorId = auth.user?.id ?? '';
       form.daysOfWeek = [];
     }
   },
@@ -107,6 +122,9 @@ async function save() {
         startTime: form.startTime,
         endTime: form.endTime,
         lessonTopic: form.lessonTopic || undefined,
+        instructorId: form.instructorId || undefined,
+        // Send the user's IANA timezone so the backend builds slots in their wall time.
+        timeZone: userTz.value,
       });
     } else {
       const payload = {
@@ -114,6 +132,7 @@ async function save() {
         startTime: combineToISO(form.date, form.startTime),
         endTime: combineToISO(form.date, form.endTime),
         lessonTopic: form.lessonTopic || undefined,
+        instructorId: form.instructorId || undefined,
       };
       if (isEdit.value && props.session) {
         await update.mutateAsync({ id: props.session.id, body: payload });
@@ -124,7 +143,7 @@ async function save() {
     emit('saved');
     close();
   } catch (e: unknown) {
-    error.value = extractApiError(e) ?? 'Could not save session';
+    error.value = extractApiError(e);
   }
 }
 
@@ -136,16 +155,45 @@ async function deleteSession() {
     emit('saved');
     close();
   } catch (e: unknown) {
-    error.value = extractApiError(e) ?? 'Could not delete session';
+    error.value = extractApiError(e);
   }
 }
+
+// Mark a session done / reopen it — drives class progress (completed/total).
+async function setStatus(status: 'COMPLETED' | 'SCHEDULED') {
+  if (!props.session) return;
+  error.value = null;
+  try {
+    await update.mutateAsync({ id: props.session.id, body: { status } });
+    emit('saved');
+    close();
+  } catch (e: unknown) {
+    error.value = extractApiError(e);
+  }
+}
+
+const statusColor: Record<string, string> = {
+  SCHEDULED: 'info',
+  COMPLETED: 'success',
+  CANCELLED: 'error',
+};
 </script>
 
 <template>
   <v-dialog :model-value="modelValue" max-width="560" @update:model-value="emit('update:modelValue', $event)">
     <v-card>
       <v-card-title class="d-flex align-center justify-space-between">
-        <span>{{ isEdit ? 'Edit session' : 'New session' }}</span>
+        <div class="d-flex align-center ga-2">
+          <span>{{ isEdit ? t('session.editSession') : t('session.newSession') }}</span>
+          <v-chip
+            v-if="isEdit && session"
+            size="x-small"
+            :color="statusColor[session.status]"
+            variant="tonal"
+          >
+            {{ session.status }}
+          </v-chip>
+        </div>
         <v-btn icon="mdi-close" variant="text" size="small" @click="close" />
       </v-card-title>
 
@@ -162,8 +210,8 @@ async function deleteSession() {
           color="primary"
           class="mb-4"
         >
-          <v-btn value="single" size="small">Single</v-btn>
-          <v-btn value="recurring" size="small">Recurring</v-btn>
+          <v-btn value="single" size="small">{{ t('session.single') }}</v-btn>
+          <v-btn value="recurring" size="small">{{ t('session.recurring') }}</v-btn>
         </v-btn-toggle>
 
         <v-select
@@ -171,20 +219,20 @@ async function deleteSession() {
           :items="classes"
           item-title="name"
           item-value="id"
-          label="Class"
+          :label="t('session.class')"
           prepend-inner-icon="mdi-google-classroom"
         />
 
         <template v-if="mode === 'single' || isEdit">
-          <v-text-field v-model="form.date" type="date" label="Date" />
+          <v-text-field v-model="form.date" type="date" :label="t('session.date')" />
         </template>
 
         <template v-else>
           <div class="d-flex ga-3">
-            <v-text-field v-model="form.startDate" type="date" label="From" />
-            <v-text-field v-model="form.endDate" type="date" label="To" />
+            <v-text-field v-model="form.startDate" type="date" :label="t('session.from')" />
+            <v-text-field v-model="form.endDate" type="date" :label="t('session.to')" />
           </div>
-          <div class="mb-2 text-caption text-medium-emphasis">Repeat on</div>
+          <div class="mb-2 text-caption text-medium-emphasis">{{ t('session.repeatOn') }}</div>
           <v-chip-group v-model="form.daysOfWeek" multiple column class="mb-2">
             <v-chip
               v-for="d in weekdays"
@@ -199,14 +247,26 @@ async function deleteSession() {
         </template>
 
         <div class="d-flex ga-3">
-          <v-text-field v-model="form.startTime" type="time" label="Start" />
-          <v-text-field v-model="form.endTime" type="time" label="End" />
+          <v-text-field v-model="form.startTime" type="time" :label="t('session.start')" />
+          <v-text-field v-model="form.endTime" type="time" :label="t('session.end')" />
         </div>
 
         <v-text-field
           v-model="form.lessonTopic"
-          label="Lesson topic"
+          :label="t('session.lessonTopic')"
           prepend-inner-icon="mdi-book-open-variant"
+        />
+
+        <!-- Who teaches this session: you or one of your assistants. -->
+        <v-select
+          v-model="form.instructorId"
+          :items="instructorOptions"
+          item-title="fullName"
+          item-value="id"
+          :label="t('session.instructor')"
+          :hint="t('session.instructorHint')"
+          persistent-hint
+          prepend-inner-icon="mdi-account-tie-outline"
         />
       </v-card-text>
 
@@ -218,12 +278,33 @@ async function deleteSession() {
           prepend-icon="mdi-delete"
           @click="deleteSession"
         >
-          Delete
+          {{ t('common.delete') }}
         </v-btn>
+        <template v-if="isEdit && session">
+          <v-btn
+            v-if="session.status !== 'COMPLETED'"
+            color="success"
+            variant="tonal"
+            prepend-icon="mdi-check-circle"
+            :loading="update.isPending.value"
+            @click="setStatus('COMPLETED')"
+          >
+            {{ t('session.markDone') }}
+          </v-btn>
+          <v-btn
+            v-else
+            variant="text"
+            prepend-icon="mdi-restore"
+            :loading="update.isPending.value"
+            @click="setStatus('SCHEDULED')"
+          >
+            {{ t('session.reopen') }}
+          </v-btn>
+        </template>
         <v-spacer />
-        <v-btn variant="text" @click="close">Cancel</v-btn>
+        <v-btn variant="text" @click="close">{{ t('common.cancel') }}</v-btn>
         <v-btn color="primary" :loading="saving" :disabled="!form.classId" @click="save">
-          Save
+          {{ t('common.save') }}
         </v-btn>
       </v-card-actions>
     </v-card>

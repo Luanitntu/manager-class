@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { PaginatedResult } from '../../common/dto/paginated-result';
-import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { AuthenticatedUser } from '../../common/types/authenticated-user';
+import { AuditQueryDto } from './dto/audit-query.dto';
 
 export interface AuditEntry {
   action: string;
@@ -43,10 +43,21 @@ export class AuditService {
     }
   }
 
-  async list(actor: AuthenticatedUser, query: PaginationQueryDto) {
+  async list(actor: AuthenticatedUser, query: AuditQueryDto) {
     // Super admin sees everything; a teacher sees only their tenant.
-    const where: Prisma.AuditLogWhereInput =
-      actor.role === Role.SUPER_ADMIN ? {} : { teacherId: actor.tenantId };
+    const where: Prisma.AuditLogWhereInput = {
+      ...(actor.role === Role.SUPER_ADMIN ? {} : { teacherId: actor.tenantId }),
+      ...(query.action ? { action: { contains: query.action, mode: 'insensitive' } } : {}),
+      ...(query.entityType ? { entityType: query.entityType } : {}),
+      ...(query.from || query.to
+        ? {
+            createdAt: {
+              ...(query.from ? { gte: new Date(query.from) } : {}),
+              ...(query.to ? { lte: new Date(query.to) } : {}),
+            },
+          }
+        : {}),
+    };
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.auditLog.findMany({

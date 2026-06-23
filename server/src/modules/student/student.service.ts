@@ -2,12 +2,12 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { Role } from '@prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { PaginatedResult } from '../../common/dto/paginated-result';
-import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { StudentRepository } from './student.repository';
 import {
   CreateCommentDto,
   CreateScoreDto,
+  ListStudentsQueryDto,
   UpdateScoreDto,
   UpdateStudentProfileDto,
 } from './dto/student.dto';
@@ -26,11 +26,12 @@ export class StudentService {
     return actor.tenantId;
   }
 
-  async list(actor: AuthenticatedUser, query: PaginationQueryDto) {
+  async list(actor: AuthenticatedUser, query: ListStudentsQueryDto) {
     const teacherId = this.teacherScope(actor);
     const [items, total] = await this.repo.listByTeacher(
       teacherId,
       query.search,
+      query.status,
       query.skip,
       query.limit,
     );
@@ -51,6 +52,7 @@ export class StudentService {
     await this.assertCanEditStudent(actor, studentId);
     const { fullName, phone, ...profile } = dto;
     const profileData = {
+      ...(profile.studyStatus !== undefined ? { studyStatus: profile.studyStatus } : {}),
       ...(profile.address !== undefined ? { address: profile.address } : {}),
       ...(profile.dateOfBirth ? { dateOfBirth: new Date(profile.dateOfBirth) } : {}),
       ...(profile.occupation !== undefined ? { occupation: profile.occupation } : {}),

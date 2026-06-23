@@ -4,18 +4,22 @@ import { useAssistants, useAssistantMutations } from '~/composables/useAssistant
 const search = ref('');
 const { data, isLoading } = useAssistants(search);
 const { createAssistant } = useAssistantMutations();
+const avatar = useAvatar();
 const assistants = computed(() => data.value?.data ?? []);
 
-const detailOpen = ref(false);
-const selectedId = ref<string | null>(null);
 function openDetail(id: string) {
-  selectedId.value = id;
-  detailOpen.value = true;
+  navigateTo(`/assistants/${id}`);
 }
 
 const createOpen = ref(false);
 const error = ref<string | null>(null);
 const form = reactive({ fullName: '', email: '', password: '', phone: '' });
+
+const salaryLabel: Record<string, string> = {
+  PER_SESSION: 'Per session',
+  PER_HOUR: 'Per hour',
+  PER_CLASS: 'Per class',
+};
 
 async function create() {
   error.value = null;
@@ -24,7 +28,7 @@ async function create() {
     createOpen.value = false;
     Object.assign(form, { fullName: '', email: '', password: '', phone: '' });
   } catch (e) {
-    error.value = extractApiError(e) ?? 'Could not create assistant';
+    error.value = extractApiError(e);
   }
 }
 </script>
@@ -52,31 +56,51 @@ async function create() {
     />
 
     <v-card>
-      <v-list v-if="assistants.length">
-        <template v-for="(a, i) in assistants" :key="a.id">
-          <v-list-item @click="openDetail(a.id)">
-            <template #prepend>
-              <v-avatar color="primary" size="36">
-                <span class="text-white">{{ a.fullName[0] }}</span>
-              </v-avatar>
-            </template>
-            <v-list-item-title>{{ a.fullName }}</v-list-item-title>
-            <v-list-item-subtitle>{{ a.email }}</v-list-item-subtitle>
-            <template #append>
-              <v-chip size="small" variant="tonal">
-                {{ a._count?.classAssignments ?? 0 }} classes
+      <v-table v-if="assistants.length" hover>
+        <thead>
+          <tr>
+            <th>Assistant</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Salary</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="a in assistants"
+            :key="a.id"
+            style="cursor: pointer"
+            @click="openDetail(a.id)"
+          >
+            <td>
+              <div class="d-flex align-center ga-3 py-2">
+                <v-avatar color="primary" size="34">
+                  <v-img v-if="avatar(a)" :src="avatar(a)!" />
+                  <span v-else class="text-white">{{ a.fullName[0] }}</span>
+                </v-avatar>
+                <span class="font-weight-medium">{{ a.fullName }}</span>
+              </div>
+            </td>
+            <td class="text-medium-emphasis">{{ a.email }}</td>
+            <td class="text-medium-emphasis">{{ a.phone || '—' }}</td>
+            <td>
+              <v-chip v-if="a.assistantProfile" size="small" variant="tonal">
+                {{ salaryLabel[a.assistantProfile.salaryMethod] }} ·
+                {{ Number(a.assistantProfile.salaryRate).toLocaleString() }}
               </v-chip>
-            </template>
-          </v-list-item>
-          <v-divider v-if="i < assistants.length - 1" />
-        </template>
-      </v-list>
+              <span v-else class="text-medium-emphasis">—</span>
+            </td>
+            <td class="text-right">
+              <v-icon class="text-medium-emphasis">mdi-chevron-right</v-icon>
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
       <div v-else-if="!isLoading" class="pa-12 text-center text-medium-emphasis">
         No assistants yet.
       </div>
     </v-card>
-
-    <AssistantDetailDialog v-model="detailOpen" :assistant-id="selectedId" />
 
     <v-dialog v-model="createOpen" max-width="460">
       <v-card>

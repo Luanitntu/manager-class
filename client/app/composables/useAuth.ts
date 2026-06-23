@@ -29,7 +29,8 @@ export function useAuth() {
   }) {
     const res = await request<AuthResult>('/auth/register', {
       method: 'POST',
-      body: payload,
+      // Capture the browser timezone so the calendar is correct from day one.
+      body: { ...payload, timezone: detectBrowserTimezone() },
     });
     auth.setSession(res);
     return res;

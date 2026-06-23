@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { ScoreType } from '@prisma/client';
+import { ScoreType, StudyStatus } from '@prisma/client';
 import {
   IsDateString,
   IsEnum,
@@ -12,8 +12,21 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
+import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
+
+export class ListStudentsQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ enum: StudyStatus })
+  @IsOptional()
+  @IsEnum(StudyStatus)
+  status?: StudyStatus;
+}
 
 export class UpdateStudentProfileDto {
+  @ApiPropertyOptional({ enum: StudyStatus })
+  @IsOptional()
+  @IsEnum(StudyStatus)
+  studyStatus?: StudyStatus;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

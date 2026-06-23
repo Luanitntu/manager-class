@@ -6,15 +6,18 @@ import { z } from 'zod';
 definePageMeta({ layout: 'auth' });
 
 const { register } = useAuth();
+const { t } = useI18n();
 const error = ref<string | null>(null);
 const loading = ref(false);
 
-const schema = toTypedSchema(
-  z.object({
-    fullName: z.string().min(2, 'Enter your name'),
-    email: z.string().email('Enter a valid email'),
-    password: z.string().min(8, 'At least 8 characters'),
-  }),
+const schema = computed(() =>
+  toTypedSchema(
+    z.object({
+      fullName: z.string().min(2, t('auth.validation.nameRequired')),
+      email: z.string().email(t('auth.validation.emailInvalid')),
+      password: z.string().min(8, t('auth.validation.passwordMin')),
+    }),
+  ),
 );
 
 const { handleSubmit, defineField, errors } = useForm({ validationSchema: schema });
@@ -29,7 +32,7 @@ const onSubmit = handleSubmit(async (values) => {
     await register(values);
     await navigateTo('/calendar');
   } catch (e: unknown) {
-    error.value = extractApiError(e) ?? 'Registration failed';
+    error.value = extractApiError(e);
   } finally {
     loading.value = false;
   }
@@ -42,8 +45,8 @@ const onSubmit = handleSubmit(async (values) => {
       <v-avatar color="primary" size="48" rounded="lg" class="mb-3">
         <v-icon color="white" size="28">mdi-school</v-icon>
       </v-avatar>
-      <h1 class="text-h5 font-weight-bold">Create your account</h1>
-      <p class="text-medium-emphasis">Start managing your classes</p>
+      <h1 class="text-h5 font-weight-bold">{{ t('auth.createAccount') }}</h1>
+      <p class="text-medium-emphasis">{{ t('auth.createAccountSubtitle') }}</p>
     </div>
 
     <v-alert v-if="error" type="error" variant="tonal" class="mb-4" density="compact">
@@ -54,14 +57,14 @@ const onSubmit = handleSubmit(async (values) => {
       <v-text-field
         v-model="fullName"
         v-bind="fullNameAttrs"
-        label="Full name"
+        :label="t('auth.fullName')"
         prepend-inner-icon="mdi-account-outline"
         :error-messages="errors.fullName"
       />
       <v-text-field
         v-model="email"
         v-bind="emailAttrs"
-        label="Email"
+        :label="t('auth.email')"
         type="email"
         prepend-inner-icon="mdi-email-outline"
         :error-messages="errors.email"
@@ -69,19 +72,19 @@ const onSubmit = handleSubmit(async (values) => {
       <v-text-field
         v-model="password"
         v-bind="passwordAttrs"
-        label="Password"
+        :label="t('auth.password')"
         type="password"
         prepend-inner-icon="mdi-lock-outline"
         :error-messages="errors.password"
       />
       <v-btn type="submit" color="primary" block size="large" :loading="loading" class="mt-2">
-        Create account
+        {{ t('auth.createAccount') }}
       </v-btn>
     </v-form>
 
     <div class="text-center mt-6 text-medium-emphasis">
-      Already have an account?
-      <NuxtLink to="/login" class="text-primary">Sign in</NuxtLink>
+      {{ t('auth.haveAccount') }}
+      <NuxtLink to="/login" class="text-primary">{{ t('auth.signIn') }}</NuxtLink>
     </div>
   </v-card>
 </template>

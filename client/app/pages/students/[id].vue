@@ -7,15 +7,15 @@ import {
 } from '~/composables/useStudents';
 import { useClasses } from '~/composables/useClasses';
 
-const props = defineProps<{ modelValue: boolean; studentId: string | null }>();
-const emit = defineEmits<{ 'update:modelValue': [boolean] }>();
+const route = useRoute();
+const id = computed(() => route.params.id as string);
 
-const idRef = computed(() => props.studentId);
-const { data: student } = useStudentDetail(idRef);
-const { data: scores } = useStudentScores(idRef);
-const { data: comments } = useStudentComments(idRef);
+const { data: student } = useStudentDetail(id);
+const { data: scores } = useStudentScores(id);
+const { data: comments } = useStudentComments(id);
 const { data: classesData } = useClasses();
 const { updateProfile, addScore, deleteScore, addComment } = useStudentMutations();
+const avatar = useAvatar();
 
 const tab = ref('profile');
 const classes = computed(() => classesData.value?.data ?? []);
@@ -43,14 +43,13 @@ const scoreForm = reactive({ classId: '', type: 'QUIZ', value: 0, maxValue: 10, 
 const commentForm = reactive({ category: 'progress', content: '' });
 
 async function saveProfile() {
-  if (!props.studentId) return;
-  await updateProfile.mutateAsync({ id: props.studentId, body: { ...profile } });
+  await updateProfile.mutateAsync({ id: id.value, body: { ...profile } });
 }
 
 async function submitScore() {
-  if (!props.studentId || !scoreForm.classId) return;
+  if (!scoreForm.classId) return;
   await addScore.mutateAsync({
-    id: props.studentId,
+    id: id.value,
     body: {
       classId: scoreForm.classId,
       type: scoreForm.type,
@@ -64,9 +63,9 @@ async function submitScore() {
 }
 
 async function submitComment() {
-  if (!props.studentId || !commentForm.content) return;
+  if (!commentForm.content) return;
   await addComment.mutateAsync({
-    id: props.studentId,
+    id: id.value,
     body: { category: commentForm.category, content: commentForm.content },
   });
   commentForm.content = '';
@@ -74,23 +73,23 @@ async function submitComment() {
 </script>
 
 <template>
-  <v-dialog
-    :model-value="modelValue"
-    max-width="720"
-    scrollable
-    @update:model-value="emit('update:modelValue', $event)"
-  >
-    <v-card v-if="student">
-      <v-card-title class="d-flex align-center ga-3">
-        <v-avatar color="secondary"><span class="text-white">{{ student.fullName[0] }}</span></v-avatar>
-        <div>
-          <div>{{ student.fullName }}</div>
-          <div class="text-caption text-medium-emphasis">{{ student.email }}</div>
-        </div>
-        <v-spacer />
-        <v-btn icon="mdi-close" variant="text" @click="emit('update:modelValue', false)" />
-      </v-card-title>
+  <div>
+    <v-btn variant="text" prepend-icon="mdi-arrow-left" to="/students" class="mb-4">
+      Back to students
+    </v-btn>
 
+    <div v-if="student" class="d-flex align-center ga-3 mb-6">
+      <v-avatar color="secondary" size="48">
+        <v-img v-if="avatar(student)" :src="avatar(student)!" />
+        <span v-else class="text-white text-h6">{{ student.fullName[0] }}</span>
+      </v-avatar>
+      <div>
+        <h1 class="text-h5 font-weight-bold">{{ student.fullName }}</h1>
+        <div class="text-medium-emphasis">{{ student.email }}</div>
+      </div>
+    </div>
+
+    <v-card>
       <v-tabs v-model="tab" color="primary">
         <v-tab value="profile">Profile</v-tab>
         <v-tab value="scores">Scores</v-tab>
@@ -101,14 +100,14 @@ async function submitComment() {
         <v-window v-model="tab">
           <!-- Profile -->
           <v-window-item value="profile">
-            <v-text-field v-model="profile.fullName" label="Full name" />
-            <v-text-field v-model="profile.phone" label="Phone" />
-            <v-text-field v-model="profile.address" label="Address" />
-            <div class="d-flex ga-3">
-              <v-text-field v-model="profile.occupation" label="Occupation" />
-              <v-text-field v-model="profile.educationLevel" label="Education level" />
-            </div>
-            <v-textarea v-model="profile.learningGoal" label="Learning goal" rows="2" />
+            <v-row>
+              <v-col cols="12" md="6"><v-text-field v-model="profile.fullName" label="Full name" /></v-col>
+              <v-col cols="12" md="6"><v-text-field v-model="profile.phone" label="Phone" /></v-col>
+              <v-col cols="12"><v-text-field v-model="profile.address" label="Address" /></v-col>
+              <v-col cols="12" md="6"><v-text-field v-model="profile.occupation" label="Occupation" /></v-col>
+              <v-col cols="12" md="6"><v-text-field v-model="profile.educationLevel" label="Education level" /></v-col>
+              <v-col cols="12"><v-textarea v-model="profile.learningGoal" label="Learning goal" rows="2" /></v-col>
+            </v-row>
             <div class="d-flex justify-end">
               <v-btn color="primary" :loading="updateProfile.isPending.value" @click="saveProfile">
                 Save profile
@@ -127,7 +126,7 @@ async function submitComment() {
                 label="Class"
                 density="compact"
                 hide-details
-                style="min-width: 140px"
+                style="min-width: 160px"
               />
               <v-select
                 v-model="scoreForm.type"
@@ -135,40 +134,30 @@ async function submitComment() {
                 label="Type"
                 density="compact"
                 hide-details
-                style="max-width: 130px"
+                style="max-width: 140px"
               />
-              <v-text-field
-                v-model="scoreForm.value"
-                type="number"
-                label="Score"
-                density="compact"
-                hide-details
-                style="max-width: 90px"
-              />
-              <v-text-field
-                v-model="scoreForm.maxValue"
-                type="number"
-                label="Max"
-                density="compact"
-                hide-details
-                style="max-width: 80px"
-              />
+              <v-text-field v-model="scoreForm.value" type="number" label="Score" density="compact" hide-details style="max-width: 90px" />
+              <v-text-field v-model="scoreForm.maxValue" type="number" label="Max" density="compact" hide-details style="max-width: 80px" />
               <v-btn icon="mdi-plus" color="primary" :disabled="!scoreForm.classId" @click="submitScore" />
             </div>
-            <v-list>
-              <v-list-item v-for="s in scores ?? []" :key="s.id">
-                <v-list-item-title>
-                  {{ s.class?.name }} — {{ s.type }}{{ s.label ? ` (${s.label})` : '' }}
-                </v-list-item-title>
-                <template #append>
-                  <span class="font-weight-bold mr-3">{{ s.value }} / {{ s.maxValue }}</span>
-                  <v-btn icon="mdi-delete" size="x-small" variant="text" @click="deleteScore.mutate(s.id)" />
-                </template>
-              </v-list-item>
-              <div v-if="!scores?.length" class="text-center text-medium-emphasis pa-4">
-                No scores yet.
-              </div>
-            </v-list>
+            <v-table density="comfortable">
+              <thead>
+                <tr><th>Class</th><th>Type</th><th class="text-right">Score</th><th /></tr>
+              </thead>
+              <tbody>
+                <tr v-for="s in scores ?? []" :key="s.id">
+                  <td>{{ s.class?.name }}</td>
+                  <td>{{ s.type }}{{ s.label ? ` (${s.label})` : '' }}</td>
+                  <td class="text-right font-weight-bold">{{ s.value }} / {{ s.maxValue }}</td>
+                  <td class="text-right">
+                    <v-btn icon="mdi-delete" size="x-small" variant="text" @click="deleteScore.mutate(s.id)" />
+                  </td>
+                </tr>
+                <tr v-if="!scores?.length">
+                  <td colspan="4" class="text-center text-medium-emphasis pa-4">No scores yet.</td>
+                </tr>
+              </tbody>
+            </v-table>
           </v-window-item>
 
           <!-- Comments -->
@@ -176,11 +165,11 @@ async function submitComment() {
             <div class="d-flex ga-2 mb-4">
               <v-select
                 v-model="commentForm.category"
-                :items="['attitude', 'strengths', 'weaknesses', 'progress']"
+                :items="['attitude', 'strengths', 'weaknesses', 'progress', 'note']"
                 label="Category"
                 density="compact"
                 hide-details
-                style="max-width: 150px"
+                style="max-width: 160px"
               />
               <v-text-field
                 v-model="commentForm.content"
@@ -193,7 +182,9 @@ async function submitComment() {
             </div>
             <v-timeline v-if="comments?.length" side="end" density="compact">
               <v-timeline-item v-for="c in comments" :key="c.id" dot-color="primary" size="x-small">
-                <div class="text-caption text-medium-emphasis">{{ c.category }}</div>
+                <div class="text-caption text-medium-emphasis">
+                  {{ c.category }}<span v-if="c.author"> · {{ c.author.fullName }}</span>
+                </div>
                 <div>{{ c.content }}</div>
               </v-timeline-item>
             </v-timeline>
@@ -202,5 +193,5 @@ async function submitComment() {
         </v-window>
       </v-card-text>
     </v-card>
-  </v-dialog>
+  </div>
 </template>

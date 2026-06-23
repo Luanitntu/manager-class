@@ -4,8 +4,8 @@ import { Role } from '@prisma/client';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/types/authenticated-user';
-import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { AuditService } from './audit.service';
+import { AuditQueryDto } from './dto/audit-query.dto';
 
 @ApiTags('audit-logs')
 @ApiBearerAuth()
@@ -16,7 +16,7 @@ export class AuditController {
   // Teacher: own tenant. Super Admin: all. (Assistant/Student: forbidden.)
   @Roles(Role.TEACHER, Role.SUPER_ADMIN)
   @Get()
-  list(@CurrentUser() actor: AuthenticatedUser, @Query() query: PaginationQueryDto) {
+  list(@CurrentUser() actor: AuthenticatedUser, @Query() query: AuditQueryDto) {
     return this.audit.list(actor, query);
   }
 }

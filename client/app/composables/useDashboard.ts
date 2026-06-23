@@ -24,7 +24,21 @@ export interface DashboardStats {
   totalScores?: number;
   // super admin
   totalTeachers?: number;
+  totalAssistants?: number;
   totalUsers?: number;
+  totalDocuments?: number;
+  totalSessions?: number;
+  signups?: { months: string[]; counts: number[] };
+  revenueCollected?: number;
+  revenueOutstanding?: number;
+  revenueByTeacher?: { teacherId: string; teacherName: string; collected: number; total: number }[];
+  plans?: { trial: number; personal: number; pro: number; business: number };
+  subscriptionRevenue?: {
+    months: string[];
+    byPlan: { personal: number[]; pro: number[]; business: number[] };
+    total: number[];
+    grandTotal: number;
+  };
   upcomingSessions?: UpcomingSession[];
 }
 

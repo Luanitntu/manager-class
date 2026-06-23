@@ -2,6 +2,7 @@
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import luxonPlugin from '@fullcalendar/luxon3';
 import type {
   CalendarOptions,
   DateSelectArg,
@@ -14,6 +15,7 @@ import { fetchSessionRange, type TeachingSession } from '~/composables/useSessio
 
 const auth = useAuthStore();
 const { update } = useSessionMutations();
+const userTz = useUserTimezone();
 const canEdit = computed(() => auth.role === 'TEACHER');
 
 const dialog = ref(false);
@@ -32,13 +34,17 @@ function notify(text: string, color = 'error') {
 
 function toEvent(s: TeachingSession) {
   const color = s.class.color || '#5D87FF';
+  // Past + still SCHEDULED = needs confirmation (mark done / reschedule / cancel).
+  const overdue = s.status === 'SCHEDULED' && new Date(s.endTime).getTime() < Date.now();
+  const completed = s.status === 'COMPLETED';
   return {
     id: s.id,
-    title: `${s.class.name}${s.lessonTopic ? ' — ' + s.lessonTopic : ''}`,
+    title: `${overdue ? '⚠ ' : ''}${completed ? '✓ ' : ''}${s.class.name}${s.lessonTopic ? ' — ' + s.lessonTopic : ''}`,
     start: s.startTime,
     end: s.endTime,
     backgroundColor: s.status === 'CANCELLED' ? '#bdbdbd' : color,
-    borderColor: s.status === 'CANCELLED' ? '#bdbdbd' : color,
+    borderColor: s.status === 'CANCELLED' ? '#bdbdbd' : overdue ? '#FA5252' : color,
+    classNames: overdue ? ['st-overdue-event'] : [],
     extendedProps: { session: s },
   };
 }
@@ -95,8 +101,9 @@ async function reschedule(arg: EventDropArg | EventResizeDoneArg) {
 }
 
 const calendarOptions = computed<CalendarOptions>(() => ({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, luxonPlugin],
   initialView: 'dayGridMonth',
+  timeZone: userTz.value, // render every viewer's calendar in their own timezone
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
@@ -164,3 +171,11 @@ const calendarOptions = computed<CalendarOptions>(() => ({
     </v-snackbar>
   </div>
 </template>
+
+<style scoped>
+/* Overdue sessions (past + still scheduled) get a stronger red outline. */
+:deep(.st-overdue-event) {
+  outline: 2px solid #fa5252;
+  outline-offset: -2px;
+}
+</style>

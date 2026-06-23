@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma, Role, StudyStatus } from '@prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
 const STUDENT_SELECT = {
@@ -8,9 +8,16 @@ const STUDENT_SELECT = {
   fullName: true,
   phone: true,
   avatarUrl: true,
+  avatarKey: true,
   status: true,
   createdAt: true,
   studentProfile: true,
+  // Classes the student is currently enrolled in (for the "Lớp học" column).
+  enrollments: {
+    where: { class: { deletedAt: null } },
+    select: { class: { select: { id: true, name: true } } },
+    orderBy: { enrolledAt: 'asc' },
+  },
   _count: { select: { enrollments: true } },
 } satisfies Prisma.UserSelect;
 
@@ -18,16 +25,24 @@ const STUDENT_SELECT = {
 export class StudentRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  listByTeacher(teacherId: string, search: string | undefined, skip: number, take: number) {
+  listByTeacher(
+    teacherId: string,
+    search: string | undefined,
+    status: StudyStatus | undefined,
+    skip: number,
+    take: number,
+  ) {
     const where: Prisma.UserWhereInput = {
       teacherId,
       role: Role.STUDENT,
       deletedAt: null,
+      ...(status ? { studentProfile: { studyStatus: status } } : {}),
       ...(search
         ? {
             OR: [
               { fullName: { contains: search, mode: 'insensitive' } },
               { email: { contains: search, mode: 'insensitive' } },
+              { phone: { contains: search, mode: 'insensitive' } },
             ],
           }
         : {}),

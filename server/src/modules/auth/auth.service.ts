@@ -22,6 +22,8 @@ export interface AuthResult extends AuthTokens {
     fullName: string;
     role: Role;
     avatarUrl: string | null;
+    avatarKey: string | null;
+    timezone: string | null;
   };
 }
 
@@ -43,10 +45,7 @@ export class AuthService {
     const username = dto.username?.toLowerCase();
     const existing = await this.prisma.user.findFirst({
       where: {
-        OR: [
-          { email: dto.email.toLowerCase() },
-          ...(username ? [{ username }] : []),
-        ],
+        OR: [{ email: dto.email.toLowerCase() }, ...(username ? [{ username }] : [])],
       },
     });
     if (existing) {
@@ -60,6 +59,7 @@ export class AuthService {
         username,
         passwordHash,
         fullName: dto.fullName,
+        timezone: dto.timezone,
         role: Role.TEACHER,
         status: UserStatus.ACTIVE,
       },
@@ -71,7 +71,7 @@ export class AuthService {
   }
 
   // ----- Login (by email OR username) -----
-  async login(dto: LoginDto): Promise<AuthResult> {
+  async login(dto: LoginDto, meta?: { ip?: string; userAgent?: string }): Promise<AuthResult> {
     const identifier = dto.identifier.toLowerCase();
     const user = await this.prisma.user.findFirst({
       where: { OR: [{ email: identifier }, { username: identifier }] },
@@ -88,12 +88,25 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.issueTokens(user);
+    // Track login stats (best-effort, non-blocking on the happy path).
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastLoginAt: new Date(),
+        lastLoginIp: meta?.ip ?? null,
+        loginCount: { increment: 1 },
+      },
+    });
+
+    const tokens = await this.issueTokens(user, meta);
     return { ...tokens, user: this.toPublicUser(user) };
   }
 
   // ----- Refresh (with rotation) -----
-  async refresh(rawRefreshToken: string): Promise<AuthTokens> {
+  async refresh(
+    rawRefreshToken: string,
+    meta?: { ip?: string; userAgent?: string },
+  ): Promise<AuthTokens> {
     const tokenHash = hashToken(rawRefreshToken);
     const stored = await this.prisma.refreshToken.findFirst({
       where: { tokenHash, revokedAt: null },
@@ -112,7 +125,7 @@ export class AuthService {
       where: { id: stored.id },
       data: { revokedAt: new Date() },
     });
-    return this.issueTokens(stored.user);
+    return this.issueTokens(stored.user, meta);
   }
 
   // ----- Logout -----
@@ -214,7 +227,10 @@ export class AuthService {
     return user.teacherId;
   }
 
-  private async issueTokens(user: User): Promise<AuthTokens> {
+  private async issueTokens(
+    user: User,
+    meta?: { ip?: string; userAgent?: string },
+  ): Promise<AuthTokens> {
     const jwtConfig = this.config.getOrThrow<JwtConfig>('jwt');
     const payload: JwtPayload = {
       sub: user.id,
@@ -242,6 +258,8 @@ export class AuthService {
         userId: user.id,
         tokenHash: hashToken(refreshToken),
         expiresAt: new Date(decoded.exp * 1000),
+        ipAddress: meta?.ip ?? null,
+        userAgent: meta?.userAgent ?? null,
       },
     });
 
@@ -273,6 +291,8 @@ export class AuthService {
       fullName: user.fullName,
       role: user.role,
       avatarUrl: user.avatarUrl,
+      avatarKey: user.avatarKey,
+      timezone: user.timezone,
     };
   }
 }

@@ -1,8 +1,27 @@
 <script setup lang="ts">
 import { useAuditLogs } from '~/composables/useAudit';
 
-const { data, isLoading } = useAuditLogs();
+const action = ref('');
+const entityType = ref('');
+const from = ref('');
+const to = ref('');
+const page = ref(1);
+watch([action, entityType, from, to], () => (page.value = 1));
+
+const { data, isLoading } = useAuditLogs({ action, entityType, from, to, page });
 const logs = computed(() => data.value?.data ?? []);
+const meta = computed(() => data.value?.meta);
+
+const actionOptions = [
+  { value: '', title: 'Tất cả hành động' },
+  { value: 'CREATED', title: 'Tạo mới' },
+  { value: 'UPDATED', title: 'Cập nhật' },
+  { value: 'DELETED', title: 'Xóa' },
+  { value: 'LOCKED', title: 'Khóa' },
+  { value: 'UNLOCKED', title: 'Mở khóa' },
+  { value: 'RESET', title: 'Reset mật khẩu' },
+  { value: 'RECORDED', title: 'Ghi nhận' },
+];
 
 const actionColor: Record<string, string> = {
   CREATED: 'success',
@@ -11,13 +30,20 @@ const actionColor: Record<string, string> = {
   RECORDED: 'primary',
 };
 
-function colorFor(action: string) {
-  const key = Object.keys(actionColor).find((k) => action.includes(k));
+function colorFor(a: string) {
+  const key = Object.keys(actionColor).find((k) => a.includes(k));
   return key ? actionColor[key] : 'grey';
 }
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleString();
+}
+
+function clearFilters() {
+  action.value = '';
+  entityType.value = '';
+  from.value = '';
+  to.value = '';
 }
 </script>
 
@@ -25,6 +51,43 @@ function fmt(iso: string) {
   <div>
     <h1 class="text-h5 font-weight-bold mb-1">Audit Logs</h1>
     <p class="text-medium-emphasis mb-6">Important actions performed in your tenant.</p>
+
+    <div class="d-flex ga-3 mb-4 flex-wrap align-center">
+      <v-select
+        v-model="action"
+        :items="actionOptions"
+        label="Hành động"
+        hide-details
+        density="comfortable"
+        style="max-width: 200px"
+      />
+      <v-text-field
+        v-model="entityType"
+        label="Loại đối tượng"
+        placeholder="User, Class…"
+        hide-details
+        clearable
+        density="comfortable"
+        style="max-width: 200px"
+      />
+      <v-text-field
+        v-model="from"
+        type="date"
+        label="Từ ngày"
+        hide-details
+        density="comfortable"
+        style="max-width: 170px"
+      />
+      <v-text-field
+        v-model="to"
+        type="date"
+        label="Đến ngày"
+        hide-details
+        density="comfortable"
+        style="max-width: 170px"
+      />
+      <v-btn variant="text" prepend-icon="mdi-filter-off" @click="clearFilters">Xóa lọc</v-btn>
+    </div>
 
     <v-card>
       <v-table>
@@ -58,5 +121,9 @@ function fmt(iso: string) {
         </tbody>
       </v-table>
     </v-card>
+
+    <div v-if="meta && meta.totalPages > 1" class="d-flex justify-center mt-4">
+      <v-pagination v-model="page" :length="meta.totalPages" :total-visible="7" />
+    </div>
   </div>
 </template>

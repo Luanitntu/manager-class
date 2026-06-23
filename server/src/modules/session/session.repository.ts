@@ -4,11 +4,7 @@ import { PrismaService } from '../../infra/prisma/prisma.service';
 
 const SESSION_INCLUDE = {
   class: { select: { id: true, name: true, color: true, level: true } },
-  assistants: {
-    include: {
-      assistant: { select: { id: true, fullName: true, email: true } },
-    },
-  },
+  instructor: { select: { id: true, fullName: true, email: true } },
 } satisfies Prisma.TeachingSessionInclude;
 
 @Injectable()
@@ -24,7 +20,9 @@ export class SessionRepository {
 
   findInRange(where: Prisma.TeachingSessionWhereInput) {
     return this.prisma.teachingSession.findMany({
-      where: { deletedAt: null, ...where },
+      // Also exclude sessions whose class was soft-deleted (guards against any
+      // orphaned sessions left behind by a class delete).
+      where: { deletedAt: null, class: { deletedAt: null }, ...where },
       include: SESSION_INCLUDE,
       orderBy: { startTime: 'asc' },
     });
@@ -38,13 +36,13 @@ export class SessionRepository {
   }
 
   /**
-   * Finds sessions for a teacher that overlap [start, end), optionally
-   * excluding one session id (used on update). Cancelled sessions ignored.
+   * Sessions for a given instructor that overlap [start, end), optionally
+   * excluding one id (used on update). Cancelled sessions are ignored.
    */
-  findTeacherOverlaps(teacherId: string, start: Date, end: Date, excludeId?: string) {
+  findInstructorOverlaps(instructorId: string, start: Date, end: Date, excludeId?: string) {
     return this.prisma.teachingSession.findMany({
       where: {
-        teacherId,
+        instructorId,
         deletedAt: null,
         status: { not: 'CANCELLED' },
         ...(excludeId ? { id: { not: excludeId } } : {}),
@@ -55,81 +53,21 @@ export class SessionRepository {
     });
   }
 
-  /**
-   * Finds sessions where any of the given assistants is assigned and which
-   * overlap [start, end).
-   */
-  findAssistantOverlaps(assistantIds: string[], start: Date, end: Date, excludeId?: string) {
-    return this.prisma.teachingSession.findMany({
-      where: {
-        deletedAt: null,
-        status: { not: 'CANCELLED' },
-        ...(excludeId ? { id: { not: excludeId } } : {}),
-        startTime: { lt: end },
-        endTime: { gt: start },
-        assistants: { some: { assistantId: { in: assistantIds } } },
-      },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        assistants: { select: { assistantId: true } },
-      },
-    });
+  create(data: Prisma.TeachingSessionUncheckedCreateInput) {
+    return this.prisma.teachingSession.create({ data, include: SESSION_INCLUDE });
   }
 
-  async createWithAssistants(
-    data: Prisma.TeachingSessionUncheckedCreateInput,
-    assistantIds: string[],
-  ) {
-    return this.prisma.teachingSession.create({
-      data: {
-        ...data,
-        assistants: assistantIds.length
-          ? { create: assistantIds.map((assistantId) => ({ assistantId })) }
-          : undefined,
-      },
-      include: SESSION_INCLUDE,
-    });
-  }
-
-  async createManyWithAssistants(
-    rows: Prisma.TeachingSessionUncheckedCreateInput[],
-    assistantIds: string[],
-  ) {
+  createMany(rows: Prisma.TeachingSessionUncheckedCreateInput[]) {
     return this.prisma.$transaction(
-      rows.map((row) =>
-        this.prisma.teachingSession.create({
-          data: {
-            ...row,
-            assistants: assistantIds.length
-              ? { create: assistantIds.map((assistantId) => ({ assistantId })) }
-              : undefined,
-          },
-        }),
-      ),
+      rows.map((data) => this.prisma.teachingSession.create({ data })),
     );
   }
 
-  async updateWithAssistants(
-    id: string,
-    data: Prisma.TeachingSessionUpdateInput,
-    assistantIds: string[] | undefined,
-  ) {
-    return this.prisma.$transaction(async (tx) => {
-      await tx.teachingSession.update({ where: { id }, data });
-      if (assistantIds) {
-        await tx.sessionAssistant.deleteMany({ where: { sessionId: id } });
-        if (assistantIds.length) {
-          await tx.sessionAssistant.createMany({
-            data: assistantIds.map((assistantId) => ({ sessionId: id, assistantId })),
-          });
-        }
-      }
-      return tx.teachingSession.findUniqueOrThrow({
-        where: { id },
-        include: SESSION_INCLUDE,
-      });
+  update(id: string, data: Prisma.TeachingSessionUpdateInput) {
+    return this.prisma.teachingSession.update({
+      where: { id },
+      data,
+      include: SESSION_INCLUDE,
     });
   }
 }

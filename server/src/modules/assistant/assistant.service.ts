@@ -79,6 +79,11 @@ export class AssistantService {
     );
   }
 
+  async listSessions(actor: AuthenticatedUser, assistantId: string) {
+    await this.assertAccess(actor, assistantId);
+    return this.repo.listInstructedSessions(assistantId, this.teacherScope(actor));
+  }
+
   // Assistant may view their own record; teacher views any in their tenant.
   private async assertAccess(actor: AuthenticatedUser, assistantId: string): Promise<void> {
     if (actor.role === Role.ASSISTANT) {

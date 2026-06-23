@@ -2,7 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { computed } from 'vue';
 import type { MaybeRefOrGetter, Ref } from 'vue';
 
+export type StudyStatus = 'STUDYING' | 'RESERVED' | 'GRADUATED';
+
 export interface StudentProfile {
+  code?: string | null;
+  studyStatus?: StudyStatus;
   address?: string | null;
   dateOfBirth?: string | null;
   occupation?: string | null;
@@ -16,7 +20,9 @@ export interface Student {
   fullName: string;
   phone?: string | null;
   avatarUrl?: string | null;
+  avatarKey?: string | null;
   studentProfile?: StudentProfile | null;
+  enrollments?: { class: { id: string; name: string } }[];
   _count?: { enrollments: number };
 }
 
@@ -39,14 +45,22 @@ export interface StudentComment {
   createdAt: string;
 }
 
-export function useStudents(search?: MaybeRefOrGetter<string | undefined>) {
+export function useStudents(
+  search?: MaybeRefOrGetter<string | undefined>,
+  status?: MaybeRefOrGetter<string | undefined>,
+  page?: MaybeRefOrGetter<number>,
+  limit = 10,
+) {
   const { requestPaged } = useApi();
   return useQuery({
-    queryKey: ['students', search],
+    queryKey: ['students', search, status, page, limit],
     queryFn: () => {
+      const params = new URLSearchParams({ limit: String(limit), page: String(toValue(page) ?? 1) });
       const term = toValue(search);
-      const qs = term ? `?search=${encodeURIComponent(term)}&limit=100` : '?limit=100';
-      return requestPaged<Student[]>(`/students${qs}`);
+      const st = toValue(status);
+      if (term) params.set('search', term);
+      if (st) params.set('status', st);
+      return requestPaged<Student[]>(`/students?${params.toString()}`);
     },
   });
 }
@@ -88,6 +102,20 @@ export function useStudentMutations() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['students'] }),
   });
 
+  const setStatus = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: StudyStatus }) =>
+      request(`/students/${id}/profile`, { method: 'PATCH', body: { studyStatus: status } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['students'] });
+      qc.invalidateQueries({ queryKey: ['student'] });
+    },
+  });
+
+  const deleteStudent = useMutation({
+    mutationFn: (id: string) => request(`/users/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['students'] }),
+  });
+
   const updateProfile = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
       request(`/students/${id}/profile`, { method: 'PATCH', body }),
@@ -111,5 +139,5 @@ export function useStudentMutations() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['student-comments'] }),
   });
 
-  return { createStudent, updateProfile, addScore, deleteScore, addComment };
+  return { createStudent, setStatus, deleteStudent, updateProfile, addScore, deleteScore, addComment };
 }

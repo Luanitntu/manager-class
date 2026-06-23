@@ -1,7 +1,10 @@
 <template>
   <v-app>
     <v-main class="bg-background">
-      <v-container class="fill-height d-flex align-center justify-center">
+      <div class="d-flex justify-end pa-4">
+        <LanguageSwitcher />
+      </div>
+      <v-container class="d-flex align-center justify-center" style="min-height: calc(100vh - 72px)">
         <div style="width: 100%; max-width: 420px">
           <slot />
         </div>

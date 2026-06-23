@@ -13,6 +13,7 @@ export interface Assistant {
   email: string;
   fullName: string;
   phone?: string | null;
+  avatarKey?: string | null;
   assistantProfile?: AssistantProfile | null;
   _count?: { classAssignments: number };
   classAssignments?: { class: { id: string; name: string; level?: string | null } }[];
@@ -63,6 +64,24 @@ export function useAssistantSalary(id: Ref<string | null>) {
     queryKey: ['assistant-salary', id],
     enabled: computed(() => !!id.value),
     queryFn: () => request<SalaryResult>(`/assistants/${id.value}/salary`),
+  });
+}
+
+export interface AssistantSession {
+  id: string;
+  startTime: string;
+  endTime: string;
+  lessonTopic?: string | null;
+  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+  class: { id: string; name: string; level?: string | null; color?: string | null };
+}
+
+export function useAssistantSessions(id: Ref<string | null>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['assistant-sessions', id],
+    enabled: computed(() => !!id.value),
+    queryFn: () => request<AssistantSession[]>(`/assistants/${id.value}/sessions`),
   });
 }
 

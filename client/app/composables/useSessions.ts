@@ -1,18 +1,21 @@
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 
-export interface SessionAssistantRef {
-  assistant: { id: string; fullName: string; email: string };
+export interface InstructorRef {
+  id: string;
+  fullName: string;
+  email: string;
 }
 
 export interface TeachingSession {
   id: string;
   classId: string;
+  instructorId: string;
   startTime: string;
   endTime: string;
   lessonTopic?: string | null;
   status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
   class: { id: string; name: string; color?: string | null; level?: string | null };
-  assistants: SessionAssistantRef[];
+  instructor?: InstructorRef | null;
 }
 
 export interface CreateSessionPayload {
@@ -20,7 +23,7 @@ export interface CreateSessionPayload {
   startTime: string;
   endTime: string;
   lessonTopic?: string;
-  assistantIds?: string[];
+  instructorId?: string;
 }
 
 export interface BulkSessionPayload {
@@ -31,7 +34,9 @@ export interface BulkSessionPayload {
   startTime: string;
   endTime: string;
   lessonTopic?: string;
-  assistantIds?: string[];
+  instructorId?: string;
+  timeZone?: string;
+  tzOffset?: number;
 }
 
 /** Fetches sessions overlapping [from, to] — the calendar's primary feed. */
@@ -45,7 +50,13 @@ export function fetchSessionRange(from: string, to: string) {
 export function useSessionMutations() {
   const { request } = useApi();
   const qc = useQueryClient();
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['sessions'] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['sessions'] });
+    // Session changes (esp. status → COMPLETED) affect class progress.
+    qc.invalidateQueries({ queryKey: ['classes'] });
+    qc.invalidateQueries({ queryKey: ['class-sessions'] });
+    qc.invalidateQueries({ queryKey: ['class'] });
+  };
 
   const create = useMutation({
     mutationFn: (body: CreateSessionPayload) =>

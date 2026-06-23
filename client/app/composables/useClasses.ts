@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
-import type { MaybeRefOrGetter } from 'vue';
+import { computed } from 'vue';
+import type { MaybeRefOrGetter, Ref } from 'vue';
+
+export interface ClassStudentRef {
+  id: string;
+  fullName: string;
+  avatarKey?: string | null;
+}
 
 export interface ClassItem {
   id: string;
@@ -8,19 +15,70 @@ export interface ClassItem {
   level?: string | null;
   color?: string | null;
   isActive: boolean;
+  totalSessions?: number | null;
+  completedSessions?: number;
+  students?: ClassStudentRef[];
   _count?: { enrollments: number; sessions: number; assistants?: number };
 }
 
-export function useClasses(search?: MaybeRefOrGetter<string | undefined>) {
+export interface ClassSession {
+  id: string;
+  startTime: string;
+  endTime: string;
+  lessonTopic?: string | null;
+  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+  instructor?: { id: string; fullName: string } | null;
+}
+
+export interface ClassEnrollment {
+  id: string;
+  status: string;
+  enrolledAt: string;
+  student: { id: string; fullName: string; email: string; avatarUrl?: string | null; avatarKey?: string | null };
+}
+
+export function useClasses(
+  search?: MaybeRefOrGetter<string | undefined>,
+  page?: MaybeRefOrGetter<number>,
+  limit = 9,
+) {
   const { requestPaged } = useApi();
 
   return useQuery({
-    queryKey: ['classes', search],
+    queryKey: ['classes', search, page, limit],
     queryFn: () => {
+      const params = new URLSearchParams({ limit: String(limit), page: String(toValue(page) ?? 1) });
       const term = toValue(search);
-      const qs = term ? `?search=${encodeURIComponent(term)}&limit=100` : '?limit=100';
-      return requestPaged<ClassItem[]>(`/classes${qs}`);
+      if (term) params.set('search', term);
+      return requestPaged<ClassItem[]>(`/classes?${params.toString()}`);
     },
+  });
+}
+
+export function useClassDetail(id: Ref<string | null>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['class', id],
+    enabled: computed(() => !!id.value),
+    queryFn: () => request<ClassItem>(`/classes/${id.value}`),
+  });
+}
+
+export function useClassSessions(id: Ref<string | null>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['class-sessions', id],
+    enabled: computed(() => !!id.value),
+    queryFn: () => request<ClassSession[]>(`/classes/${id.value}/sessions`),
+  });
+}
+
+export function useClassStudents(id: Ref<string | null>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['class-students', id],
+    enabled: computed(() => !!id.value),
+    queryFn: () => request<ClassEnrollment[]>(`/classes/${id.value}/students`),
   });
 }
 
@@ -46,5 +104,17 @@ export function useClassMutations() {
     onSuccess: invalidate,
   });
 
-  return { create, update, remove };
+  const enrollStudent = useMutation({
+    mutationFn: ({ classId, studentId, note }: { classId: string; studentId: string; note?: string }) =>
+      request(`/classes/${classId}/students`, { method: 'POST', body: { studentId, note } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['class-students'] }),
+  });
+
+  const unenrollStudent = useMutation({
+    mutationFn: ({ classId, studentId }: { classId: string; studentId: string }) =>
+      request(`/classes/${classId}/students/${studentId}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['class-students'] }),
+  });
+
+  return { create, update, remove, enrollStudent, unenrollStudent };
 }

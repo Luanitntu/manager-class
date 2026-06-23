@@ -8,6 +8,8 @@ export interface AuthUser {
   fullName: string;
   role: UserRole;
   avatarUrl?: string | null;
+  avatarKey?: string | null;
+  timezone?: string | null;
 }
 
 interface AuthState {

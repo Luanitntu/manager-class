@@ -62,6 +62,12 @@ export class ClassController {
     return this.classes.remove(actor, id);
   }
 
+  // ----- Sessions of this class -----
+  @Get(':id/sessions')
+  listSessions(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.classes.listSessions(actor, id);
+  }
+
   // ----- Enrollment -----
   @Get(':id/students')
   listStudents(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
@@ -75,7 +81,7 @@ export class ClassController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: EnrollStudentDto,
   ) {
-    return this.classes.enrollStudent(actor, id, dto.studentId);
+    return this.classes.enrollStudent(actor, id, dto.studentId, dto.note);
   }
 
   @Roles(Role.TEACHER)

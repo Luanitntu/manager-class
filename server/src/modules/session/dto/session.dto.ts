@@ -38,12 +38,14 @@ export class CreateSessionDto {
   @MaxLength(300)
   lessonTopic?: string;
 
-  @ApiPropertyOptional({ type: [String], format: 'uuid' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description:
+      'Who teaches this session (the teacher themselves or an assistant). Defaults to the teacher.',
+  })
   @IsOptional()
-  @IsArray()
-  @IsUUID('all', { each: true })
-  @ArrayMaxSize(20)
-  assistantIds?: string[];
+  @IsUUID()
+  instructorId?: string;
 }
 
 export class UpdateSessionDto extends PartialType(CreateSessionDto) {
@@ -94,12 +96,33 @@ export class BulkCreateSessionDto {
   @MaxLength(300)
   lessonTopic?: string;
 
-  @ApiPropertyOptional({ type: [String], format: 'uuid' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Who teaches these sessions (teacher or an assistant). Defaults to the teacher.',
+  })
   @IsOptional()
-  @IsArray()
-  @IsUUID('all', { each: true })
-  @ArrayMaxSize(20)
-  assistantIds?: string[];
+  @IsUUID()
+  instructorId?: string;
+
+  @ApiPropertyOptional({
+    example: 'Asia/Ho_Chi_Minh',
+    description: 'IANA timezone the times are entered in. Preferred over tzOffset.',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  timeZone?: string;
+
+  @ApiPropertyOptional({
+    example: -420,
+    description: 'Fallback client tz offset in minutes (Date.getTimezoneOffset). UTC+7 = -420.',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(-840)
+  @Max(840)
+  tzOffset?: number;
 }
 
 export class SessionRangeQueryDto {

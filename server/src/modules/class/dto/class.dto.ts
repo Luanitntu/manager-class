@@ -1,12 +1,16 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsHexColor,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
 
 export class CreateClassDto {
@@ -32,6 +36,14 @@ export class CreateClassDto {
   @IsOptional()
   @IsHexColor()
   color?: string;
+
+  @ApiPropertyOptional({ example: 24, description: 'Planned course length (number of sessions).' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(1000)
+  totalSessions?: number;
 }
 
 export class UpdateClassDto extends PartialType(CreateClassDto) {
@@ -45,6 +57,14 @@ export class EnrollStudentDto {
   @ApiProperty({ format: 'uuid' })
   @IsUUID()
   studentId!: string;
+
+  @ApiPropertyOptional({
+    description: 'Optional note about the student (synced to the student profile).',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  note?: string;
 }
 
 export class AssignAssistantDto {

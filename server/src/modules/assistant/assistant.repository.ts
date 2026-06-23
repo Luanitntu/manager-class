@@ -8,6 +8,7 @@ const ASSISTANT_SELECT = {
   fullName: true,
   phone: true,
   avatarUrl: true,
+  avatarKey: true,
   status: true,
   createdAt: true,
   assistantProfile: true,
@@ -79,12 +80,28 @@ export class AssistantRepository {
    * Sessions the assistant is assigned to (non-cancelled), grouped per class,
    * for salary calculation. Optionally bounded by a date range.
    */
+  /** Full session detail for an assistant's teaching schedule (tenant-scoped). */
+  listInstructedSessions(assistantId: string, teacherId: string) {
+    return this.prisma.teachingSession.findMany({
+      where: { instructorId: assistantId, teacherId, deletedAt: null },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        lessonTopic: true,
+        status: true,
+        class: { select: { id: true, name: true, level: true, color: true } },
+      },
+      orderBy: { startTime: 'desc' },
+    });
+  }
+
   findAssignedSessions(assistantId: string, from?: Date, to?: Date) {
     return this.prisma.teachingSession.findMany({
       where: {
         deletedAt: null,
         status: { not: 'CANCELLED' },
-        assistants: { some: { assistantId } },
+        instructorId: assistantId,
         ...(from || to
           ? { startTime: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } }
           : {}),

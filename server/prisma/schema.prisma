@@ -51,6 +51,13 @@ enum EnrollmentStatus {
   COMPLETED
 }
 
+// Student lifecycle within a teacher's school (shown as the status badge).
+enum StudyStatus {
+  STUDYING // Đang học
+  RESERVED // Bảo lưu
+  GRADUATED // Đã tốt nghiệp
+}
+
 enum DocumentType {
   PDF
   MP3
@@ -96,7 +103,12 @@ model User {
   fullName      String     @map("full_name")
   phone         String?
   avatarUrl     String?    @map("avatar_url")
+  avatarKey     String?    @map("avatar_key")
+  timezone      String?    // IANA tz, e.g. "Asia/Ho_Chi_Minh"
   emailVerified Boolean    @default(false) @map("email_verified")
+  lastLoginAt   DateTime? @map("last_login_at")
+  lastLoginIp   String?   @map("last_login_ip")
+  loginCount    Int       @default(0) @map("login_count")
 
   // Tenancy: assistants & students belong to a teacher.
   // Null for SUPER_ADMIN and TEACHER (a teacher is their own tenant root).
@@ -115,6 +127,7 @@ model User {
   // Domain relations (as a teacher / tenant owner)
   ownedClasses    Class[]            @relation("TeacherClasses")
   ownedSessions   TeachingSession[]  @relation("TeacherSessions")
+  taughtSessions  TeachingSession[]  @relation("InstructorSessions")
   ownedDocuments  Document[]         @relation("TeacherDocuments")
   ownedPayments   Tuition[]          @relation("TeacherTuitions")
   ownedScores     Score[]            @relation("TeacherScores")
@@ -163,6 +176,10 @@ model StudentProfile {
   id             String    @id @default(uuid()) @db.Uuid
   userId         String    @unique @map("user_id") @db.Uuid
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Human-friendly per-teacher code shown in lists (e.g. STU0001). Not globally
+  // unique — each teacher's sequence starts at 1.
+  code           String?
+  studyStatus    StudyStatus @default(STUDYING) @map("study_status")
   address        String?
   dateOfBirth    DateTime? @map("date_of_birth")
   occupation     String?
@@ -181,6 +198,8 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tokenHash String   @map("token_hash")
   expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
   revokedAt DateTime? @map("revoked_at")
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -215,6 +234,10 @@ model Class {
   level       String?
   color       String? // calendar display color
   isActive    Boolean @default(true) @map("is_active")
+  // Planned course length (number of sessions). Used to compute progress on the
+  // class cards: completed sessions / totalSessions. Optional — falls back to the
+  // count of created sessions when not set.
+  totalSessions Int?  @map("total_sessions")
 
   sessions    TeachingSession[]
   enrollments ClassEnrollment[]
@@ -264,6 +287,10 @@ model TeachingSession {
   id          String        @id @default(uuid()) @db.Uuid
   teacherId   String        @map("teacher_id") @db.Uuid
   teacher     User          @relation("TeacherSessions", fields: [teacherId], references: [id], onDelete: Cascade)
+  // The person actually teaching this session: the owner teacher or one of
+  // their assistants. Conflict detection is based on this instructor.
+  instructorId String       @map("instructor_id") @db.Uuid
+  instructor   User         @relation("InstructorSessions", fields: [instructorId], references: [id], onDelete: Restrict)
   classId     String        @map("class_id") @db.Uuid
   class       Class         @relation(fields: [classId], references: [id], onDelete: Cascade)
   startTime   DateTime      @map("start_time")
@@ -284,6 +311,7 @@ model TeachingSession {
   deletedAt DateTime? @map("deleted_at")
 
   @@index([teacherId, startTime])
+  @@index([instructorId, startTime])
   @@index([classId])
   @@index([recurrenceGroupId])
   @@map("teaching_sessions")
@@ -481,4 +509,41 @@ model AuditLog {
   @@index([actorId])
   @@index([entityType, entityId])
   @@map("audit_logs")
+}
+
+// ------------------------------------------------------------
+// Platform settings (single row, managed by Super Admin)
+// ------------------------------------------------------------
+
+model SystemSetting {
+  id                String   @id @default("singleton")
+  platformName      String   @default("Schedule Teacher") @map("platform_name")
+  supportEmail      String?  @map("support_email")
+  allowRegistration Boolean  @default(true) @map("allow_registration")
+  defaultTimezone   String   @default("Asia/Ho_Chi_Minh") @map("default_timezone")
+
+  // Integration credentials (managed by Super Admin; applied by services later).
+  resendApiKey      String?  @map("resend_api_key")
+  emailFrom         String?  @map("email_from")
+  r2AccountId       String?  @map("r2_account_id")
+  r2AccessKeyId     String?  @map("r2_access_key_id")
+  r2SecretAccessKey String?  @map("r2_secret_access_key")
+  r2Bucket          String?  @map("r2_bucket")
+  r2PublicUrl       String?  @map("r2_public_url")
+
+  // Operational toggles
+  maintenanceMode      Boolean @default(false) @map("maintenance_mode")
+  storageDriver        String  @default("local") @map("storage_driver")
+  healthRefreshSeconds Int     @default(300) @map("health_refresh_seconds")
+
+  // Branding & SEO
+  faviconKey     String? @map("favicon_key")
+  seoTitle       String? @map("seo_title")
+  seoDescription String? @map("seo_description")
+  seoKeywords    String? @map("seo_keywords")
+  announcement       String?  @map("announcement")
+  announcementActive Boolean  @default(false) @map("announcement_active")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
 }
