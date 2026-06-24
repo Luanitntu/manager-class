@@ -7,8 +7,12 @@ import {
   useStudentPayments,
   useStudentScores,
   type ActivityItem,
+  type StudentPayments,
 } from '~/composables/useStudents';
 import { useClasses } from '~/composables/useClasses';
+import { usePaymentMutations } from '~/composables/usePayments';
+
+type TuitionRow = StudentPayments['tuitions'][number];
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
@@ -26,8 +30,11 @@ const tab = ref('profile');
 const classes = computed(() => classesData.value?.data ?? []);
 
 // ── Info card / badges ──────────────────────────────────────────────────────
-const primaryClass = computed(() => student.value?.enrollments?.[0]?.class ?? null);
-const level = computed(() => student.value?.enrollments?.map((e) => e.class.level).find(Boolean) ?? null);
+const enrolledClasses = computed(() => student.value?.enrollments?.map((e) => e.class) ?? []);
+// Active = currently studying; archived (isActive === false) = soft-deleted class.
+const activeClasses = computed(() => enrolledClasses.value.filter((c) => c.isActive !== false));
+const archivedClasses = computed(() => enrolledClasses.value.filter((c) => c.isActive === false));
+const level = computed(() => activeClasses.value.map((c) => c.level).find(Boolean) ?? null);
 const outstanding = computed(() => payments.value?.outstanding ?? 0);
 
 function money(n?: number) {
@@ -117,6 +124,108 @@ async function submitComment() {
   });
   commentForm.content = '';
 }
+
+// ── Payments (tuition + installments) ───────────────────────────────────────
+const { createTuition, updateTuition, recordPayment } = usePaymentMutations();
+const PAY_STATUS: Record<string, string> = {
+  PAID: 'success',
+  PARTIALLY_PAID: 'info',
+  PENDING: 'warning',
+  OVERDUE: 'error',
+};
+function payStatusLabel(s: string) {
+  return (
+    { PAID: 'Đã đóng đủ', PARTIALLY_PAID: 'Đóng một phần', PENDING: 'Chưa đóng', OVERDUE: 'Quá hạn' }[s] ?? s
+  );
+}
+
+const tuitionOpen = ref(false);
+const tuitionError = ref<string | null>(null);
+const tuitionForm = reactive({ classId: '', totalAmount: 0, dueDate: '', notes: '' });
+function openCreateTuition() {
+  Object.assign(tuitionForm, {
+    classId: activeClasses.value[0]?.id ?? '',
+    totalAmount: 0,
+    dueDate: '',
+    notes: '',
+  });
+  tuitionError.value = null;
+  tuitionOpen.value = true;
+}
+async function submitTuition() {
+  tuitionError.value = null;
+  try {
+    await createTuition.mutateAsync({
+      studentId: id.value,
+      classId: tuitionForm.classId,
+      totalAmount: Number(tuitionForm.totalAmount),
+      dueDate: tuitionForm.dueDate || undefined,
+      notes: tuitionForm.notes || undefined,
+    });
+    tuitionOpen.value = false;
+  } catch (e) {
+    tuitionError.value = extractApiError(e);
+  }
+}
+
+const editOpen = ref(false);
+const editError = ref<string | null>(null);
+const editTuition = ref<TuitionRow | null>(null);
+const editForm = reactive({ totalAmount: 0, dueDate: '' });
+function openEditTuition(tu: TuitionRow) {
+  editTuition.value = tu;
+  editForm.totalAmount = tu.totalAmount;
+  editForm.dueDate = tu.dueDate ? tu.dueDate.slice(0, 10) : '';
+  editError.value = null;
+  editOpen.value = true;
+}
+async function submitEditTuition() {
+  if (!editTuition.value) return;
+  editError.value = null;
+  try {
+    await updateTuition.mutateAsync({
+      id: editTuition.value.id,
+      body: { totalAmount: Number(editForm.totalAmount), dueDate: editForm.dueDate || undefined },
+    });
+    editOpen.value = false;
+  } catch (e) {
+    editError.value = extractApiError(e);
+  }
+}
+
+const recordOpen = ref(false);
+const recordError = ref<string | null>(null);
+const recordTuition = ref<TuitionRow | null>(null);
+const recordForm = reactive({ amount: 0, paidAt: '', method: '', note: '' });
+function openRecordPayment(tu: TuitionRow) {
+  recordTuition.value = tu;
+  Object.assign(recordForm, { amount: tu.totalAmount - tu.paidAmount, paidAt: '', method: '', note: '' });
+  recordError.value = null;
+  recordOpen.value = true;
+}
+async function submitRecord() {
+  if (!recordTuition.value) return;
+  recordError.value = null;
+  try {
+    await recordPayment.mutateAsync({
+      id: recordTuition.value.id,
+      body: {
+        amount: Number(recordForm.amount),
+        paidAt: recordForm.paidAt || undefined,
+        method: recordForm.method || undefined,
+        note: recordForm.note || undefined,
+      },
+    });
+    recordOpen.value = false;
+  } catch (e) {
+    recordError.value = extractApiError(e);
+  }
+}
+async function payFull(tu: TuitionRow) {
+  const remaining = tu.totalAmount - tu.paidAmount;
+  if (remaining <= 0) return;
+  await recordPayment.mutateAsync({ id: tu.id, body: { amount: remaining, method: 'Đóng đủ' } });
+}
 </script>
 
 <template>
@@ -134,7 +243,27 @@ async function submitComment() {
         <div class="d-flex align-center ga-2 flex-wrap">
           <h1 class="text-h5 font-weight-bold">{{ student.fullName }}</h1>
           <v-chip v-if="level" size="small" color="info" variant="tonal">{{ level }}</v-chip>
-          <v-chip v-if="primaryClass" size="small" color="primary" variant="tonal">{{ primaryClass.name }}</v-chip>
+          <v-chip
+            v-for="c in activeClasses"
+            :key="c.id"
+            size="small"
+            color="primary"
+            variant="tonal"
+            :to="`/classes/${c.id}`"
+          >
+            {{ c.name }}
+          </v-chip>
+          <v-chip
+            v-for="c in archivedClasses"
+            :key="c.id"
+            size="small"
+            color="grey"
+            variant="tonal"
+            class="st-archived"
+            :title="'Đã lưu trữ'"
+          >
+            {{ c.name }}
+          </v-chip>
           <v-chip
             size="small"
             :color="outstanding > 0 ? 'error' : 'success'"
@@ -152,7 +281,12 @@ async function submitComment() {
       <v-row dense>
         <v-col cols="6" md="3">
           <div class="text-caption text-medium-emphasis">Đang học</div>
-          <div class="font-weight-medium">{{ primaryClass?.name ?? '—' }}</div>
+          <div class="font-weight-medium">
+            {{ activeClasses.length ? activeClasses.map((c) => c.name).join(', ') : '—' }}
+          </div>
+          <div v-if="archivedClasses.length" class="text-caption text-medium-emphasis st-archived mt-1">
+            Đã học: {{ archivedClasses.map((c) => c.name).join(', ') }}
+          </div>
         </v-col>
         <v-col cols="6" md="3">
           <div class="text-caption text-medium-emphasis">Trình độ</div>
@@ -324,23 +458,79 @@ async function submitComment() {
               </v-col>
             </v-row>
 
-            <div class="text-subtitle-2 font-weight-bold mb-2 mt-2">Lịch sử thanh toán</div>
-            <v-table density="comfortable">
-              <thead>
-                <tr><th>Ngày</th><th>Lớp</th><th>Ghi chú</th><th class="text-right">Số tiền</th></tr>
-              </thead>
-              <tbody>
-                <tr v-for="r in payments?.records ?? []" :key="r.id">
-                  <td class="text-no-wrap">{{ fmtDate(r.paidAt) }}</td>
-                  <td>{{ r.className }}</td>
-                  <td class="text-medium-emphasis">{{ r.method || r.note || '—' }}</td>
-                  <td class="text-right font-weight-bold text-success">{{ money(r.amount) }}</td>
-                </tr>
-                <tr v-if="!payments?.records?.length">
-                  <td colspan="4" class="text-center text-medium-emphasis pa-4">Chưa có thanh toán nào.</td>
-                </tr>
-              </tbody>
-            </v-table>
+            <div class="d-flex align-center justify-space-between mb-2 mt-2">
+              <div class="text-subtitle-2 font-weight-bold">Các khoản học phí</div>
+              <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="openCreateTuition">
+                Tạo học phí
+              </v-btn>
+            </div>
+
+            <div v-if="payments?.tuitions?.length" class="d-flex flex-column ga-3">
+              <v-card v-for="tu in payments.tuitions" :key="tu.id" variant="outlined" class="pa-4">
+                <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-2">
+                  <div class="d-flex align-center ga-2">
+                    <span class="font-weight-bold">{{ tu.className }}</span>
+                    <v-chip size="x-small" :color="PAY_STATUS[tu.status]" variant="tonal">{{ payStatusLabel(tu.status) }}</v-chip>
+                    <span v-if="tu.dueDate" class="text-caption text-medium-emphasis">· Hạn {{ fmtDate(tu.dueDate) }}</span>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    Đã đóng <b class="text-success">{{ money(tu.paidAmount) }}</b> /
+                    {{ money(tu.totalAmount) }}
+                    · Còn <b class="text-error">{{ money(tu.totalAmount - tu.paidAmount) }}</b>
+                  </div>
+                </div>
+                <v-progress-linear
+                  :model-value="tu.totalAmount ? (tu.paidAmount / tu.totalAmount) * 100 : 0"
+                  color="success"
+                  height="6"
+                  rounded
+                  class="mb-3"
+                />
+
+                <div v-if="tu.payments.length" class="mb-3">
+                  <div v-for="p in tu.payments" :key="p.id" class="d-flex justify-space-between text-body-2 py-1 px-1">
+                    <span class="text-medium-emphasis">
+                      <v-icon size="14">mdi-cash</v-icon> {{ fmtDate(p.paidAt) }}
+                      <span v-if="p.method"> · {{ p.method }}</span>
+                      <span v-if="p.note"> · {{ p.note }}</span>
+                    </span>
+                    <span class="font-weight-medium text-success">{{ money(p.amount) }}</span>
+                  </div>
+                </div>
+
+                <div class="d-flex ga-2">
+                  <v-btn
+                    v-if="tu.totalAmount - tu.paidAmount > 0"
+                    size="small"
+                    variant="tonal"
+                    color="primary"
+                    prepend-icon="mdi-cash-plus"
+                    @click="openRecordPayment(tu)"
+                  >
+                    Ghi nhận đợt đóng
+                  </v-btn>
+                  <v-btn
+                    v-if="tu.totalAmount - tu.paidAmount > 0"
+                    size="small"
+                    variant="text"
+                    color="success"
+                    prepend-icon="mdi-check-all"
+                    :loading="recordPayment.isPending.value"
+                    @click="payFull(tu)"
+                  >
+                    Đóng đủ ({{ money(tu.totalAmount - tu.paidAmount) }})
+                  </v-btn>
+                  <v-chip v-else size="small" color="success" variant="tonal" prepend-icon="mdi-check-circle">
+                    Đã đóng đủ
+                  </v-chip>
+                  <v-spacer />
+                  <v-btn size="small" variant="text" prepend-icon="mdi-pencil" @click="openEditTuition(tu)">
+                    Sửa
+                  </v-btn>
+                </div>
+              </v-card>
+            </div>
+            <div v-else class="text-center text-medium-emphasis pa-6">Chưa có khoản học phí nào.</div>
           </v-window-item>
 
           <!-- Activity -->
@@ -365,5 +555,109 @@ async function submitComment() {
         </v-window>
       </v-card-text>
     </v-card>
+
+    <!-- Create tuition dialog -->
+    <v-dialog v-model="tuitionOpen" max-width="460">
+      <v-card>
+        <v-card-title>Tạo khoản học phí</v-card-title>
+        <v-card-text>
+          <v-alert v-if="tuitionError" type="error" variant="tonal" density="compact" class="mb-3">
+            {{ tuitionError }}
+          </v-alert>
+          <v-select
+            v-model="tuitionForm.classId"
+            :items="activeClasses"
+            item-title="name"
+            item-value="id"
+            label="Lớp"
+            prepend-inner-icon="mdi-google-classroom"
+          />
+          <v-text-field v-model.number="tuitionForm.totalAmount" type="number" label="Tổng học phí" prepend-inner-icon="mdi-cash" />
+          <v-text-field v-model="tuitionForm.dueDate" type="date" label="Hạn đóng (tuỳ chọn)" />
+          <v-textarea v-model="tuitionForm.notes" label="Ghi chú (tuỳ chọn)" rows="2" />
+        </v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-spacer />
+          <v-btn variant="text" @click="tuitionOpen = false">Huỷ</v-btn>
+          <v-btn
+            color="primary"
+            :loading="createTuition.isPending.value"
+            :disabled="!tuitionForm.classId || tuitionForm.totalAmount <= 0"
+            @click="submitTuition"
+          >
+            Tạo
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Edit tuition dialog -->
+    <v-dialog v-model="editOpen" max-width="420">
+      <v-card v-if="editTuition">
+        <v-card-title>Sửa học phí — {{ editTuition.className }}</v-card-title>
+        <v-card-text>
+          <v-alert v-if="editError" type="error" variant="tonal" density="compact" class="mb-3">
+            {{ editError }}
+          </v-alert>
+          <p class="text-caption text-medium-emphasis mb-2">
+            Đã đóng {{ money(editTuition.paidAmount) }} — đặt tổng thấp hơn mức đã đóng sẽ thành "đã đóng đủ".
+          </p>
+          <v-text-field v-model.number="editForm.totalAmount" type="number" label="Tổng học phí" prepend-inner-icon="mdi-cash" />
+          <v-text-field v-model="editForm.dueDate" type="date" label="Hạn đóng (tuỳ chọn)" />
+        </v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-spacer />
+          <v-btn variant="text" @click="editOpen = false">Huỷ</v-btn>
+          <v-btn
+            color="primary"
+            :loading="updateTuition.isPending.value"
+            :disabled="editForm.totalAmount < 0"
+            @click="submitEditTuition"
+          >
+            Lưu
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Record payment dialog -->
+    <v-dialog v-model="recordOpen" max-width="440">
+      <v-card v-if="recordTuition">
+        <v-card-title>Ghi nhận đợt đóng — {{ recordTuition.className }}</v-card-title>
+        <v-card-text>
+          <v-alert v-if="recordError" type="error" variant="tonal" density="compact" class="mb-3">
+            {{ recordError }}
+          </v-alert>
+          <p class="text-caption text-medium-emphasis mb-2">
+            Còn lại: {{ money(recordTuition.totalAmount - recordTuition.paidAmount) }}
+          </p>
+          <v-text-field v-model.number="recordForm.amount" type="number" label="Số tiền" prepend-inner-icon="mdi-cash" />
+          <v-text-field v-model="recordForm.paidAt" type="date" label="Ngày đóng (mặc định hôm nay)" />
+          <v-text-field v-model="recordForm.method" label="Phương thức (tiền mặt, chuyển khoản…)" />
+          <v-text-field v-model="recordForm.note" label="Ghi chú (tuỳ chọn)" />
+        </v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-spacer />
+          <v-btn variant="text" @click="recordOpen = false">Huỷ</v-btn>
+          <v-btn
+            color="primary"
+            :loading="recordPayment.isPending.value"
+            :disabled="recordForm.amount <= 0"
+            @click="submitRecord"
+          >
+            Ghi nhận
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
+
+<style scoped>
+/* Archived (soft-deleted) classes: struck through + muted. */
+.st-archived,
+.st-archived :deep(.v-chip__content) {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+</style>

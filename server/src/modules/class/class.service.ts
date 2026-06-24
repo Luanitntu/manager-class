@@ -6,6 +6,7 @@ import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { ClassRepository } from './class.repository';
 import { AuditService } from '../audit/audit.service';
+import { computePaymentStatus } from '../payment/payment-status.util';
 import { CreateClassDto, UpdateClassDto } from './dto/class.dto';
 
 @Injectable()
@@ -54,6 +55,7 @@ export class ClassService {
       level: dto.level,
       color: dto.color,
       totalSessions: dto.totalSessions,
+      tuitionFee: dto.tuitionFee,
       ...this.locationData(dto),
       createdBy: actor.id,
       updatedBy: actor.id,
@@ -170,9 +172,33 @@ export class ClassService {
   // ----- Enrollment -----
   async enrollStudent(actor: AuthenticatedUser, classId: string, studentId: string, note?: string) {
     const teacherId = this.tenantId(actor);
-    await this.assertClassOwned(classId, teacherId);
+    const klass = await this.repo.findOneForTenant(classId, teacherId);
+    if (!klass) {
+      throw new NotFoundException('Class not found');
+    }
     await this.assertMemberInTenant(studentId, teacherId, Role.STUDENT);
     const enrollment = await this.repo.enrollStudent(classId, studentId);
+
+    // Auto-create the student's tuition from the class default (one fee per
+    // enrollment) when the class has a fee set and none exists yet.
+    const fee = klass.tuitionFee != null ? Number(klass.tuitionFee) : 0;
+    if (fee > 0) {
+      const existing = await this.prisma.tuition.findFirst({ where: { classId, studentId } });
+      if (!existing) {
+        await this.prisma.tuition.create({
+          data: {
+            teacherId,
+            studentId,
+            classId,
+            totalAmount: fee,
+            paidAmount: 0,
+            status: computePaymentStatus(fee, 0, null, new Date()),
+            createdBy: actor.id,
+            updatedBy: actor.id,
+          },
+        });
+      }
+    }
 
     // Optional note about the student — stored as a StudentComment so it shows
     // up in the student's profile (Students menu) as well.
@@ -197,8 +223,27 @@ export class ClassService {
   }
 
   async listEnrollments(actor: AuthenticatedUser, classId: string) {
-    await this.findOne(actor, classId);
-    return this.repo.listEnrollments(classId);
+    const klass = await this.findOne(actor, classId);
+    const [enrollments, tuitions] = await Promise.all([
+      this.repo.listEnrollments(classId),
+      this.repo.listTuitionsForClass(classId, klass.teacherId),
+    ]);
+    const byStudent = new Map(tuitions.map((t) => [t.studentId, t]));
+    return enrollments.map((e) => {
+      const t = byStudent.get(e.student.id);
+      return {
+        ...e,
+        tuition: t
+          ? {
+              id: t.id,
+              totalAmount: Number(t.totalAmount),
+              paidAmount: Number(t.paidAmount),
+              status: t.status,
+              dueDate: t.dueDate,
+            }
+          : null,
+      };
+    });
   }
 
   async listSessions(actor: AuthenticatedUser, classId: string) {

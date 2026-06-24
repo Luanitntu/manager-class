@@ -7,6 +7,7 @@ import {
   IsHexColor,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
@@ -47,6 +48,14 @@ export class CreateClassDto {
   @Min(1)
   @Max(1000)
   totalSessions?: number;
+
+  @ApiPropertyOptional({ example: 4000000, description: 'Default course tuition fee.' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(1_000_000_000)
+  tuitionFee?: number;
 
   @ApiPropertyOptional({ enum: LocationType })
   @IsOptional()

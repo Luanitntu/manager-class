@@ -28,8 +28,17 @@ export interface ClassItem extends ClassLocationInfo {
   isActive: boolean;
   totalSessions?: number | null;
   completedSessions?: number;
+  tuitionFee?: number | null;
   students?: ClassStudentRef[];
   _count?: { enrollments: number; sessions: number; assistants?: number };
+}
+
+export interface EnrollmentTuition {
+  id: string;
+  totalAmount: number;
+  paidAmount: number;
+  status: 'PENDING' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE';
+  dueDate?: string | null;
 }
 
 export interface ClassSession {
@@ -46,6 +55,7 @@ export interface ClassEnrollment {
   status: string;
   enrolledAt: string;
   student: { id: string; fullName: string; email: string; avatarUrl?: string | null; avatarKey?: string | null };
+  tuition?: EnrollmentTuition | null;
 }
 
 export function useClasses(
@@ -115,16 +125,25 @@ export function useClassMutations() {
     onSuccess: invalidate,
   });
 
+  // Enrolling/unenrolling changes the class roster AND the student's class list.
+  const invalidateEnrollment = () => {
+    qc.invalidateQueries({ queryKey: ['class-students'] });
+    qc.invalidateQueries({ queryKey: ['class'] });
+    qc.invalidateQueries({ queryKey: ['classes'] });
+    qc.invalidateQueries({ queryKey: ['student'] });
+    qc.invalidateQueries({ queryKey: ['students'] });
+  };
+
   const enrollStudent = useMutation({
     mutationFn: ({ classId, studentId, note }: { classId: string; studentId: string; note?: string }) =>
       request(`/classes/${classId}/students`, { method: 'POST', body: { studentId, note } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['class-students'] }),
+    onSuccess: invalidateEnrollment,
   });
 
   const unenrollStudent = useMutation({
     mutationFn: ({ classId, studentId }: { classId: string; studentId: string }) =>
       request(`/classes/${classId}/students/${studentId}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['class-students'] }),
+    onSuccess: invalidateEnrollment,
   });
 
   return { create, update, remove, enrollStudent, unenrollStudent };

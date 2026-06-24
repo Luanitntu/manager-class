@@ -372,6 +372,9 @@ item pinned at the bottom of the drawer (v-navigation-drawer #append).
   refreshed a few nav icons.
 * Verified: client lint + build green.
 
+
+
+
 ## Global font → system sans stack (2026-06-23)
 Switched the whole app font from Inter/Roboto to the system sans stack (better
 EN+VI coverage, no webfont download). main.css defines `--font-sans` / `--font-mono`
@@ -446,6 +449,62 @@ or "Phụ trách · N buổi" when both. Counts = distinct classes + total instr
   summary + schedule refresh immediately when sessions are created/edited/marked done/
   deleted (previously stale until reload). updateSalary already refreshed on rate change.
 * Verified: migration applied; server lint + build + 16 tests green; client lint + build green.
+
+## Student detail: show all classes + archived struck-through (2026-06-24)
+* Bug 1: detail showed only the first enrolled class (primaryClass) → now shows ALL.
+  Bug 2: enroll/unenroll only invalidated class-students → student detail/list stale.
+  Fixed: useClasses enroll/unenroll now invalidate student/students/class/classes.
+* Archived classes (user-approved "keep + strikethrough"): findStudentForTenant
+  enrollments return class.isActive and still include soft-deleted classes. Detail splits
+  activeClasses (blue chips, counted in "Đang học") vs archivedClasses (grey line-through
+  chips + "Đã học: …", not counted). Students LIST column still hides archived (filtered);
+  only the profile shows them for history. No migration (Class.isActive already exists).
+* Verified: client lint + build green; server lint green.
+
+## Student Payments tab — tuition + installments (2026-06-24)
+Wired the existing tuition/payment backend (Tuition + PaymentRecord, no DB change) into
+the student detail Payments tab.
+* Model recap: 1 Tuition = a student's fee for one class (totalAmount); many
+  PaymentRecord = installments (đợt đóng); status auto (PENDING / PARTIALLY_PAID / PAID /
+  OVERDUE). Reuses POST /payments/tuitions + POST /payments/tuitions/:id/payments.
+* Backend: student.getPayments now nests each tuition's payment records (+ classId) so the
+  tab can show installments per class.
+* Frontend Payments tab: 3 summary cards (kept) + "Tạo học phí" (pick an active class +
+  total + due date) + a card per tuition (class, paid/total/remaining, status chip,
+  progress bar, installment list) with "Ghi nhận đợt đóng" and "Đóng đủ" (records the
+  remaining in one go = the chosen mark-done behavior; status flips to PAID automatically).
+* usePaymentMutations now also invalidates student-payments / student-activity / students /
+  dashboard, so the tab + debt badge + activity refresh immediately.
+* Verified: client lint + build green; server lint green.
+
+## Tuition = enrollment fee; Class Detail as payment workspace (2026-06-24)
+User-approved Option A (light): keep Tuition/PaymentRecord (they already model the
+enrollment fee + transactions), add class default fee + auto-create on enrol + a
+class-level payment workspace. No full refactor.
+* DB: migration 0018 — Class.tuition_fee (default course fee). No table rename.
+* Backend: CreateClassDto/UpdateClassDto accept tuitionFee. enrollStudent now auto-creates
+  the student's Tuition from the class default (total = class.tuitionFee) when set and none
+  exists. PaymentService.createTuition enforces ONE tuition per (student, class) =
+  one fee per enrollment (ConflictException on duplicate). class.service.listEnrollments
+  attaches each enrollment's tuition {id,total,paid,status,dueDate} (new repo.listTuitionsForClass).
+  Editing class.tuitionFee does NOT retro-change existing tuitions (each total is captured
+  at enrol time). Removing a student keeps their tuition (history).
+* Frontend: class create/edit forms gain "Học phí khoá (mặc định)". Class Detail student
+  roster is now the primary payment workspace — each student shows Đã đóng/Tổng + status +
+  "Thu tiền" (record installment) / "Đóng đủ" / "Tạo học phí" (if none). usePaymentMutations
+  also invalidates class-students. Student Detail Payments tab remains the read-only roll-up.
+  useClasses types gain Class.tuitionFee + ClassEnrollment.tuition.
+* Verified: migration applied; server lint + build + 16 tests green; client lint + build green.
+
+## Edit tuition (fix mistakes) (2026-06-24)
+Create existed but not edit → added. Backend PATCH /payments/tuitions/:id already existed
+(total/dueDate/notes, recomputes status); exposed it: usePaymentMutations.updateTuition.
+* Class Detail student row: "Sửa học phí" pencil (edit total + due date) for students with a
+  tuition. Student Detail Payments: "Sửa" per tuition card. Both via a dialog; warns that a
+  total below the paid amount flips status to fully-paid. No DB change.
+* Note: editing/deleting an individual payment installment (PaymentRecord) is NOT yet
+  supported (no backend endpoint) — only the tuition total/due. Future if needed.
+* Verified: client lint + build green.
 
 ---
 

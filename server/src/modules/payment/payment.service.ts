@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../../infra/prisma/prisma.service';
@@ -36,6 +41,15 @@ export class PaymentService {
     const teacherId = this.tenantId(actor);
     await this.assertStudentInTenant(dto.studentId, teacherId);
     await this.assertClassInTenant(dto.classId, teacherId);
+
+    // One tuition per enrollment (student + class).
+    const existing = await this.prisma.tuition.findFirst({
+      where: { teacherId, studentId: dto.studentId, classId: dto.classId },
+      select: { id: true },
+    });
+    if (existing) {
+      throw new ConflictException('A tuition for this student in this class already exists');
+    }
 
     const status = computePaymentStatus(
       dto.totalAmount,

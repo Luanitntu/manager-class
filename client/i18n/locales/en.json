@@ -165,7 +165,8 @@
     "salaryBreakdown": "Salary by class",
     "rateHistory": "Rate history",
     "amount": "Amount",
-    "grandTotal": "Grand total"
+    "grandTotal": "Grand total",
+    "actions": "Actions"
   },
   "classDetail": {
     "back": "Back to classes",

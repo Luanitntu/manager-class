@@ -110,11 +110,20 @@ export class StudentService {
       outstanding: totalAmount - paidAmount,
       tuitions: tuitions.map((t) => ({
         id: t.id,
+        classId: t.classId,
         className: t.class.name,
         totalAmount: Number(t.totalAmount),
         paidAmount: Number(t.paidAmount),
         status: t.status,
         dueDate: t.dueDate,
+        payments: t.payments.map((p) => ({
+          id: p.id,
+          amount: Number(p.amount),
+          paidAt: p.paidAt,
+          method: p.method,
+          note: p.note,
+          receiptNumber: p.receiptNumber,
+        })),
       })),
       records,
     };

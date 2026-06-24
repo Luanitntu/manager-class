@@ -49,11 +49,23 @@ export function usePaymentMutations() {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['tuitions'] });
     qc.invalidateQueries({ queryKey: ['tuition'] });
+    // Student detail (Payments tab, debt badge, Activity) is derived from tuitions.
+    qc.invalidateQueries({ queryKey: ['student-payments'] });
+    qc.invalidateQueries({ queryKey: ['student-activity'] });
+    qc.invalidateQueries({ queryKey: ['students'] });
+    qc.invalidateQueries({ queryKey: ['class-students'] });
+    qc.invalidateQueries({ queryKey: ['dashboard'] });
   };
 
   const createTuition = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
       request<Tuition>('/payments/tuitions', { method: 'POST', body }),
+    onSuccess: invalidate,
+  });
+
+  const updateTuition = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
+      request<Tuition>(`/payments/tuitions/${id}`, { method: 'PATCH', body }),
     onSuccess: invalidate,
   });
 
@@ -68,7 +80,7 @@ export function usePaymentMutations() {
       request(`/payments/tuitions/${id}/remind`, { method: 'POST' }),
   });
 
-  return { createTuition, recordPayment, sendReminder };
+  return { createTuition, updateTuition, recordPayment, sendReminder };
 }
 
 export const statusColor: Record<string, string> = {

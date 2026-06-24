@@ -6,6 +6,8 @@ import {
   useClassMutations,
 } from '~/composables/useClasses';
 import { useStudents } from '~/composables/useStudents';
+import type { ClassEnrollment } from '~/composables/useClasses';
+import { usePaymentMutations, statusColor as paymentStatusColor } from '~/composables/usePayments';
 import {
   useDocuments,
   useDocumentMutations,
@@ -71,6 +73,7 @@ const form = reactive({
   color: '#5D87FF',
   description: '',
   totalSessions: null as number | null,
+  tuitionFee: null as number | null,
   locationType: 'OFFLINE' as 'OFFLINE' | 'ONLINE',
   room: '',
   meetingProvider: 'GOOGLE_MEET' as 'GOOGLE_MEET' | 'ZOOM' | 'OTHER',
@@ -90,6 +93,7 @@ function openEdit() {
     color: klass.value.color ?? '#5D87FF',
     description: klass.value.description ?? '',
     totalSessions: klass.value.totalSessions ?? null,
+    tuitionFee: klass.value.tuitionFee ?? null,
     locationType: klass.value.locationType ?? 'OFFLINE',
     room: klass.value.room ?? '',
     meetingProvider: klass.value.meetingProvider ?? 'GOOGLE_MEET',
@@ -110,6 +114,7 @@ async function saveEdit() {
         color: form.color || undefined,
         description: form.description || undefined,
         totalSessions: form.totalSessions || undefined,
+        tuitionFee: form.tuitionFee ? Number(form.tuitionFee) : undefined,
         locationType: form.locationType,
         room: form.locationType === 'OFFLINE' ? form.room || undefined : undefined,
         meetingProvider: form.locationType === 'ONLINE' ? form.meetingProvider : undefined,
@@ -162,6 +167,112 @@ async function addStudent() {
 async function removeStudent(studentId: string) {
   if (!confirm(t('classDetail.confirmRemoveStudent'))) return;
   await unenrollStudent.mutateAsync({ classId: id.value, studentId });
+}
+
+// ----- Tuition / payments (per student in this class) -----
+const { createTuition, updateTuition, recordPayment } = usePaymentMutations();
+function money(n?: number | string) {
+  return Number(n ?? 0).toLocaleString('vi-VN');
+}
+function remainingOf(e: ClassEnrollment) {
+  return e.tuition ? e.tuition.totalAmount - e.tuition.paidAmount : 0;
+}
+
+// Create tuition for a student who has none yet.
+const feeOpen = ref(false);
+const feeError = ref<string | null>(null);
+const feeStudent = ref<ClassEnrollment | null>(null);
+const feeForm = reactive({ totalAmount: 0, dueDate: '' });
+function openFee(e: ClassEnrollment) {
+  feeStudent.value = e;
+  feeForm.totalAmount = Number(klass.value?.tuitionFee ?? 0);
+  feeForm.dueDate = '';
+  feeError.value = null;
+  feeOpen.value = true;
+}
+async function submitFee() {
+  if (!feeStudent.value) return;
+  feeError.value = null;
+  try {
+    await createTuition.mutateAsync({
+      studentId: feeStudent.value.student.id,
+      classId: id.value,
+      totalAmount: Number(feeForm.totalAmount),
+      dueDate: feeForm.dueDate || undefined,
+    });
+    feeOpen.value = false;
+  } catch (e) {
+    feeError.value = extractApiError(e);
+  }
+}
+
+// Edit an existing tuition (fix the total / due date).
+const editFeeOpen = ref(false);
+const editFeeError = ref<string | null>(null);
+const editFeeStudent = ref<ClassEnrollment | null>(null);
+const editFeeForm = reactive({ totalAmount: 0, dueDate: '' });
+function openEditFee(e: ClassEnrollment) {
+  if (!e.tuition) return;
+  editFeeStudent.value = e;
+  editFeeForm.totalAmount = e.tuition.totalAmount;
+  editFeeForm.dueDate = e.tuition.dueDate ? e.tuition.dueDate.slice(0, 10) : '';
+  editFeeError.value = null;
+  editFeeOpen.value = true;
+}
+async function submitEditFee() {
+  if (!editFeeStudent.value?.tuition) return;
+  editFeeError.value = null;
+  try {
+    await updateTuition.mutateAsync({
+      id: editFeeStudent.value.tuition.id,
+      body: {
+        totalAmount: Number(editFeeForm.totalAmount),
+        dueDate: editFeeForm.dueDate || undefined,
+      },
+    });
+    editFeeOpen.value = false;
+  } catch (e) {
+    editFeeError.value = extractApiError(e);
+  }
+}
+
+// Record a payment installment against a student's tuition.
+const payOpen = ref(false);
+const payError = ref<string | null>(null);
+const payStudent = ref<ClassEnrollment | null>(null);
+const payForm = reactive({ amount: 0, paidAt: '', method: '', note: '' });
+function openPay(e: ClassEnrollment) {
+  payStudent.value = e;
+  payForm.amount = remainingOf(e);
+  payForm.paidAt = '';
+  payForm.method = '';
+  payForm.note = '';
+  payError.value = null;
+  payOpen.value = true;
+}
+async function submitPay() {
+  if (!payStudent.value?.tuition) return;
+  payError.value = null;
+  try {
+    await recordPayment.mutateAsync({
+      id: payStudent.value.tuition.id,
+      body: {
+        amount: Number(payForm.amount),
+        paidAt: payForm.paidAt || undefined,
+        method: payForm.method || undefined,
+        note: payForm.note || undefined,
+      },
+    });
+    payOpen.value = false;
+  } catch (e) {
+    payError.value = extractApiError(e);
+  }
+}
+async function payFull(e: ClassEnrollment) {
+  if (!e.tuition) return;
+  const remaining = remainingOf(e);
+  if (remaining <= 0) return;
+  await recordPayment.mutateAsync({ id: e.tuition.id, body: { amount: remaining, method: 'Đóng đủ' } });
 }
 
 // ----- Progress (REAL: completed / total, excluding cancelled) -----
@@ -264,27 +375,77 @@ const statusColor: Record<string, string> = {
               {{ t('classDetail.addStudent') }}
             </v-btn>
           </div>
-          <v-list v-if="students?.length">
-            <v-list-item
-              v-for="e in students"
-              :key="e.id"
-              :to="`/students`"
-              :title="e.student.fullName"
-              :subtitle="e.student.email"
-            >
+          <v-list v-if="students?.length" class="py-0">
+            <v-list-item v-for="e in students" :key="e.id" class="px-0">
               <template #prepend>
-                <v-avatar color="secondary" size="32">
+                <v-avatar color="secondary" size="34" class="mr-2">
                   <v-img v-if="avatar(e.student)" :src="avatar(e.student)!" />
                   <span v-else class="text-white">{{ e.student.fullName[0] }}</span>
                 </v-avatar>
               </template>
+              <v-list-item-title class="font-weight-medium">
+                <NuxtLink :to="`/students/${e.student.id}`" class="text-decoration-none">
+                  {{ e.student.fullName }}
+                </NuxtLink>
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                <template v-if="e.tuition">
+                  Đã đóng <b class="text-success">{{ money(e.tuition.paidAmount) }}</b> /
+                  {{ money(e.tuition.totalAmount) }}
+                  <v-chip size="x-small" :color="paymentStatusColor[e.tuition.status]" variant="tonal" class="ml-1">
+                    {{ remainingOf(e) > 0 ? `Còn ${money(remainingOf(e))}` : 'Đã đóng đủ' }}
+                  </v-chip>
+                </template>
+                <span v-else class="text-medium-emphasis">Chưa có học phí</span>
+              </v-list-item-subtitle>
               <template #append>
-                <v-btn
-                  icon="mdi-account-remove"
-                  size="x-small"
-                  variant="text"
-                  @click.prevent="removeStudent(e.student.id)"
-                />
+                <div class="d-flex align-center ga-1">
+                  <template v-if="e.tuition">
+                    <v-btn
+                      v-if="remainingOf(e) > 0"
+                      size="x-small"
+                      variant="tonal"
+                      color="primary"
+                      prepend-icon="mdi-cash-plus"
+                      @click="openPay(e)"
+                    >
+                      Thu tiền
+                    </v-btn>
+                    <v-btn
+                      v-if="remainingOf(e) > 0"
+                      size="x-small"
+                      variant="text"
+                      color="success"
+                      :loading="recordPayment.isPending.value"
+                      @click="payFull(e)"
+                    >
+                      Đóng đủ
+                    </v-btn>
+                    <v-btn
+                      icon="mdi-pencil"
+                      size="x-small"
+                      variant="text"
+                      title="Sửa học phí"
+                      @click="openEditFee(e)"
+                    />
+                  </template>
+                  <v-btn
+                    v-else
+                    size="x-small"
+                    variant="tonal"
+                    color="primary"
+                    prepend-icon="mdi-cash"
+                    @click="openFee(e)"
+                  >
+                    Tạo học phí
+                  </v-btn>
+                  <v-btn
+                    icon="mdi-account-remove"
+                    size="x-small"
+                    variant="text"
+                    @click="removeStudent(e.student.id)"
+                  />
+                </div>
               </template>
             </v-list-item>
           </v-list>
@@ -367,7 +528,7 @@ const statusColor: Record<string, string> = {
                 <th>{{ t('session.lessonTopic') }}</th>
                 <th>{{ t('session.instructor') }}</th>
                 <th>{{ t('assistant.status') }}</th>
-                <th class="text-right" />
+                <th>{{ t('assistant.actions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -434,6 +595,13 @@ const statusColor: Record<string, string> = {
             type="number"
             :label="t('classDetail.totalSessions')"
             min="1"
+          />
+          <v-text-field
+            v-model.number="form.tuitionFee"
+            type="number"
+            label="Học phí khoá (mặc định)"
+            prepend-inner-icon="mdi-cash"
+            min="0"
           />
 
           <div class="text-caption text-medium-emphasis mt-2 mb-1">Hình thức học</div>
@@ -519,6 +687,90 @@ const statusColor: Record<string, string> = {
             @click="addStudent"
           >
             {{ t('classDetail.addStudent') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Create tuition dialog -->
+    <v-dialog v-model="feeOpen" max-width="420">
+      <v-card v-if="feeStudent">
+        <v-card-title>Tạo học phí — {{ feeStudent.student.fullName }}</v-card-title>
+        <v-card-text>
+          <v-alert v-if="feeError" type="error" variant="tonal" density="compact" class="mb-3">
+            {{ feeError }}
+          </v-alert>
+          <v-text-field v-model.number="feeForm.totalAmount" type="number" label="Tổng học phí" prepend-inner-icon="mdi-cash" />
+          <v-text-field v-model="feeForm.dueDate" type="date" label="Hạn đóng (tuỳ chọn)" />
+        </v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-spacer />
+          <v-btn variant="text" @click="feeOpen = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn
+            color="primary"
+            :loading="createTuition.isPending.value"
+            :disabled="feeForm.totalAmount <= 0"
+            @click="submitFee"
+          >
+            Tạo
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Edit tuition dialog -->
+    <v-dialog v-model="editFeeOpen" max-width="420">
+      <v-card v-if="editFeeStudent">
+        <v-card-title>Sửa học phí — {{ editFeeStudent.student.fullName }}</v-card-title>
+        <v-card-text>
+          <v-alert v-if="editFeeError" type="error" variant="tonal" density="compact" class="mb-3">
+            {{ editFeeError }}
+          </v-alert>
+          <p v-if="editFeeStudent.tuition" class="text-caption text-medium-emphasis mb-2">
+            Đã đóng {{ money(editFeeStudent.tuition.paidAmount) }} — đặt tổng thấp hơn mức đã đóng sẽ thành "đã đóng đủ".
+          </p>
+          <v-text-field v-model.number="editFeeForm.totalAmount" type="number" label="Tổng học phí" prepend-inner-icon="mdi-cash" />
+          <v-text-field v-model="editFeeForm.dueDate" type="date" label="Hạn đóng (tuỳ chọn)" />
+        </v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-spacer />
+          <v-btn variant="text" @click="editFeeOpen = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn
+            color="primary"
+            :loading="updateTuition.isPending.value"
+            :disabled="editFeeForm.totalAmount < 0"
+            @click="submitEditFee"
+          >
+            {{ t('common.save') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Record payment dialog -->
+    <v-dialog v-model="payOpen" max-width="420">
+      <v-card v-if="payStudent && payStudent.tuition">
+        <v-card-title>Thu tiền — {{ payStudent.student.fullName }}</v-card-title>
+        <v-card-text>
+          <v-alert v-if="payError" type="error" variant="tonal" density="compact" class="mb-3">
+            {{ payError }}
+          </v-alert>
+          <p class="text-caption text-medium-emphasis mb-2">Còn lại: {{ money(remainingOf(payStudent)) }}</p>
+          <v-text-field v-model.number="payForm.amount" type="number" label="Số tiền" prepend-inner-icon="mdi-cash" />
+          <v-text-field v-model="payForm.paidAt" type="date" label="Ngày đóng (mặc định hôm nay)" />
+          <v-text-field v-model="payForm.method" label="Phương thức (tiền mặt, chuyển khoản…)" />
+          <v-text-field v-model="payForm.note" label="Ghi chú (tuỳ chọn)" />
+        </v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-spacer />
+          <v-btn variant="text" @click="payOpen = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn
+            color="primary"
+            :loading="recordPayment.isPending.value"
+            :disabled="payForm.amount <= 0"
+            @click="submitPay"
+          >
+            Ghi nhận
           </v-btn>
         </v-card-actions>
       </v-card>

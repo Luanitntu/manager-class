@@ -165,7 +165,8 @@
     "salaryBreakdown": "Bảng lương theo lớp",
     "rateHistory": "Lịch sử mức lương",
     "amount": "Thành tiền",
-    "grandTotal": "Tổng cộng"
+    "grandTotal": "Tổng cộng",
+    "actions": "Thao tác"
   },
   "classDetail": {
     "back": "Danh sách lớp",

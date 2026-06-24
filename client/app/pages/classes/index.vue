@@ -60,6 +60,7 @@ const blankForm = () => ({
   color: '#5D87FF',
   description: '',
   totalSessions: null as number | null,
+  tuitionFee: null as number | null,
   locationType: 'OFFLINE' as 'OFFLINE' | 'ONLINE',
   room: '',
   meetingProvider: 'GOOGLE_MEET' as 'GOOGLE_MEET' | 'ZOOM' | 'OTHER',
@@ -87,6 +88,7 @@ function openEdit(c: ClassItem) {
     color: c.color ?? '#5D87FF',
     description: c.description ?? '',
     totalSessions: c.totalSessions ?? null,
+    tuitionFee: c.tuitionFee ?? null,
     locationType: c.locationType ?? 'OFFLINE',
     room: c.room ?? '',
     meetingProvider: c.meetingProvider ?? 'GOOGLE_MEET',
@@ -104,6 +106,7 @@ async function save() {
     color: form.color || undefined,
     description: form.description || undefined,
     totalSessions: form.totalSessions || undefined,
+    tuitionFee: form.tuitionFee ? Number(form.tuitionFee) : undefined,
     locationType: form.locationType,
     room: form.locationType === 'OFFLINE' ? form.room || undefined : undefined,
     meetingProvider: form.locationType === 'ONLINE' ? form.meetingProvider : undefined,
@@ -282,6 +285,15 @@ async function destroy(c: ClassItem) {
             hint="Dùng để tính tiến độ: số buổi đã học / tổng số buổi."
             persistent-hint
             min="1"
+          />
+          <v-text-field
+            v-model.number="form.tuitionFee"
+            type="number"
+            label="Học phí khoá (mặc định)"
+            prepend-inner-icon="mdi-cash"
+            hint="Tự gán cho học viên khi thêm vào lớp."
+            persistent-hint
+            min="0"
           />
 
           <div class="text-caption text-medium-emphasis mt-4 mb-1">Hình thức học</div>

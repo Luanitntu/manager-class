@@ -77,12 +77,15 @@ export class StudentRepository {
         ...STUDENT_SELECT,
         teacher: { select: { id: true, fullName: true } },
         enrollments: {
+          // Keep enrollments to archived (soft-deleted) classes too; the UI shows
+          // them struck-through. isActive=false marks an archived class.
           include: {
             class: {
               select: {
                 id: true,
                 name: true,
                 level: true,
+                isActive: true,
                 locationType: true,
                 room: true,
                 meetingProvider: true,

@@ -155,6 +155,20 @@ export class ClassRepository {
     });
   }
 
+  listTuitionsForClass(classId: string, teacherId: string) {
+    return this.prisma.tuition.findMany({
+      where: { classId, teacherId },
+      select: {
+        id: true,
+        studentId: true,
+        totalAmount: true,
+        paidAmount: true,
+        status: true,
+        dueDate: true,
+      },
+    });
+  }
+
   listSessions(classId: string, teacherId: string) {
     return this.prisma.teachingSession.findMany({
       where: { classId, teacherId, deletedAt: null },

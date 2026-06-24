@@ -23,7 +23,9 @@ export interface Student {
   avatarUrl?: string | null;
   avatarKey?: string | null;
   studentProfile?: StudentProfile | null;
-  enrollments?: { class: { id: string; name: string; level?: string | null } & ClassLocationInfo }[];
+  enrollments?: {
+    class: { id: string; name: string; level?: string | null; isActive?: boolean } & ClassLocationInfo;
+  }[];
   teacher?: { id: string; fullName: string } | null;
   createdAt?: string;
   _count?: { enrollments: number };
@@ -35,11 +37,20 @@ export interface StudentPayments {
   outstanding: number;
   tuitions: {
     id: string;
+    classId: string;
     className: string;
     totalAmount: number;
     paidAmount: number;
     status: string;
     dueDate?: string | null;
+    payments: {
+      id: string;
+      amount: number;
+      paidAt: string;
+      method?: string | null;
+      note?: string | null;
+      receiptNumber: string;
+    }[];
   }[];
   records: {
     id: string;

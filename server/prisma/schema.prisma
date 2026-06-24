@@ -276,6 +276,8 @@ model Class {
   room            String?
   meetingProvider MeetingProvider? @map("meeting_provider")
   meetingUrl      String?          @map("meeting_url")
+  // Default course tuition; copied onto a student's Tuition when they enrol.
+  tuitionFee      Decimal?         @map("tuition_fee") @db.Decimal(12, 2)
 
   sessions    TeachingSession[]
   enrollments ClassEnrollment[]
