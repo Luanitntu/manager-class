@@ -6,6 +6,12 @@ import {
   useClassMutations,
 } from '~/composables/useClasses';
 import { useStudents } from '~/composables/useStudents';
+import {
+  useDocuments,
+  useDocumentMutations,
+  useDocumentDownload,
+  type DocumentItem,
+} from '~/composables/useDocuments';
 
 const route = useRoute();
 const { t, locale } = useI18n();
@@ -20,6 +26,35 @@ const { update, remove, enrollStudent, unenrollStudent } = useClassMutations();
 const { update: updateSession } = useSessionMutations();
 const avatar = useAvatar();
 
+// ----- Class documents (assigned to this class) -----
+const { data: classDocsData } = useDocuments({ classId: id }, 100);
+const { data: libraryDocsData } = useDocuments({}, 100);
+const { assign: assignDoc, unassign: unassignDoc } = useDocumentMutations();
+const downloadDoc = useDocumentDownload();
+
+const classDocs = computed(() => classDocsData.value?.data ?? []);
+const DOC_ICON: Record<DocumentItem['type'], { icon: string; color: string }> = {
+  PDF: { icon: 'mdi-file-document-outline', color: 'red' },
+  MP3: { icon: 'mdi-headphones', color: 'deep-purple' },
+  LINK: { icon: 'mdi-link-variant', color: 'blue' },
+};
+// Library docs not yet assigned to this class.
+const assignableDocs = computed(() => {
+  const assignedIds = new Set(classDocs.value.map((d) => d.id));
+  return (libraryDocsData.value?.data ?? []).filter((d) => !assignedIds.has(d.id));
+});
+const docToAssign = ref('');
+async function attachDoc() {
+  if (!docToAssign.value) return;
+  await assignDoc.mutateAsync({ id: docToAssign.value, classId: id.value });
+  docToAssign.value = '';
+}
+async function detachDoc(doc: DocumentItem) {
+  const a = (doc.assignments ?? []).find((x) => x.classId === id.value);
+  if (!a) return;
+  await unassignDoc.mutateAsync({ id: doc.id, assignmentId: a.id });
+}
+
 const colorSwatches = [
   ['#5D87FF', '#49BEFF', '#13DEB9'],
   ['#FFAE1F', '#FA896B', '#FF5C8E'],
@@ -30,7 +65,22 @@ const colorSwatches = [
 // ----- Edit -----
 const editOpen = ref(false);
 const editError = ref<string | null>(null);
-const form = reactive({ name: '', level: '', color: '#5D87FF', description: '', totalSessions: null as number | null });
+const form = reactive({
+  name: '',
+  level: '',
+  color: '#5D87FF',
+  description: '',
+  totalSessions: null as number | null,
+  locationType: 'OFFLINE' as 'OFFLINE' | 'ONLINE',
+  room: '',
+  meetingProvider: 'GOOGLE_MEET' as 'GOOGLE_MEET' | 'ZOOM' | 'OTHER',
+  meetingUrl: '',
+});
+const providerItems = [
+  { value: 'GOOGLE_MEET', title: 'Google Meet' },
+  { value: 'ZOOM', title: 'Zoom' },
+  { value: 'OTHER', title: 'Khác' },
+];
 
 function openEdit() {
   if (!klass.value) return;
@@ -40,6 +90,10 @@ function openEdit() {
     color: klass.value.color ?? '#5D87FF',
     description: klass.value.description ?? '',
     totalSessions: klass.value.totalSessions ?? null,
+    locationType: klass.value.locationType ?? 'OFFLINE',
+    room: klass.value.room ?? '',
+    meetingProvider: klass.value.meetingProvider ?? 'GOOGLE_MEET',
+    meetingUrl: klass.value.meetingUrl ?? '',
   });
   editError.value = null;
   editOpen.value = true;
@@ -56,6 +110,10 @@ async function saveEdit() {
         color: form.color || undefined,
         description: form.description || undefined,
         totalSessions: form.totalSessions || undefined,
+        locationType: form.locationType,
+        room: form.locationType === 'OFFLINE' ? form.room || undefined : undefined,
+        meetingProvider: form.locationType === 'ONLINE' ? form.meetingProvider : undefined,
+        meetingUrl: form.locationType === 'ONLINE' ? form.meetingUrl || undefined : undefined,
       },
     });
     editOpen.value = false;
@@ -163,6 +221,10 @@ const statusColor: Record<string, string> = {
       <!-- Left: info + students -->
       <v-col cols="12" md="5">
         <v-card class="pa-5 mb-4">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div class="text-caption text-medium-emphasis">Hình thức học</div>
+            <ClassLocation :value="klass" />
+          </div>
           <div class="text-caption text-medium-emphasis">{{ t('classDetail.description') }}</div>
           <div class="mb-3">{{ klass?.description || '—' }}</div>
           <div class="d-flex ga-6">
@@ -227,6 +289,57 @@ const statusColor: Record<string, string> = {
             </v-list-item>
           </v-list>
           <div v-else class="text-medium-emphasis text-caption">{{ t('classDetail.noStudents') }}</div>
+        </v-card>
+
+        <!-- Class documents -->
+        <v-card class="pa-5 mt-4">
+          <h3 class="text-subtitle-1 font-weight-bold mb-3">Tài liệu lớp học</h3>
+
+          <v-list v-if="classDocs.length" class="py-0">
+            <v-list-item
+              v-for="doc in classDocs"
+              :key="doc.id"
+              class="px-0"
+              @click="downloadDoc(doc)"
+            >
+              <template #prepend>
+                <v-avatar :color="DOC_ICON[doc.type].color" variant="tonal" size="34" rounded="lg">
+                  <v-icon size="18">{{ DOC_ICON[doc.type].icon }}</v-icon>
+                </v-avatar>
+              </template>
+              <v-list-item-title class="font-weight-medium">{{ doc.title }}</v-list-item-title>
+              <v-list-item-subtitle v-if="doc.category">{{ doc.category }}</v-list-item-subtitle>
+              <template #append>
+                <v-btn
+                  icon="mdi-link-off"
+                  size="x-small"
+                  variant="text"
+                  title="Gỡ khỏi lớp"
+                  @click.stop="detachDoc(doc)"
+                />
+              </template>
+            </v-list-item>
+          </v-list>
+          <div v-else class="text-medium-emphasis text-caption mb-3">Lớp chưa có tài liệu nào.</div>
+
+          <div class="d-flex ga-2 align-center mt-3">
+            <v-select
+              v-model="docToAssign"
+              :items="assignableDocs"
+              item-title="title"
+              item-value="id"
+              label="Gán tài liệu có sẵn"
+              density="comfortable"
+              hide-details
+              :no-data-text="'Không còn tài liệu để gán'"
+            />
+            <v-btn color="primary" :loading="assignDoc.isPending.value" :disabled="!docToAssign" @click="attachDoc">
+              Gán
+            </v-btn>
+          </div>
+          <NuxtLink to="/documents" class="text-caption text-primary text-decoration-none d-inline-block mt-2">
+            + Tải lên tài liệu mới
+          </NuxtLink>
         </v-card>
       </v-col>
 
@@ -322,6 +435,34 @@ const statusColor: Record<string, string> = {
             :label="t('classDetail.totalSessions')"
             min="1"
           />
+
+          <div class="text-caption text-medium-emphasis mt-2 mb-1">Hình thức học</div>
+          <v-btn-toggle v-model="form.locationType" mandatory density="comfortable" color="primary" class="mb-3">
+            <v-btn value="OFFLINE" size="small"><v-icon start>mdi-map-marker-outline</v-icon>Offline</v-btn>
+            <v-btn value="ONLINE" size="small"><v-icon start>mdi-video-outline</v-icon>Online</v-btn>
+          </v-btn-toggle>
+          <v-text-field
+            v-if="form.locationType === 'OFFLINE'"
+            v-model="form.room"
+            label="Số phòng học"
+            placeholder="VD: P.201"
+            prepend-inner-icon="mdi-door"
+          />
+          <template v-else>
+            <v-select
+              v-model="form.meetingProvider"
+              :items="providerItems"
+              label="Nền tảng"
+              prepend-inner-icon="mdi-video"
+            />
+            <v-text-field
+              v-model="form.meetingUrl"
+              label="Link tham gia"
+              placeholder="https://…"
+              prepend-inner-icon="mdi-link-variant"
+            />
+          </template>
+
           <div class="text-caption text-medium-emphasis mb-1">{{ t('classDetail.color') }}</div>
           <v-menu :close-on-content-click="false" location="bottom start">
             <template #activator="{ props }">

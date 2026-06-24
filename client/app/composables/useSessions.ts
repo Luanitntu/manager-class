@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
+import type { ClassLocationInfo } from './useClasses';
 
 export interface InstructorRef {
   id: string;
@@ -14,7 +15,7 @@ export interface TeachingSession {
   endTime: string;
   lessonTopic?: string | null;
   status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
-  class: { id: string; name: string; color?: string | null; level?: string | null };
+  class: { id: string; name: string; color?: string | null; level?: string | null } & ClassLocationInfo;
   instructor?: InstructorRef | null;
 }
 
@@ -56,6 +57,12 @@ export function useSessionMutations() {
     qc.invalidateQueries({ queryKey: ['classes'] });
     qc.invalidateQueries({ queryKey: ['class-sessions'] });
     qc.invalidateQueries({ queryKey: ['class'] });
+    // …and an assistant's schedule + salary (computed from sessions).
+    qc.invalidateQueries({ queryKey: ['assistant-sessions'] });
+    qc.invalidateQueries({ queryKey: ['assistant-salary'] });
+    qc.invalidateQueries({ queryKey: ['assistant-salary-summary'] });
+    // …and dashboard tallies.
+    qc.invalidateQueries({ queryKey: ['dashboard'] });
   };
 
   const create = useMutation({

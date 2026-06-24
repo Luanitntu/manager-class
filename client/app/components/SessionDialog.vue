@@ -22,6 +22,7 @@ const { t } = useI18n();
 
 const classes = computed(() => classesData.value?.data ?? []);
 const isEdit = computed(() => !!props.session);
+const selectedClass = computed(() => classes.value.find((c) => c.id === form.classId) ?? null);
 
 // Who can teach: the current teacher (you) + their assistants. Pick exactly one.
 const instructorOptions = computed(() => {
@@ -222,6 +223,11 @@ const statusColor: Record<string, string> = {
           :label="t('session.class')"
           prepend-inner-icon="mdi-google-classroom"
         />
+
+        <div v-if="selectedClass" class="d-flex align-center ga-2 mb-3 mt-n2">
+          <span class="text-caption text-medium-emphasis">{{ t('dashboard.classLabel') }}:</span>
+          <ClassLocation :value="selectedClass" />
+        </div>
 
         <template v-if="mode === 'single' || isEdit">
           <v-text-field v-model="form.date" type="date" :label="t('session.date')" />

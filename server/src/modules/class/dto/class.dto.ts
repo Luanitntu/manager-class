@@ -1,12 +1,15 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { LocationType, MeetingProvider } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsEnum,
   IsHexColor,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
   IsUUID,
   Max,
   MaxLength,
@@ -44,6 +47,28 @@ export class CreateClassDto {
   @Min(1)
   @Max(1000)
   totalSessions?: number;
+
+  @ApiPropertyOptional({ enum: LocationType })
+  @IsOptional()
+  @IsEnum(LocationType)
+  locationType?: LocationType;
+
+  @ApiPropertyOptional({ example: 'P.201', description: 'Room number for offline classes.' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  room?: string;
+
+  @ApiPropertyOptional({ enum: MeetingProvider })
+  @IsOptional()
+  @IsEnum(MeetingProvider)
+  meetingProvider?: MeetingProvider;
+
+  @ApiPropertyOptional({ example: 'https://meet.google.com/abc-defg-hij' })
+  @IsOptional()
+  @IsUrl()
+  @MaxLength(500)
+  meetingUrl?: string;
 }
 
 export class UpdateClassDto extends PartialType(CreateClassDto) {

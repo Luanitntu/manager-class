@@ -38,8 +38,6 @@ const PLACEHOLDER = {
   revenueTrend: '+12% so với tháng trước',
   outstandingHint: 'Cần nhắc nhở 4 học viên',
   sessionStudents: 12,
-  sessionRoom: 'P.201',
-  hasMeetLink: true,
   todos: [
     { icon: 'mdi-pencil-outline', color: 'error', title: 'Chấm bài Writing K42', sub: '12 bài chưa chấm' },
     { icon: 'mdi-cash-clock', color: 'warning', title: 'Nhắc nộp học phí', sub: 'Nguyễn Văn A · Giao tiếp CB' },
@@ -164,14 +162,16 @@ function isToday(day: number) {
         <h2 class="text-h5 font-weight-bold text-white mb-2">
           {{ nextLesson.lessonTopic || nextLesson.class.name }}
         </h2>
-        <p class="text-white text-body-2 mb-4" style="opacity: 0.92; max-width: 640px">
+        <p class="text-white text-body-2 mb-2" style="opacity: 0.92; max-width: 640px">
           <strong>{{ timeRange(nextLesson) }}</strong>
           {{ dayLabel(nextLesson.startTime).toLowerCase() }}
-          · {{ t('dashboard.room') }}: <strong>{{ PLACEHOLDER.sessionRoom }}</strong>
           · {{ t('dashboard.classLabel') }}: {{ nextLesson.class.name }}
           ({{ t('dashboard.studentsCount', { n: PLACEHOLDER.sessionStudents }) }}).
           Đừng quên mang theo giáo trình và điểm danh học viên đầu giờ nhé!
         </p>
+        <div class="text-white mb-4">
+          <ClassLocation :value="nextLesson.class" inline />
+        </div>
         <v-btn color="white" variant="flat" class="text-primary" to="/calendar">
           <v-icon start>mdi-check-circle-outline</v-icon>{{ t('dashboard.takeAttendance') }}
         </v-btn>
@@ -232,13 +232,11 @@ function isToday(day: number) {
               </v-list-item-title>
               <v-list-item-subtitle>
                 <span class="text-primary font-weight-medium">{{ s.class.name }}</span>
-                <div class="d-flex ga-2 mt-1">
+                <div class="d-flex ga-2 mt-1 align-center">
                   <v-chip size="x-small" variant="tonal" prepend-icon="mdi-account-multiple">
                     {{ t('dashboard.studentsCount', { n: PLACEHOLDER.sessionStudents }) }}
                   </v-chip>
-                  <v-chip v-if="PLACEHOLDER.hasMeetLink" size="x-small" variant="tonal" color="info" prepend-icon="mdi-video">
-                    {{ t('dashboard.onlineMeeting') }}
-                  </v-chip>
+                  <ClassLocation :value="s.class" size="x-small" />
                 </div>
               </v-list-item-subtitle>
 

@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { LocationType, Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { PaginatedResult } from '../../common/dto/paginated-result';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
@@ -23,6 +23,28 @@ export class ClassService {
     return actor.tenantId;
   }
 
+  // Keep location fields consistent: an online class has no room; an offline one
+  // has no meeting link. Returns {} when locationType isn't being changed.
+  private locationData(dto: CreateClassDto | UpdateClassDto) {
+    if (dto.locationType === LocationType.ONLINE) {
+      return {
+        locationType: LocationType.ONLINE,
+        room: null,
+        meetingProvider: dto.meetingProvider ?? null,
+        meetingUrl: dto.meetingUrl ?? null,
+      };
+    }
+    if (dto.locationType === LocationType.OFFLINE) {
+      return {
+        locationType: LocationType.OFFLINE,
+        room: dto.room ?? null,
+        meetingProvider: null,
+        meetingUrl: null,
+      };
+    }
+    return {};
+  }
+
   async create(actor: AuthenticatedUser, dto: CreateClassDto) {
     const teacherId = this.tenantId(actor);
     const klass = await this.repo.create({
@@ -32,6 +54,7 @@ export class ClassService {
       level: dto.level,
       color: dto.color,
       totalSessions: dto.totalSessions,
+      ...this.locationData(dto),
       createdBy: actor.id,
       updatedBy: actor.id,
     });
@@ -92,6 +115,8 @@ export class ClassService {
     const teacherId = this.tenantId(actor);
     const result = await this.repo.update(id, teacherId, {
       ...dto,
+      // Override raw location fields with a normalized set (clears the unused side).
+      ...this.locationData(dto),
       updatedBy: actor.id,
     });
     if (result.count === 0) {

@@ -28,7 +28,11 @@
     "health": "Health",
     "settings": "Settings",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "sectionDaily": "Daily",
+    "sectionTeaching": "Teaching",
+    "sectionManage": "Management",
+    "sectionSystem": "System"
   },
   "auth": {
     "welcomeBack": "Welcome back",
@@ -59,6 +63,11 @@
     "verified": "Email verified",
     "verifyFailed": "Verification failed",
     "continueSignIn": "Continue to sign in",
+    "rememberMe": "Remember me",
+    "orContinueWith": "Or continue with",
+    "orSignUpWith": "Or sign up with",
+    "signUpFree": "Sign up free",
+    "joinThousands": "Join thousands of teachers today.",
     "validation": {
       "identifierRequired": "Email or username is required",
       "emailInvalid": "Enter a valid email",
@@ -136,7 +145,27 @@
     "schedule": "Teaching schedule",
     "time": "Time",
     "status": "Status",
-    "noSessions": "No sessions yet."
+    "noSessions": "No sessions yet.",
+    "profile": "Personal info",
+    "phone": "Phone",
+    "level": "Level",
+    "hometown": "Hometown",
+    "editProfile": "Edit info",
+    "assignedClasses": "Assigned classes",
+    "classes": "Classes",
+    "sessionsShort": "sessions",
+    "inCharge": "In charge",
+    "teaches": "Teaches",
+    "noClasses": "Not assigned to or teaching any class yet.",
+    "totalSalary": "Total salary",
+    "thisMonth": "This month",
+    "nextPayroll": "Next payroll",
+    "effectiveFrom": "Effective from",
+    "salaryHistory": "Salary history",
+    "salaryBreakdown": "Salary by class",
+    "rateHistory": "Rate history",
+    "amount": "Amount",
+    "grandTotal": "Grand total"
   },
   "classDetail": {
     "back": "Back to classes",

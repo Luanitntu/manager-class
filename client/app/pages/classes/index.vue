@@ -54,22 +54,43 @@ function nextSessionLabel(index: number) {
 const dialog = ref(false);
 const editingId = ref<string | null>(null);
 const error = ref<string | null>(null);
-const form = reactive({ name: '', level: '', color: '#5D87FF', description: '', totalSessions: null as number | null });
+const blankForm = () => ({
+  name: '',
+  level: '',
+  color: '#5D87FF',
+  description: '',
+  totalSessions: null as number | null,
+  locationType: 'OFFLINE' as 'OFFLINE' | 'ONLINE',
+  room: '',
+  meetingProvider: 'GOOGLE_MEET' as 'GOOGLE_MEET' | 'ZOOM' | 'OTHER',
+  meetingUrl: '',
+});
+const form = reactive(blankForm());
+const providerItems = [
+  { value: 'GOOGLE_MEET', title: 'Google Meet' },
+  { value: 'ZOOM', title: 'Zoom' },
+  { value: 'OTHER', title: 'Khác' },
+];
 
 function openCreate() {
   editingId.value = null;
-  Object.assign(form, { name: '', level: '', color: '#5D87FF', description: '', totalSessions: null });
+  Object.assign(form, blankForm());
   error.value = null;
   dialog.value = true;
 }
 function openEdit(c: ClassItem) {
   editingId.value = c.id;
   Object.assign(form, {
+    ...blankForm(),
     name: c.name,
     level: c.level ?? '',
     color: c.color ?? '#5D87FF',
     description: c.description ?? '',
     totalSessions: c.totalSessions ?? null,
+    locationType: c.locationType ?? 'OFFLINE',
+    room: c.room ?? '',
+    meetingProvider: c.meetingProvider ?? 'GOOGLE_MEET',
+    meetingUrl: c.meetingUrl ?? '',
   });
   error.value = null;
   dialog.value = true;
@@ -83,6 +104,10 @@ async function save() {
     color: form.color || undefined,
     description: form.description || undefined,
     totalSessions: form.totalSessions || undefined,
+    locationType: form.locationType,
+    room: form.locationType === 'OFFLINE' ? form.room || undefined : undefined,
+    meetingProvider: form.locationType === 'ONLINE' ? form.meetingProvider : undefined,
+    meetingUrl: form.locationType === 'ONLINE' ? form.meetingUrl || undefined : undefined,
   };
   try {
     if (editingId.value) await update.mutateAsync({ id: editingId.value, body });
@@ -161,7 +186,10 @@ async function destroy(c: ClassItem) {
               </v-menu>
             </div>
 
-            <h3 class="text-h6 font-weight-bold mb-4">{{ c.name }}</h3>
+            <h3 class="text-h6 font-weight-bold mb-2">{{ c.name }}</h3>
+            <div class="mb-3">
+              <ClassLocation :value="c" />
+            </div>
 
             <v-row no-gutters class="mb-4">
               <v-col cols="6">
@@ -255,6 +283,33 @@ async function destroy(c: ClassItem) {
             persistent-hint
             min="1"
           />
+
+          <div class="text-caption text-medium-emphasis mt-4 mb-1">Hình thức học</div>
+          <v-btn-toggle v-model="form.locationType" mandatory density="comfortable" color="primary" class="mb-3">
+            <v-btn value="OFFLINE" size="small"><v-icon start>mdi-map-marker-outline</v-icon>Offline</v-btn>
+            <v-btn value="ONLINE" size="small"><v-icon start>mdi-video-outline</v-icon>Online</v-btn>
+          </v-btn-toggle>
+          <v-text-field
+            v-if="form.locationType === 'OFFLINE'"
+            v-model="form.room"
+            label="Số phòng học"
+            placeholder="VD: P.201"
+            prepend-inner-icon="mdi-door"
+          />
+          <template v-else>
+            <v-select
+              v-model="form.meetingProvider"
+              :items="providerItems"
+              label="Nền tảng"
+              prepend-inner-icon="mdi-video"
+            />
+            <v-text-field
+              v-model="form.meetingUrl"
+              label="Link tham gia"
+              placeholder="https://…"
+              prepend-inner-icon="mdi-link-variant"
+            />
+          </template>
 
           <div class="text-caption text-medium-emphasis mb-1">Màu lớp</div>
           <v-menu :close-on-content-click="false" location="bottom start">

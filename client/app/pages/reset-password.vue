@@ -39,8 +39,15 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <v-card class="pa-8">
-    <div class="text-center mb-6">
+  <AuthShell>
+    <template #aside>
+      <h2 class="text-h4 font-weight-bold mb-3">Schedule Teacher</h2>
+      <p class="text-body-1" style="opacity: 0.9; max-width: 460px">
+        Quản lý lớp học, lịch dạy và học phí — tất cả trong một nơi.
+      </p>
+    </template>
+
+    <div class="mb-6">
       <v-avatar color="primary" size="48" rounded="lg" class="mb-3">
         <v-icon color="white" size="28">mdi-lock-reset</v-icon>
       </v-avatar>
@@ -69,7 +76,7 @@ const onSubmit = handleSubmit(async (values) => {
     </v-form>
 
     <div class="text-center mt-6 text-medium-emphasis">
-      <NuxtLink to="/login" class="text-primary">{{ t('auth.backToSignIn') }}</NuxtLink>
+      <NuxtLink to="/login" class="text-primary text-decoration-none">{{ t('auth.backToSignIn') }}</NuxtLink>
     </div>
-  </v-card>
+  </AuthShell>
 </template>

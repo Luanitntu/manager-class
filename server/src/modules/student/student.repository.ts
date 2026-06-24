@@ -15,7 +15,18 @@ const STUDENT_SELECT = {
   // Classes the student is currently enrolled in (for the "Lớp học" column).
   enrollments: {
     where: { class: { deletedAt: null } },
-    select: { class: { select: { id: true, name: true } } },
+    select: {
+      class: {
+        select: {
+          id: true,
+          name: true,
+          locationType: true,
+          room: true,
+          meetingProvider: true,
+          meetingUrl: true,
+        },
+      },
+    },
     orderBy: { enrolledAt: 'asc' },
   },
   _count: { select: { enrollments: true } },
@@ -64,10 +75,44 @@ export class StudentRepository {
       where: { id: studentId, teacherId, role: Role.STUDENT, deletedAt: null },
       select: {
         ...STUDENT_SELECT,
+        teacher: { select: { id: true, fullName: true } },
         enrollments: {
-          include: { class: { select: { id: true, name: true, level: true } } },
+          include: {
+            class: {
+              select: {
+                id: true,
+                name: true,
+                level: true,
+                locationType: true,
+                room: true,
+                meetingProvider: true,
+                meetingUrl: true,
+              },
+            },
+          },
         },
       },
+    });
+  }
+
+  // ----- Payments (tuition + records) -----
+  listTuitions(studentId: string, teacherId: string) {
+    return this.prisma.tuition.findMany({
+      where: { studentId, teacherId },
+      include: {
+        class: { select: { id: true, name: true } },
+        payments: { orderBy: { paidAt: 'desc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // ----- Enrollments with join date (for the activity timeline) -----
+  listEnrollmentsWithDate(studentId: string, teacherId: string) {
+    return this.prisma.classEnrollment.findMany({
+      where: { studentId, class: { teacherId, deletedAt: null } },
+      include: { class: { select: { id: true, name: true } } },
+      orderBy: { enrolledAt: 'desc' },
     });
   }
 

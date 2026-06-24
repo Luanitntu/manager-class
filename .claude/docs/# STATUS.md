@@ -279,6 +279,174 @@ Rebuilt the teacher Students page to the new table design with all-real data.
   (search, status, page, limit) + meta; added setStatus + deleteStudent mutations.
 * Verified: migration applied; server lint + build + 16 tests green; client lint + build green.
 
+## Class location: offline room / online meeting link (2026-06-23)
+A class is now OFFLINE (room) or ONLINE (Google Meet / Zoom / Other + link), shown
+everywhere the class appears.
+
+* DB: migration 0014 — `LocationType` (OFFLINE/ONLINE) + `MeetingProvider`
+  (GOOGLE_MEET/ZOOM/OTHER) enums; Class.location_type (default OFFLINE), room,
+  meeting_provider, meeting_url. Applied to Neon.
+* Backend: CreateClassDto/UpdateClassDto accept locationType/room/meetingProvider/
+  meetingUrl (meetingUrl @IsUrl). class.service normalizes (ONLINE clears room;
+  OFFLINE clears provider+url) on create & update. Location fields added to the
+  class selects in session.repository (calendar), dashboard.service (upcoming),
+  and student.repository (list + detail) so they flow everywhere.
+* Frontend: shared `components/ClassLocation.vue` renders an icon+label chip
+  (offline → room; online → provider icon + clickable link opening the meeting;
+  Google Meet=mdi-google/green, Zoom=mdi-video/blue, Other=link). `inline` variant
+  for the colored dashboard hero. Shared `ClassLocationInfo` type on useClasses,
+  reused by useSessions + useDashboard class types.
+  - Forms: class create/edit (index + detail) get an Offline/Online toggle →
+    room field, or provider select + link field.
+  - Shown on: class cards, class detail info card, calendar event title (compact
+    room/meet suffix) + SessionDialog (location chip under the class select),
+    dashboard hero (inline) + upcoming list (chip), student detail
+    ("Lớp đang học" section).
+* Verified: migration applied; server lint + build + 16 tests green; client lint + build green.
+
+## Student detail — info card, badges, Payments + Activity tabs (2026-06-23)
+Expanded the teacher's student-detail page (no schema change — new queries/endpoints
++ client-side aggregation).
+
+* Backend (student module): findStudentForTenant now also returns `teacher {id,fullName}`.
+  New repo methods listTuitions (tuition + payment records + class) and
+  listEnrollmentsWithDate. New service + endpoints:
+  - GET /students/:id/payments → { totalAmount, paidAmount, outstanding, tuitions[],
+    records[] } (records merged from all the student's tuitions, newest first).
+  - GET /students/:id/activity → merged timeline (JOINED_CLASS / SCORE_ADDED /
+    COMMENT_ADDED / PAYMENT_RECORDED) synthesized from real records (enrollments,
+    scores, comments, payments), sorted desc, top 50. NOTE: built from records, not
+    the audit log (enroll/score/comment aren't audited yet) — accurate + historical.
+* Frontend (students/[id].vue):
+  - Small info card: Đang học (class), Trình độ (class level), Giáo viên (teacher),
+    Ngày tham gia (createdAt).
+  - Header badges: [level] [class] [Còn nợ: x / Đã đóng đủ] for at-a-glance status.
+  - Scores tab header: Average + per-type (Assignments/Quizzes/Final) averages
+    (computed client-side from the scores list).
+  - Comments: now show timestamp + author; added "Payment Note" category.
+  - New Payments tab: Tổng học phí / Đã đóng / Còn nợ cards + payment history table.
+  - New Activity tab: timeline with type icons/colors.
+  - New composables useStudentPayments / useStudentActivity; Student type gains
+    teacher + createdAt.
+* Verified: server lint + build + 16 tests green; client lint + build green (no migration).
+
+## Documents — library + per-class assignment redesign (2026-06-23)
+Decision (user-approved): ONE document library; "shared vs class" is expressed by
+class assignments (no separate types), and folders = existing category labels (no
+new model). A document with no class assignment = Dùng chung; assigning it to a
+class makes it the class's material; one file can serve many classes.
+
+* DB: migration 0015 — Document.file_size (Int, bytes) for the size display.
+* Backend: DOC_INCLUDE now returns assignments (+ class/student names) so cards show
+  class tags. List gains filters: scope (SHARED = no class assignment / CLASS =
+  assigned), classId, and title search (search already on PaginationQueryDto). Upload
+  stores file size. New GET /documents/categories (distinct categories for chips).
+* Frontend (documents.vue) rebuilt to the card-grid design:
+  - Header + "Tải lên tài liệu"; filter bar = category chips (dynamic from
+    /documents/categories) + scope select (Dùng chung / Theo lớp) + search; pagination.
+  - Cards: type icon (PDF/MP3/LINK), title, category chip, class tags or "Dùng chung",
+    size · date; click downloads (file via authed blob) or opens link.
+  - Upload dialog: Tệp (PDF/MP3) vs Liên kết toggle, title, category combobox, and an
+    optional "Gán vào lớp" at upload time.
+  - ⋮ menu: tải xuống/mở · gán vào lớp · xoá. Assign dialog shows current class chips
+    (closable = unassign) + add-class select.
+  - New composables: useDocumentCategories, useDocumentDownload; useDocuments now takes
+    {category, scope, classId, search, page}; mutations add assign(classId)/unassign.
+* Class detail (classes/[id].vue): added a "Tài liệu lớp học" card listing documents
+  assigned to that class (reuses GET /documents?classId=… — no new endpoint). Click a
+  doc to download/open; "Gỡ khỏi lớp" unassigns; inline select "Gán tài liệu có sẵn"
+  attaches an existing library doc; link to /documents to upload new.
+* Verified: migration applied; server lint + build + 16 tests green; client lint + build green.
+
+## Sidebar redesign — grouped sections + pinned settings (2026-06-23)
+default.vue layout: nav is now grouped into labelled sections per role with a settings
+item pinned at the bottom of the drawer (v-navigation-drawer #append).
+* Teacher groups: Hằng ngày (Tổng quan, Lịch dạy) · Giảng dạy (Lớp học, Học viên,
+  Trợ giảng, Tài liệu) · Quản lý (Học phí, Báo cáo, Nhật ký). Assistant/Student/Super
+  Admin get their own grouped sets. New i18n keys nav.sectionDaily/Teaching/Manage/System.
+* Bottom pinned item = personal settings → /profile, labelled "Cài đặt" (gear) for
+  teacher/assistant/student; Super Admin keeps "Hồ sơ" (it already has a platform
+  Settings item in its Hệ thống group). Removed Profile from the grouped lists.
+* Active item styled with a blue tint + left accent bar; section headers uppercased.
+  Also fixed nav.students label "Học sinh" → "Học viên" (matches the page/mockup) and
+  refreshed a few nav icons.
+* Verified: client lint + build green.
+
+## Global font → system sans stack (2026-06-23)
+Switched the whole app font from Inter/Roboto to the system sans stack (better
+EN+VI coverage, no webfont download). main.css defines `--font-sans` / `--font-mono`
+and applies `--font-sans` to html/body; vuetify.settings.scss `$body-font-family`
+set to the same stack so `.v-application` + all Vuetify components inherit it.
+Material Design Icons keep their own font (`.mdi`), so icons are unaffected.
+Chose sans (not mono) — it's a UI/dashboard app. Verified: client build green.
+
+## Auth screens redesign — split-screen + remember-me (2026-06-23)
+Login/register (and forgot/reset/verify) rebuilt to a split-screen layout.
+* New components/AuthShell.vue: brand/marketing panel on the LEFT (gradient, optional
+  `image` prop), form on the RIGHT, keeps the Schedule Teacher logo (mdi-school) at the
+  top of the form. Responsive: left panel hides < 960px. auth.vue layout simplified to a
+  full-bleed shell + floating LanguageSwitcher.
+* Login: left = testimonial; "Ghi nhớ đăng nhập" checkbox + "Quên mật khẩu?" on one row;
+  Google-only OAuth button (UI only, wiring later — GitHub removed).
+* Register: left = marketing + "5000+ giáo viên" avatar stack; terms line;
+  "Đăng ký miễn phí"; Google-only.
+* Remember-me is FUNCTIONAL: auth store gains `rememberMe` + custom persist storage that
+  writes to localStorage when checked (survives browser close) or sessionStorage when
+  unchecked (cleared on close); getItem reads session then local; server-guarded.
+  useAuth.login(identifier, password, rememberMe).
+* forgot/reset/verify wrapped in AuthShell with a brand aside.
+* New i18n: auth.rememberMe / orContinueWith / orSignUpWith / signUpFree / joinThousands.
+* Verified: client lint + build green.
+
+## Assistant detail — profile, salary summary, classes, history (2026-06-24)
+Expanded the teacher's assistant-detail page to the original requirements.
+* DB: migration 0016 — AssistantProfile.level, hometown, salary_effective_from. Applied.
+* Backend: UpdateSalaryDto gains phone/level/hometown/effectiveFrom; service.updateSalary
+  also updates User.phone + profile fields + salaryEffectiveFrom. New GET
+  /assistants/:id/salary-summary → { method, rate, effectiveFrom, total (amount/sessions/
+  hours/classes), thisMonth, nextPayroll (= end of current month), history (last 6 months,
+  computed per-month via calculateSalary) }. New repo.updatePhone.
+* Frontend (assistants/[id].vue) rebuilt: header chip (level); Profile card (email, phone,
+  level, hometown + edit dialog); Salary Summary card (This Month, Total Salary, Sessions,
+  Hours, Next Payroll); Assigned Classes card (class chips → /classes, + class/session
+  counts); Salary Configuration card now includes Effective From; tabbed bottom = Teaching
+  Schedule | Salary History (monthly amounts). useAssistantSalarySummary added; profile
+  fields on AssistantProfile type.
+* Deferred (per user): #5 Assistant role tag, #7 schedule-conflict card — not built (V2).
+* Verified: migration applied; server lint + build + 16 tests green; client lint + build green.
+
+## Fix: assistant "Assigned classes" vs schedule contradiction (2026-06-24)
+"Assigned classes" only counted ClassAssistant (whole-class), so it showed "0 classes"
+while the schedule listed a session the assistant instructs → confusing. Unified the
+two relationships (frontend-only, no DB change): the card now lists every class the
+assistant is involved with = ClassAssistant (whole-class) ∪ classes of sessions they
+instruct, each tagged "Phụ trách lớp" (in charge) or "Dạy N buổi" (teaches N sessions),
+or "Phụ trách · N buổi" when both. Counts = distinct classes + total instructed sessions.
+* Verified: client lint + build green.
+
+## Assistant salary rate history + per-class breakdown (2026-06-24)
+* DB: migration 0017 — `AssistantSalaryRate` (assistant_id, method, rate, effective_from)
+  history table; backfilled one row per existing AssistantProfile. Applied to Neon.
+* History-aware salary: new salary.util `calculateSalaryWithRates(sessions, periods)` —
+  each session is paid at the rate effective on its date (changing the rate never
+  rewrites the past); method taken from the latest period. Returns per-class subtotals
+  + grand total. PER_CLASS uses the rate at the class's earliest session. Original
+  calculateSalary kept (used by /salary + tests).
+* updateSalary now inserts a rate-history record (effectiveFrom = given date or now)
+  only when method/rate/date changed vs the latest (profile-only edits don't spam it),
+  and keeps the profile snapshot as the current rate. repo.listRates/latestRate/createRate.
+* getSalarySummary is history-aware and also returns `byClass` (per-class subtotal) and
+  `rates` (the rate-change history). Falls back to the profile snapshot if no history.
+* Frontend (assistants/[id].vue): Salary Configuration shows a "Lịch sử mức lương" list
+  (effectiveFrom · method → rate) when >1 rate; bottom tabs add "Bảng lương theo lớp"
+  (per-class sessions/hours/amount with a grand-total footer). SalarySummary type gains
+  byClass + rates.
+* Live updates: useSessionMutations now also invalidates assistant-sessions /
+  assistant-salary / assistant-salary-summary / dashboard, so an assistant's salary
+  summary + schedule refresh immediately when sessions are created/edited/marked done/
+  deleted (previously stale until reload). updateSalary already refreshed on rate change.
+* Verified: migration applied; server lint + build + 16 tests green; client lint + build green.
+
 ---
 
 # Completed

@@ -16,46 +16,62 @@ const announcement = computed(() =>
     : null,
 );
 
-// Navigation is role-aware. Each item is an i18n key resolved in the template.
+// Navigation is role-aware, grouped into labelled sections. Each item is an
+// i18n key resolved in the template.
 const NAV = {
   dashboard: { key: 'nav.dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
   calendar: { key: 'nav.calendar', icon: 'mdi-calendar-month-outline', to: '/calendar' },
-  classes: { key: 'nav.classes', icon: 'mdi-google-classroom', to: '/classes' },
-  students: { key: 'nav.students', icon: 'mdi-account-school-outline', to: '/students' },
+  classes: { key: 'nav.classes', icon: 'mdi-book-open-outline', to: '/classes' },
+  students: { key: 'nav.students', icon: 'mdi-account-group-outline', to: '/students' },
   assistants: { key: 'nav.assistants', icon: 'mdi-account-tie-outline', to: '/assistants' },
-  documents: { key: 'nav.documents', icon: 'mdi-file-document-outline', to: '/documents' },
-  payments: { key: 'nav.payments', icon: 'mdi-cash-multiple', to: '/payments' },
-  reports: { key: 'nav.reports', icon: 'mdi-chart-box-outline', to: '/reports' },
+  documents: { key: 'nav.documents', icon: 'mdi-file-multiple-outline', to: '/documents' },
+  payments: { key: 'nav.payments', icon: 'mdi-credit-card-outline', to: '/payments' },
+  reports: { key: 'nav.reports', icon: 'mdi-chart-bar', to: '/reports' },
   auditLogs: { key: 'nav.auditLogs', icon: 'mdi-history', to: '/audit-logs' },
   users: { key: 'nav.users', icon: 'mdi-account-group-outline', to: '/admin/users' },
   health: { key: 'nav.health', icon: 'mdi-heart-pulse', to: '/admin/health' },
   settings: { key: 'nav.settings', icon: 'mdi-cog-outline', to: '/admin/settings' },
-  profile: { key: 'nav.profile', icon: 'mdi-account-circle-outline', to: '/profile' },
 } as const;
 
-const nav = computed(() => {
+type NavItem = { key: string; icon: string; to: string };
+type NavGroup = { title: string; items: NavItem[] };
+
+// Grouped sections per role.
+const navGroups = computed<NavGroup[]>(() => {
   switch (auth.role) {
     case 'SUPER_ADMIN':
-      return [NAV.dashboard, NAV.users, NAV.auditLogs, NAV.health, NAV.settings, NAV.profile];
+      return [
+        { title: 'nav.sectionDaily', items: [NAV.dashboard] },
+        { title: 'nav.sectionManage', items: [NAV.users, NAV.auditLogs, NAV.health] },
+        { title: 'nav.sectionSystem', items: [NAV.settings] },
+      ];
     case 'ASSISTANT':
-      return [NAV.dashboard, NAV.calendar, NAV.documents, NAV.profile];
+      return [
+        { title: 'nav.sectionDaily', items: [NAV.dashboard, NAV.calendar] },
+        { title: 'nav.sectionTeaching', items: [NAV.documents] },
+      ];
     case 'STUDENT':
-      return [NAV.dashboard, NAV.calendar, NAV.documents, NAV.payments, NAV.profile];
+      return [
+        { title: 'nav.sectionDaily', items: [NAV.dashboard, NAV.calendar] },
+        { title: 'nav.sectionTeaching', items: [NAV.documents] },
+        { title: 'nav.sectionManage', items: [NAV.payments] },
+      ];
     default: // TEACHER
       return [
-        NAV.dashboard,
-        NAV.calendar,
-        NAV.classes,
-        NAV.students,
-        NAV.assistants,
-        NAV.documents,
-        NAV.payments,
-        NAV.reports,
-        NAV.auditLogs,
-        NAV.profile,
+        { title: 'nav.sectionDaily', items: [NAV.dashboard, NAV.calendar] },
+        { title: 'nav.sectionTeaching', items: [NAV.classes, NAV.students, NAV.assistants, NAV.documents] },
+        { title: 'nav.sectionManage', items: [NAV.payments, NAV.reports, NAV.auditLogs] },
       ];
   }
 });
+
+// Pinned at the very bottom of the sidebar — personal settings (profile).
+// Super Admin keeps "Hồ sơ" wording (it already has a platform Settings item).
+const bottomItem = computed(() =>
+  auth.role === 'SUPER_ADMIN'
+    ? { key: 'nav.profile', icon: 'mdi-account-circle-outline', to: '/profile' }
+    : { key: 'nav.settings', icon: 'mdi-cog-outline', to: '/profile' },
+);
 </script>
 
 <template>
@@ -68,16 +84,35 @@ const nav = computed(() => {
         <span class="text-h6 font-weight-bold">Schedule Teacher</span>
       </div>
       <v-divider />
-      <v-list nav density="comfortable">
-        <v-list-item
-          v-for="item in nav"
-          :key="item.to"
-          :to="item.to"
-          :prepend-icon="item.icon"
-          :title="t(item.key)"
-          rounded="lg"
-        />
+
+      <v-list nav density="comfortable" class="st-nav">
+        <template v-for="group in navGroups" :key="group.title">
+          <v-list-subheader class="st-section">{{ t(group.title) }}</v-list-subheader>
+          <v-list-item
+            v-for="item in group.items"
+            :key="item.to"
+            :to="item.to"
+            :prepend-icon="item.icon"
+            :title="t(item.key)"
+            rounded="lg"
+            color="primary"
+          />
+        </template>
       </v-list>
+
+      <!-- Pinned bottom: personal settings -->
+      <template #append>
+        <v-divider />
+        <v-list nav density="comfortable" class="st-nav pa-2">
+          <v-list-item
+            :to="bottomItem.to"
+            :prepend-icon="bottomItem.icon"
+            :title="t(bottomItem.key)"
+            rounded="lg"
+            color="primary"
+          />
+        </v-list>
+      </template>
     </v-navigation-drawer>
 
     <v-app-bar flat border="b" color="surface">
@@ -119,3 +154,32 @@ const nav = computed(() => {
     </v-main>
   </v-app>
 </template>
+
+<style scoped>
+.st-section {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-top: 4px;
+}
+/* Active item: blue tint + a left accent bar (matches the design). */
+.st-nav :deep(.v-list-item--active) {
+  position: relative;
+  background: rgba(var(--v-theme-primary), 0.1);
+  color: rgb(var(--v-theme-primary));
+  font-weight: 600;
+}
+.st-nav :deep(.v-list-item--active)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: rgb(var(--v-theme-primary));
+}
+</style>
+

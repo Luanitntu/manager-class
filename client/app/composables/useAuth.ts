@@ -13,12 +13,12 @@ export function useAuth() {
   const { request } = useApi();
   const auth = useAuthStore();
 
-  async function login(identifier: string, password: string) {
+  async function login(identifier: string, password: string, rememberMe = true) {
     const res = await request<AuthResult>('/auth/login', {
       method: 'POST',
       body: { identifier, password },
     });
-    auth.setSession(res);
+    auth.setSession({ ...res, rememberMe });
     return res;
   }
 

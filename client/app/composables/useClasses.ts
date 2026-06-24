@@ -8,7 +8,18 @@ export interface ClassStudentRef {
   avatarKey?: string | null;
 }
 
-export interface ClassItem {
+export type LocationType = 'OFFLINE' | 'ONLINE';
+export type MeetingProvider = 'GOOGLE_MEET' | 'ZOOM' | 'OTHER';
+
+/** Location fields shared by anything that carries a class (cards, sessions…). */
+export interface ClassLocationInfo {
+  locationType?: LocationType | null;
+  room?: string | null;
+  meetingProvider?: MeetingProvider | null;
+  meetingUrl?: string | null;
+}
+
+export interface ClassItem extends ClassLocationInfo {
   id: string;
   name: string;
   description?: string | null;

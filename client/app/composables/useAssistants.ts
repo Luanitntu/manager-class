@@ -5,6 +5,9 @@ import type { MaybeRefOrGetter, Ref } from 'vue';
 export interface AssistantProfile {
   salaryMethod: 'PER_SESSION' | 'PER_HOUR' | 'PER_CLASS';
   salaryRate: string;
+  salaryEffectiveFrom?: string | null;
+  level?: string | null;
+  hometown?: string | null;
   bio?: string | null;
 }
 
@@ -67,6 +70,27 @@ export function useAssistantSalary(id: Ref<string | null>) {
   });
 }
 
+export interface SalarySummary {
+  method: string;
+  rate: number;
+  effectiveFrom?: string | null;
+  total: { totalAmount: number; totalSessions: number; totalHours: number; totalClasses: number };
+  byClass: SalaryClassBreakdown[];
+  thisMonth: { totalAmount: number; totalSessions: number; totalHours: number };
+  nextPayroll: string;
+  history: { month: string; amount: number; sessions: number; hours: number }[];
+  rates: { method: string; rate: number; effectiveFrom: string }[];
+}
+
+export function useAssistantSalarySummary(id: Ref<string | null>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['assistant-salary-summary', id],
+    enabled: computed(() => !!id.value),
+    queryFn: () => request<SalarySummary>(`/assistants/${id.value}/salary-summary`),
+  });
+}
+
 export interface AssistantSession {
   id: string;
   startTime: string;
@@ -101,6 +125,7 @@ export function useAssistantMutations() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['assistant'] });
       qc.invalidateQueries({ queryKey: ['assistant-salary'] });
+      qc.invalidateQueries({ queryKey: ['assistant-salary-summary'] });
     },
   });
 

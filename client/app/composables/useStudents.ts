@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { computed } from 'vue';
 import type { MaybeRefOrGetter, Ref } from 'vue';
+import type { ClassLocationInfo } from './useClasses';
 
 export type StudyStatus = 'STUDYING' | 'RESERVED' | 'GRADUATED';
 
@@ -22,8 +23,40 @@ export interface Student {
   avatarUrl?: string | null;
   avatarKey?: string | null;
   studentProfile?: StudentProfile | null;
-  enrollments?: { class: { id: string; name: string } }[];
+  enrollments?: { class: { id: string; name: string; level?: string | null } & ClassLocationInfo }[];
+  teacher?: { id: string; fullName: string } | null;
+  createdAt?: string;
   _count?: { enrollments: number };
+}
+
+export interface StudentPayments {
+  totalAmount: number;
+  paidAmount: number;
+  outstanding: number;
+  tuitions: {
+    id: string;
+    className: string;
+    totalAmount: number;
+    paidAmount: number;
+    status: string;
+    dueDate?: string | null;
+  }[];
+  records: {
+    id: string;
+    amount: number;
+    paidAt: string;
+    method?: string | null;
+    note?: string | null;
+    receiptNumber: string;
+    className: string;
+  }[];
+}
+
+export interface ActivityItem {
+  type: 'JOINED_CLASS' | 'SCORE_ADDED' | 'COMMENT_ADDED' | 'PAYMENT_RECORDED';
+  title: string;
+  detail: string;
+  date: string;
 }
 
 export interface Score {
@@ -80,6 +113,24 @@ export function useStudentScores(id: Ref<string | null>) {
     queryKey: ['student-scores', id],
     enabled: computed(() => !!id.value),
     queryFn: () => request<Score[]>(`/students/${id.value}/scores`),
+  });
+}
+
+export function useStudentPayments(id: Ref<string | null>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['student-payments', id],
+    enabled: computed(() => !!id.value),
+    queryFn: () => request<StudentPayments>(`/students/${id.value}/payments`),
+  });
+}
+
+export function useStudentActivity(id: Ref<string | null>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['student-activity', id],
+    enabled: computed(() => !!id.value),
+    queryFn: () => request<ActivityItem[]>(`/students/${id.value}/activity`),
   });
 }
 

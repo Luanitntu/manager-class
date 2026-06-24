@@ -25,7 +25,15 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-card class="pa-8 text-center">
+  <AuthShell>
+    <template #aside>
+      <h2 class="text-h4 font-weight-bold mb-3">Schedule Teacher</h2>
+      <p class="text-body-1" style="opacity: 0.9; max-width: 460px">
+        Quản lý lớp học, lịch dạy và học phí — tất cả trong một nơi.
+      </p>
+    </template>
+
+    <div class="text-center">
     <template v-if="state === 'verifying'">
       <v-progress-circular indeterminate color="primary" class="mb-4" />
       <div class="text-medium-emphasis">{{ t('auth.verifying') }}</div>
@@ -47,5 +55,6 @@ onMounted(async () => {
       <p class="text-medium-emphasis mb-4">{{ error }}</p>
       <v-btn variant="text" to="/login">{{ t('auth.backToSignIn') }}</v-btn>
     </template>
-  </v-card>
+    </div>
+  </AuthShell>
 </template>

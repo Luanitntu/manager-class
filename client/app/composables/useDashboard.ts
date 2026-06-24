@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/vue-query';
+import type { ClassLocationInfo } from './useClasses';
 
 export interface UpcomingSession {
   id: string;
   startTime: string;
   endTime: string;
   lessonTopic?: string | null;
-  class: { name: string; color?: string | null };
+  class: { name: string; color?: string | null } & ClassLocationInfo;
 }
 
 export interface DashboardStats {

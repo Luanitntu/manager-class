@@ -1,5 +1,7 @@
 // Vuetify SCSS variable overrides (Spike-inspired)
 @use 'vuetify/settings' with (
   $border-radius-root: 8px,
-  $body-font-family: ('Inter', 'Roboto', sans-serif)
+  // System font stack — supports English + Vietnamese, no webfont download.
+  // (Material Design Icons keep their own font, so icons are unaffected.)
+  $body-font-family: (ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji')
 );

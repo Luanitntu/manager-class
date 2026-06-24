@@ -22,11 +22,35 @@ export class UpdateSalaryDto {
   @Max(100_000_000)
   salaryRate!: number;
 
+  @ApiPropertyOptional({ description: 'When this rate takes effect (ISO date).' })
+  @IsOptional()
+  @IsDateString()
+  effectiveFrom?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @MaxLength(500)
   bio?: string;
+
+  // ----- Personal info -----
+  @ApiPropertyOptional({ example: '0909123456' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(32)
+  phone?: string;
+
+  @ApiPropertyOptional({ example: 'N2 Japanese' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  level?: string;
+
+  @ApiPropertyOptional({ example: 'Đà Nẵng' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  hometown?: string;
 }
 
 export class SalaryQueryDto {

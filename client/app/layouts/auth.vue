@@ -1,14 +1,19 @@
 <template>
   <v-app>
-    <v-main class="bg-background">
-      <div class="d-flex justify-end pa-4">
+    <v-main class="bg-surface">
+      <div class="auth-lang">
         <LanguageSwitcher />
       </div>
-      <v-container class="d-flex align-center justify-center" style="min-height: calc(100vh - 72px)">
-        <div style="width: 100%; max-width: 420px">
-          <slot />
-        </div>
-      </v-container>
+      <slot />
     </v-main>
   </v-app>
 </template>
+
+<style scoped>
+.auth-lang {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+</style>

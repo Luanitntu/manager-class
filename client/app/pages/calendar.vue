@@ -32,6 +32,14 @@ function notify(text: string, color = 'error') {
   snackbar.show = true;
 }
 
+function locationSuffix(s: TeachingSession) {
+  if (s.class.locationType === 'ONLINE') {
+    const map: Record<string, string> = { GOOGLE_MEET: 'Meet', ZOOM: 'Zoom', OTHER: 'Online' };
+    return ` · 💻 ${map[s.class.meetingProvider ?? 'OTHER'] ?? 'Online'}`;
+  }
+  return s.class.room ? ` · 📍 ${s.class.room}` : '';
+}
+
 function toEvent(s: TeachingSession) {
   const color = s.class.color || '#5D87FF';
   // Past + still SCHEDULED = needs confirmation (mark done / reschedule / cancel).
@@ -39,7 +47,7 @@ function toEvent(s: TeachingSession) {
   const completed = s.status === 'COMPLETED';
   return {
     id: s.id,
-    title: `${overdue ? '⚠ ' : ''}${completed ? '✓ ' : ''}${s.class.name}${s.lessonTopic ? ' — ' + s.lessonTopic : ''}`,
+    title: `${overdue ? '⚠ ' : ''}${completed ? '✓ ' : ''}${s.class.name}${s.lessonTopic ? ' — ' + s.lessonTopic : ''}${locationSuffix(s)}`,
     start: s.startTime,
     end: s.endTime,
     backgroundColor: s.status === 'CANCELLED' ? '#bdbdbd' : color,

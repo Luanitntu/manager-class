@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma, Role, SalaryMethod } from '@prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
 const ASSISTANT_SELECT = {
@@ -72,8 +72,36 @@ export class AssistantRepository {
     });
   }
 
+  updatePhone(assistantId: string, phone: string) {
+    return this.prisma.user.update({ where: { id: assistantId }, data: { phone } });
+  }
+
   getProfile(assistantId: string) {
     return this.prisma.assistantProfile.findUnique({ where: { userId: assistantId } });
+  }
+
+  // ----- Salary rate history -----
+  listRates(assistantId: string) {
+    return this.prisma.assistantSalaryRate.findMany({
+      where: { assistantId },
+      orderBy: { effectiveFrom: 'desc' },
+    });
+  }
+
+  latestRate(assistantId: string) {
+    return this.prisma.assistantSalaryRate.findFirst({
+      where: { assistantId },
+      orderBy: { effectiveFrom: 'desc' },
+    });
+  }
+
+  createRate(data: {
+    assistantId: string;
+    method: SalaryMethod;
+    rate: number;
+    effectiveFrom: Date;
+  }) {
+    return this.prisma.assistantSalaryRate.create({ data });
   }
 
   /**

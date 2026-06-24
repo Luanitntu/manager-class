@@ -51,6 +51,17 @@ export class StudentController {
     return this.students.updateProfile(actor, id, dto);
   }
 
+  // ----- Payments + Activity -----
+  @Get(':id/payments')
+  getPayments(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.students.getPayments(actor, id);
+  }
+
+  @Get(':id/activity')
+  getActivity(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.students.getActivity(actor, id);
+  }
+
   // ----- Scores -----
   @Get(':id/scores')
   listScores(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {

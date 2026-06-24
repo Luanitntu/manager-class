@@ -3,7 +3,18 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
 const SESSION_INCLUDE = {
-  class: { select: { id: true, name: true, color: true, level: true } },
+  class: {
+    select: {
+      id: true,
+      name: true,
+      color: true,
+      level: true,
+      locationType: true,
+      room: true,
+      meetingProvider: true,
+      meetingUrl: true,
+    },
+  },
   instructor: { select: { id: true, fullName: true, email: true } },
 } satisfies Prisma.TeachingSessionInclude;
 

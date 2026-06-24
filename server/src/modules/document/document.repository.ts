@@ -4,6 +4,16 @@ import { PrismaService } from '../../infra/prisma/prisma.service';
 
 const DOC_INCLUDE = {
   _count: { select: { assignments: true } },
+  assignments: {
+    select: {
+      id: true,
+      targetType: true,
+      classId: true,
+      class: { select: { id: true, name: true } },
+      studentId: true,
+      student: { select: { id: true, fullName: true } },
+    },
+  },
 } satisfies Prisma.DocumentInclude;
 
 @Injectable()
@@ -101,6 +111,16 @@ export class DocumentRepository {
       where: { id },
       data: { deletedAt: new Date() },
     });
+  }
+
+  async distinctCategories(teacherId: string): Promise<string[]> {
+    const rows = await this.prisma.document.findMany({
+      where: { teacherId, deletedAt: null, category: { not: null } },
+      select: { category: true },
+      distinct: ['category'],
+      orderBy: { category: 'asc' },
+    });
+    return rows.map((r) => r.category).filter((c): c is string => !!c);
   }
 
   // ----- Assignments -----

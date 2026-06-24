@@ -116,7 +116,18 @@ export class DashboardService {
       }),
       this.prisma.teachingSession.findMany({
         where: { teacherId, deletedAt: null, startTime: { gte: now }, status: 'SCHEDULED' },
-        include: { class: { select: { name: true, color: true } } },
+        include: {
+          class: {
+            select: {
+              name: true,
+              color: true,
+              locationType: true,
+              room: true,
+              meetingProvider: true,
+              meetingUrl: true,
+            },
+          },
+        },
         orderBy: { startTime: 'asc' },
         take: 5,
       }),
@@ -148,7 +159,18 @@ export class DashboardService {
           status: 'SCHEDULED',
           instructorId: assistantId,
         },
-        include: { class: { select: { name: true, color: true } } },
+        include: {
+          class: {
+            select: {
+              name: true,
+              color: true,
+              locationType: true,
+              room: true,
+              meetingProvider: true,
+              meetingUrl: true,
+            },
+          },
+        },
         orderBy: { startTime: 'asc' },
         take: 5,
       }),
@@ -173,7 +195,18 @@ export class DashboardService {
           status: 'SCHEDULED',
           class: { enrollments: { some: { studentId } } },
         },
-        include: { class: { select: { name: true, color: true } } },
+        include: {
+          class: {
+            select: {
+              name: true,
+              color: true,
+              locationType: true,
+              room: true,
+              meetingProvider: true,
+              meetingUrl: true,
+            },
+          },
+        },
         orderBy: { startTime: 'asc' },
         take: 5,
       }),
