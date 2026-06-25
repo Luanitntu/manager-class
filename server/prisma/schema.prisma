@@ -131,6 +131,7 @@ model User {
   // Profiles (role-specific extensions)
   assistantProfile AssistantProfile?
   studentProfile   StudentProfile?
+  teacherProfile   TeacherProfile?
 
   // Auth-related
   refreshTokens RefreshToken[]
@@ -202,6 +203,21 @@ model AssistantSalaryRate {
 
   @@index([assistantId, effectiveFrom])
   @@map("assistant_salary_rates")
+}
+
+// Per-teacher branding shown on exported PDFs (logo + name + contact).
+model TeacherProfile {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brandName String?  @map("brand_name")
+  logoKey   String?  @map("logo_key")
+  address   String?
+  phone     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("teacher_profiles")
 }
 
 model StudentProfile {

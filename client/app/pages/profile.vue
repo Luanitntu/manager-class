@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useActiveSessions, useProfileMutations, avatarUrl } from '~/composables/useProfile';
+import { useBranding, useBrandingMutations, brandLogoUrl } from '~/composables/useBranding';
 
 const auth = useAuthStore();
 const { request } = useApi();
 const { t } = useI18n();
+const isTeacher = computed(() => auth.role === 'TEACHER');
 
 const error = ref<string | null>(null);
 const saved = ref(false);
@@ -90,6 +92,43 @@ async function save() {
     error.value = extractApiError(e);
   } finally {
     loading.value = false;
+  }
+}
+
+// ---- Branding (teacher) ----
+const { data: branding } = useBranding();
+const { update: updateBranding, uploadLogo } = useBrandingMutations();
+const brandForm = reactive({ brandName: '', address: '', phone: '' });
+const logoFile = ref<File | null>(null);
+const logoVersion = ref(0);
+const brandSaved = ref(false);
+const hasLogo = computed(() => !!branding.value?.logoKey || logoVersion.value > 0);
+const logoSrc = computed(() => (auth.user ? brandLogoUrl(auth.user.id, logoVersion.value) : ''));
+watch(branding, (b) => {
+  if (!b) return;
+  brandForm.brandName = b.brandName ?? '';
+  brandForm.address = b.address ?? '';
+  brandForm.phone = b.phone ?? '';
+});
+async function saveBranding() {
+  brandSaved.value = false;
+  error.value = null;
+  try {
+    await updateBranding.mutateAsync({ ...brandForm });
+    brandSaved.value = true;
+  } catch (e) {
+    error.value = extractApiError(e);
+  }
+}
+async function doUploadLogo() {
+  if (!logoFile.value) return;
+  error.value = null;
+  try {
+    await uploadLogo.mutateAsync(logoFile.value);
+    logoVersion.value++;
+    logoFile.value = null;
+  } catch (e) {
+    error.value = extractApiError(e);
   }
 }
 
@@ -193,6 +232,43 @@ function deviceLabel(ua?: string | null) {
           <v-chip size="small" class="mb-4">{{ auth.role }}</v-chip>
           <div class="d-flex justify-end">
             <v-btn color="primary" :loading="loading" @click="save">{{ t('common.save') }}</v-btn>
+          </div>
+        </v-card>
+
+        <!-- Branding (teacher) — shown on exported PDF headers -->
+        <v-card v-if="isTeacher" class="pa-6 mb-4">
+          <h3 class="text-subtitle-1 font-weight-bold mb-1">{{ t('branding.title') }}</h3>
+          <p class="text-caption text-medium-emphasis mb-3">{{ t('branding.subtitle') }}</p>
+          <v-alert v-if="brandSaved" type="success" variant="tonal" density="compact" class="mb-3">
+            {{ t('branding.saved') }}
+          </v-alert>
+
+          <div class="d-flex align-center ga-4 mb-3">
+            <v-avatar size="64" rounded="lg" color="grey-lighten-3">
+              <v-img v-if="hasLogo" :src="logoSrc" />
+              <v-icon v-else class="text-medium-emphasis">mdi-image-outline</v-icon>
+            </v-avatar>
+            <v-file-input
+              v-model="logoFile"
+              accept="image/png,image/jpeg"
+              :label="t('branding.logo')"
+              density="compact"
+              hide-details
+              prepend-icon="mdi-image-plus"
+              class="flex-grow-1"
+            />
+            <v-btn color="primary" :loading="uploadLogo.isPending.value" :disabled="!logoFile" @click="doUploadLogo">
+              {{ t('common.save') }}
+            </v-btn>
+          </div>
+
+          <v-text-field v-model="brandForm.brandName" :label="t('branding.name')" />
+          <v-text-field v-model="brandForm.address" :label="t('branding.address')" />
+          <v-text-field v-model="brandForm.phone" :label="t('branding.phone')" />
+          <div class="d-flex justify-end">
+            <v-btn color="primary" :loading="updateBranding.isPending.value" @click="saveBranding">
+              {{ t('common.save') }}
+            </v-btn>
           </div>
         </v-card>
       </v-col>

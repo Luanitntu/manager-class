@@ -597,9 +597,29 @@ Roboto → Vietnamese-correct PDF).
   From/To inputs.
 * Verified: server lint + build + 16 tests green; client lint + build green.
 
----
+## Phase A — Teacher branding on PDF (2026-06-26)
+Per-teacher brand (logo + name + contact) printed as a letterhead on exported PDFs.
+* DB: migration 0020 — TeacherProfile (userId unique, brandName, logoKey, address, phone).
+* Backend (user module): GET/PATCH /users/me/branding, POST /users/me/brand-logo (upload via
+  StorageService), GET /users/:id/brand-logo (public stream). All teacher-scoped.
+* report.service: injects StorageService; getBranding(teacherId) returns name/contact +
+  logo as a PNG/JPEG data URI; toPdf(table, branding) renders a letterhead (logo + brand
+  name + address·phone) above the centered title. report.controller passes branding for PDF.
+* Frontend: useBranding composable; Branding card in profile.vue (teacher only) — logo
+  upload + name/address/phone; i18n `branding` namespace.
+* Decisions/notes: branding is the TEACHER's (reports are teacher-only); logo limited to
+  PNG/JPEG (pdfmake constraint). This covers Case 1 (solo teacher) + Case 2 "centralized
+  center" identity. ORGANIZATION multi-teacher layer (Phase B) NOT done — deferred milestone.
+* Verified: migration applied; server lint + build + 16 tests green; client lint + build green.
 
-# Completed
+## Decided (not yet built) — Assistant permission expansion + roles model
+* Confirmed model: paying user = TEACHER (tenant owner / center owner) with full control; a
+  "center director" works TODAY as one TEACHER account (sees all under teacherId). True
+  multi-independent-teacher org = Phase B (Organization layer) — deferred.
+* Assistant scope to implement (next batch): CRUD only their OWN sessions (instructorId =
+  self); calendar SHOWS ALL sessions (read) to avoid conflicts but edit own only; enroll
+  EXISTING students into assigned classes; enter scores (createdBy=them) + view student info
+  EXCEPT payments; view other assistants (no salary); scoped menus; hide Payments + Reports.
 
 ## Planning
 * Business Requirements Defined

@@ -31,6 +31,7 @@ import {
   CreateMemberDto,
   ListUsersQueryDto,
   ResetUserPasswordDto,
+  UpdateBrandingDto,
   UpdateProfileDto,
 } from './dto/user.dto';
 
@@ -61,6 +62,43 @@ export class UserController {
     res.setHeader('Content-Type', av.contentType);
     res.setHeader('Cache-Control', 'public, max-age=300');
     av.stream.pipe(res);
+  }
+
+  // ----- Branding (teacher) -----
+  @Roles(Role.TEACHER)
+  @Get('me/branding')
+  getBranding(@CurrentUser() actor: AuthenticatedUser) {
+    return this.users.getBranding(actor.id);
+  }
+
+  @Roles(Role.TEACHER)
+  @Patch('me/branding')
+  updateBranding(@CurrentUser() actor: AuthenticatedUser, @Body() dto: UpdateBrandingDto) {
+    return this.users.updateBranding(actor.id, dto);
+  }
+
+  @Roles(Role.TEACHER)
+  @Post('me/brand-logo')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_AVATAR_BYTES } }))
+  uploadBrandLogo(
+    @CurrentUser() actor: AuthenticatedUser,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.users.setBrandLogo(actor.id, file);
+  }
+
+  @Public()
+  @SkipTransform()
+  @Get(':id/brand-logo')
+  async brandLogo(@Param('id', ParseUUIDPipe) id: string, @Res() res: Response) {
+    const logo = await this.users.getBrandLogo(id);
+    if (!logo) {
+      throw new NotFoundException('No logo');
+    }
+    res.setHeader('Content-Type', logo.contentType);
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    logo.stream.pipe(res);
   }
 
   // ----- Change own password -----

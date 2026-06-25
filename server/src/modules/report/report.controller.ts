@@ -30,8 +30,13 @@ export class ReportController {
     const format = q.format === 'pdf' ? 'pdf' : 'xlsx';
     const lang: Lang = q.lang === 'en' ? 'en' : 'vi';
     const table = await this.reports.build(teacherId, type as ReportType, q, lang);
-    const buf =
-      format === 'pdf' ? await this.reports.toPdf(table) : await this.reports.toExcel(table);
+    let buf: Buffer;
+    if (format === 'pdf') {
+      const branding = await this.reports.getBranding(teacherId);
+      buf = await this.reports.toPdf(table, branding);
+    } else {
+      buf = await this.reports.toExcel(table);
+    }
 
     res.setHeader('Content-Type', format === 'pdf' ? 'application/pdf' : XLSX_MIME);
     res.setHeader('Content-Disposition', `attachment; filename="${type}-report.${format}"`);

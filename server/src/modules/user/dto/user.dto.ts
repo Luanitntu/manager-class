@@ -12,6 +12,26 @@ import {
   MinLength,
 } from 'class-validator';
 
+export class UpdateBrandingDto {
+  @ApiPropertyOptional({ example: 'Trung tâm Anh ngữ ABC' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  brandName?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  address?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  phone?: string;
+}
+
 /** Role a teacher is allowed to create within their tenant. */
 export enum CreatableRole {
   ASSISTANT = 'ASSISTANT',

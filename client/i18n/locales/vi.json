@@ -226,6 +226,15 @@
     "showing": "Hiển thị {from}–{to} / {total}",
     "perPage": "/ trang"
   },
+  "branding": {
+    "title": "Thương hiệu (in trên PDF)",
+    "subtitle": "Logo + tên hiển thị trên đầu các báo cáo PDF xuất ra.",
+    "logo": "Logo (PNG/JPG)",
+    "name": "Tên hiển thị (vd: Trung tâm Anh ngữ ABC)",
+    "address": "Địa chỉ",
+    "phone": "Số điện thoại",
+    "saved": "Đã lưu thương hiệu."
+  },
   "lang": { "switch": "Ngôn ngữ", "vi": "Tiếng Việt", "en": "English" },
   "errors": {
     "generic": "Đã có lỗi xảy ra. Vui lòng thử lại.",

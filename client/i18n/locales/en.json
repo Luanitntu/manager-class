@@ -226,6 +226,15 @@
     "showing": "Showing {from}–{to} of {total}",
     "perPage": "per page"
   },
+  "branding": {
+    "title": "Branding (on PDF)",
+    "subtitle": "Logo + name shown at the top of exported PDF reports.",
+    "logo": "Logo (PNG/JPG)",
+    "name": "Display name (e.g. ABC English Center)",
+    "address": "Address",
+    "phone": "Phone",
+    "saved": "Branding saved."
+  },
   "lang": { "switch": "Language", "vi": "Tiếng Việt", "en": "English" },
   "errors": {
     "generic": "Something went wrong. Please try again.",

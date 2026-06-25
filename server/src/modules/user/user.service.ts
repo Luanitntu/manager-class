@@ -103,6 +103,53 @@ export class UserService {
     return { stream: await this.storage.getObjectStream(user.avatarKey), contentType };
   }
 
+  // ----- Branding (teacher) -----
+  async getBranding(userId: string) {
+    const p = await this.prisma.teacherProfile.findUnique({ where: { userId } });
+    return {
+      brandName: p?.brandName ?? null,
+      address: p?.address ?? null,
+      phone: p?.phone ?? null,
+      logoKey: p?.logoKey ?? null,
+    };
+  }
+
+  async updateBranding(
+    userId: string,
+    dto: { brandName?: string; address?: string; phone?: string },
+  ) {
+    await this.prisma.teacherProfile.upsert({
+      where: { userId },
+      update: { brandName: dto.brandName, address: dto.address, phone: dto.phone },
+      create: { userId, brandName: dto.brandName, address: dto.address, phone: dto.phone },
+    });
+    return this.getBranding(userId);
+  }
+
+  async setBrandLogo(userId: string, file: { buffer: Buffer; originalname: string }) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    const stored = await this.storage.putObject(file.buffer, file.originalname);
+    await this.prisma.teacherProfile.upsert({
+      where: { userId },
+      update: { logoKey: stored.key },
+      create: { userId, logoKey: stored.key },
+    });
+    return { logoKey: stored.key };
+  }
+
+  async getBrandLogo(userId: string) {
+    const p = await this.prisma.teacherProfile.findUnique({
+      where: { userId },
+      select: { logoKey: true },
+    });
+    if (!p?.logoKey) return null;
+    const ext = p.logoKey.split('.').pop()?.toLowerCase();
+    const contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+    return { stream: await this.storage.getObjectStream(p.logoKey), contentType };
+  }
+
   // ----- Change own password (any authenticated user) -----
   async changePassword(userId: string, dto: ChangePasswordDto) {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
