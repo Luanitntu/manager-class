@@ -33,12 +33,15 @@ interface UsersFilters {
   page?: MaybeRefOrGetter<number>;
 }
 
-export function useAdminUsers(f: UsersFilters = {}) {
+export function useAdminUsers(f: UsersFilters = {}, limit: MaybeRefOrGetter<number> = 20) {
   const { requestPaged } = useApi();
   return useQuery({
-    queryKey: ['admin-users', f.role, f.search, f.status, f.page],
+    queryKey: ['admin-users', f.role, f.search, f.status, f.page, limit],
     queryFn: () => {
-      const params = new URLSearchParams({ limit: '20', page: String(toValue(f.page) ?? 1) });
+      const params = new URLSearchParams({
+        limit: String(toValue(limit) ?? 20),
+        page: String(toValue(f.page) ?? 1),
+      });
       const r = toValue(f.role);
       const s = toValue(f.search);
       const st = toValue(f.status);

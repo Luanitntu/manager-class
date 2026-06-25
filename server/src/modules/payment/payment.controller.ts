@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -53,6 +63,22 @@ export class PaymentController {
     @Body() dto: RecordPaymentDto,
   ) {
     return this.payments.recordPayment(actor, id, dto);
+  }
+
+  @Roles(Role.TEACHER)
+  @Delete('tuitions/:id/payments/:paymentId')
+  deletePayment(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('paymentId', ParseUUIDPipe) paymentId: string,
+  ) {
+    return this.payments.deletePayment(actor, id, paymentId);
+  }
+
+  @Roles(Role.TEACHER)
+  @Delete('tuitions/:id')
+  deleteTuition(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.payments.deleteTuition(actor, id);
   }
 
   @Roles(Role.TEACHER)

@@ -146,7 +146,7 @@ export class StudentRepository {
     return this.prisma.score.findMany({
       where: { studentId, teacherId },
       include: { class: { select: { id: true, name: true } } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { scoredAt: 'desc' },
     });
   }
 

@@ -40,14 +40,22 @@ export interface SalaryResult {
   byClass: SalaryClassBreakdown[];
 }
 
-export function useAssistants(search?: MaybeRefOrGetter<string | undefined>) {
+export function useAssistants(
+  search?: MaybeRefOrGetter<string | undefined>,
+  page?: MaybeRefOrGetter<number>,
+  limit: MaybeRefOrGetter<number> = 10,
+) {
   const { requestPaged } = useApi();
   return useQuery({
-    queryKey: ['assistants', search],
+    queryKey: ['assistants', search, page, limit],
     queryFn: () => {
+      const params = new URLSearchParams({
+        limit: String(toValue(limit) ?? 10),
+        page: String(toValue(page) ?? 1),
+      });
       const term = toValue(search);
-      const qs = term ? `?search=${encodeURIComponent(term)}&limit=100` : '?limit=100';
-      return requestPaged<Assistant[]>(`/assistants${qs}`);
+      if (term) params.set('search', term);
+      return requestPaged<Assistant[]>(`/assistants?${params.toString()}`);
     },
   });
 }

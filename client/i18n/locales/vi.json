@@ -191,6 +191,22 @@
     "confirmDelete": "Xoá lớp \"{name}\"? Nếu lớp chưa phát sinh dữ liệu sẽ bị xoá vĩnh viễn; nếu đã có học viên/buổi học/học phí, lớp sẽ được lưu trữ (ẩn đi) để giữ lịch sử.",
     "confirmRemoveStudent": "Gỡ học viên khỏi lớp?"
   },
+  "score": {
+    "title": "Bảng điểm",
+    "class": "Lớp",
+    "type": "Loại",
+    "date": "Ngày",
+    "score": "Điểm",
+    "max": "Tối đa",
+    "note": "Ghi chú",
+    "add": "Thêm điểm",
+    "noScores": "Chưa có điểm.",
+    "averageScore": "Điểm trung bình",
+    "assignmentsAvg": "TB Bài tập",
+    "quizAvg": "TB Quiz",
+    "midtermAvg": "TB Giữa kỳ",
+    "finalAvg": "TB Cuối kỳ"
+  },
   "profile": {
     "subtitle": "Quản lý thông tin tài khoản của bạn.",
     "updated": "Đã cập nhật hồ sơ.",
@@ -205,6 +221,10 @@
     "thisDevice": "Thiết bị này",
     "signOut": "Đăng xuất",
     "noSessions": "Không có phiên nào."
+  },
+  "pager": {
+    "showing": "Hiển thị {from}–{to} / {total}",
+    "perPage": "/ trang"
   },
   "lang": { "switch": "Ngôn ngữ", "vi": "Tiếng Việt", "en": "English" },
   "errors": {

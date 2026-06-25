@@ -10,11 +10,12 @@ import {
   type StudentPayments,
 } from '~/composables/useStudents';
 import { useClasses } from '~/composables/useClasses';
-import { usePaymentMutations } from '~/composables/usePayments';
+import { usePaymentMutations, PAYMENT_METHODS } from '~/composables/usePayments';
 
 type TuitionRow = StudentPayments['tuitions'][number];
 
 const route = useRoute();
+const { t } = useI18n();
 const id = computed(() => route.params.id as string);
 
 const { data: student } = useStudentDetail(id);
@@ -22,7 +23,7 @@ const { data: scores } = useStudentScores(id);
 const { data: comments } = useStudentComments(id);
 const { data: payments } = useStudentPayments(id);
 const { data: activity } = useStudentActivity(id);
-const { data: classesData } = useClasses();
+const { data: classesData } = useClasses(undefined, undefined, 100);
 const { updateProfile, addScore, deleteScore, addComment } = useStudentMutations();
 const avatar = useAvatar();
 
@@ -56,11 +57,12 @@ function avgOf(list: { value: string }[]) {
 }
 const scoreSummary = computed(() => {
   const all = scores.value ?? [];
-  const byType = (t: string) => all.filter((s) => s.type === t);
+  const byType = (type: string) => all.filter((s) => s.type === type);
   return {
     average: avgOf(all),
     assignment: avgOf(byType('ASSIGNMENT')),
     quiz: avgOf(byType('QUIZ')),
+    midterm: avgOf(byType('MIDTERM')),
     final: avgOf(byType('FINAL')),
   };
 });
@@ -92,7 +94,7 @@ watch(student, (s) => {
   profile.learningGoal = s.studentProfile?.learningGoal ?? '';
 });
 
-const scoreForm = reactive({ classId: '', type: 'QUIZ', value: 0, maxValue: 10, label: '' });
+const scoreForm = reactive({ classId: '', type: 'QUIZ', value: 0, maxValue: 10, label: '', date: '' });
 const commentForm = reactive({ category: 'progress', content: '' });
 const commentCategories = ['attitude', 'strengths', 'weaknesses', 'progress', 'note', 'Payment Note'];
 
@@ -110,10 +112,12 @@ async function submitScore() {
       value: Number(scoreForm.value),
       maxValue: Number(scoreForm.maxValue),
       label: scoreForm.label || undefined,
+      date: scoreForm.date || undefined,
     },
   });
   scoreForm.value = 0;
   scoreForm.label = '';
+  scoreForm.date = '';
 }
 
 async function submitComment() {
@@ -126,7 +130,19 @@ async function submitComment() {
 }
 
 // ── Payments (tuition + installments) ───────────────────────────────────────
-const { createTuition, updateTuition, recordPayment } = usePaymentMutations();
+const { createTuition, updateTuition, recordPayment, deletePayment, deleteTuition } = usePaymentMutations();
+async function removeInstallment(tuitionId: string, paymentId: string) {
+  if (!confirm('Xoá đợt đóng này? Số tiền sẽ được trừ lại.')) return;
+  await deletePayment.mutateAsync({ tuitionId, paymentId });
+}
+async function removeTuition(tu: TuitionRow) {
+  if (!confirm(`Xoá khoản học phí "${tu.className}"? (chỉ được khi chưa có đợt đóng)`)) return;
+  try {
+    await deleteTuition.mutateAsync(tu.id);
+  } catch (e) {
+    alert(extractApiError(e));
+  }
+}
 const PAY_STATUS: Record<string, string> = {
   PAID: 'success',
   PARTIALLY_PAID: 'info',
@@ -196,10 +212,10 @@ async function submitEditTuition() {
 const recordOpen = ref(false);
 const recordError = ref<string | null>(null);
 const recordTuition = ref<TuitionRow | null>(null);
-const recordForm = reactive({ amount: 0, paidAt: '', method: '', note: '' });
+const recordForm = reactive({ amount: 0, paidAt: '', method: 'cash', note: '' });
 function openRecordPayment(tu: TuitionRow) {
   recordTuition.value = tu;
-  Object.assign(recordForm, { amount: tu.totalAmount - tu.paidAmount, paidAt: '', method: '', note: '' });
+  Object.assign(recordForm, { amount: tu.totalAmount - tu.paidAmount, paidAt: '', method: 'cash', note: '' });
   recordError.value = null;
   recordOpen.value = true;
 }
@@ -224,7 +240,7 @@ async function submitRecord() {
 async function payFull(tu: TuitionRow) {
   const remaining = tu.totalAmount - tu.paidAmount;
   if (remaining <= 0) return;
-  await recordPayment.mutateAsync({ id: tu.id, body: { amount: remaining, method: 'Đóng đủ' } });
+  await recordPayment.mutateAsync({ id: tu.id, body: { amount: remaining } });
 }
 </script>
 
@@ -334,28 +350,34 @@ async function payFull(tu: TuitionRow) {
           <!-- Scores -->
           <v-window-item value="scores">
             <v-row class="mb-2">
-              <v-col cols="6" md="3">
+              <v-col cols="6" md="2">
                 <v-card variant="tonal" color="primary" class="pa-3 text-center">
-                  <div class="text-h5 font-weight-bold">{{ scoreSummary.average ?? '—' }}</div>
-                  <div class="text-caption">Average Score</div>
+                  <div class="text-h6 font-weight-bold">{{ scoreSummary.average ?? '—' }}</div>
+                  <div class="text-caption">{{ t('score.averageScore') }}</div>
+                </v-card>
+              </v-col>
+              <v-col cols="6" md="2">
+                <v-card variant="tonal" class="pa-3 text-center">
+                  <div class="text-h6 font-weight-bold">{{ scoreSummary.assignment ?? '—' }}</div>
+                  <div class="text-caption text-medium-emphasis">{{ t('score.assignmentsAvg') }}</div>
+                </v-card>
+              </v-col>
+              <v-col cols="6" md="2">
+                <v-card variant="tonal" class="pa-3 text-center">
+                  <div class="text-h6 font-weight-bold">{{ scoreSummary.quiz ?? '—' }}</div>
+                  <div class="text-caption text-medium-emphasis">{{ t('score.quizAvg') }}</div>
                 </v-card>
               </v-col>
               <v-col cols="6" md="3">
                 <v-card variant="tonal" class="pa-3 text-center">
-                  <div class="text-h5 font-weight-bold">{{ scoreSummary.assignment ?? '—' }}</div>
-                  <div class="text-caption text-medium-emphasis">Assignments</div>
+                  <div class="text-h6 font-weight-bold">{{ scoreSummary.midterm ?? '—' }}</div>
+                  <div class="text-caption text-medium-emphasis">{{ t('score.midtermAvg') }}</div>
                 </v-card>
               </v-col>
               <v-col cols="6" md="3">
                 <v-card variant="tonal" class="pa-3 text-center">
-                  <div class="text-h5 font-weight-bold">{{ scoreSummary.quiz ?? '—' }}</div>
-                  <div class="text-caption text-medium-emphasis">Quizzes</div>
-                </v-card>
-              </v-col>
-              <v-col cols="6" md="3">
-                <v-card variant="tonal" class="pa-3 text-center">
-                  <div class="text-h5 font-weight-bold">{{ scoreSummary.final ?? '—' }}</div>
-                  <div class="text-caption text-medium-emphasis">Final</div>
+                  <div class="text-h6 font-weight-bold">{{ scoreSummary.final ?? '—' }}</div>
+                  <div class="text-caption text-medium-emphasis">{{ t('score.finalAvg') }}</div>
                 </v-card>
               </v-col>
             </v-row>
@@ -366,38 +388,53 @@ async function payFull(tu: TuitionRow) {
                 :items="classes"
                 item-title="name"
                 item-value="id"
-                label="Class"
+                :label="t('score.class')"
                 density="compact"
                 hide-details
-                style="min-width: 160px"
+                style="min-width: 150px"
               />
               <v-select
                 v-model="scoreForm.type"
                 :items="['MIDTERM', 'FINAL', 'ASSIGNMENT', 'QUIZ', 'CUSTOM']"
-                label="Type"
+                :label="t('score.type')"
                 density="compact"
                 hide-details
-                style="max-width: 140px"
+                style="max-width: 130px"
               />
-              <v-text-field v-model="scoreForm.value" type="number" label="Score" density="compact" hide-details style="max-width: 90px" />
-              <v-text-field v-model="scoreForm.maxValue" type="number" label="Max" density="compact" hide-details style="max-width: 80px" />
-              <v-btn icon="mdi-plus" color="primary" :disabled="!scoreForm.classId" @click="submitScore" />
+              <v-text-field v-model="scoreForm.date" type="date" :label="t('score.date')" density="compact" hide-details style="max-width: 150px" />
+              <v-text-field v-model="scoreForm.value" type="number" :label="t('score.score')" density="compact" hide-details style="max-width: 90px" />
+              <v-text-field v-model="scoreForm.maxValue" type="number" :label="t('score.max')" density="compact" hide-details style="max-width: 80px" />
+              <v-text-field v-model="scoreForm.label" :label="t('score.note')" density="compact" hide-details style="min-width: 120px" />
+              <v-btn color="primary" :disabled="!scoreForm.classId" prepend-icon="mdi-plus" @click="submitScore">
+                {{ t('score.add') }}
+              </v-btn>
             </div>
             <v-table density="comfortable">
               <thead>
-                <tr><th>Class</th><th>Type</th><th class="text-right">Score</th><th /></tr>
+                <tr>
+                  <th>{{ t('score.date') }}</th>
+                  <th>{{ t('score.class') }}</th>
+                  <th>{{ t('score.type') }}</th>
+                  <th class="text-right">{{ t('score.score') }}</th>
+                  <th class="text-right">{{ t('score.max') }}</th>
+                  <th>{{ t('score.note') }}</th>
+                  <th />
+                </tr>
               </thead>
               <tbody>
                 <tr v-for="s in scores ?? []" :key="s.id">
+                  <td class="text-no-wrap">{{ fmtDate(s.scoredAt) }}</td>
                   <td>{{ s.class?.name }}</td>
-                  <td>{{ s.type }}{{ s.label ? ` (${s.label})` : '' }}</td>
-                  <td class="text-right font-weight-bold">{{ s.value }} / {{ s.maxValue }}</td>
+                  <td>{{ s.type }}</td>
+                  <td class="text-right font-weight-bold">{{ s.value }}</td>
+                  <td class="text-right text-medium-emphasis">{{ s.maxValue }}</td>
+                  <td class="text-medium-emphasis">{{ s.label || '—' }}</td>
                   <td class="text-right">
                     <v-btn icon="mdi-delete" size="x-small" variant="text" @click="deleteScore.mutate(s.id)" />
                   </td>
                 </tr>
                 <tr v-if="!scores?.length">
-                  <td colspan="4" class="text-center text-medium-emphasis pa-4">No scores yet.</td>
+                  <td colspan="7" class="text-center text-medium-emphasis pa-4">{{ t('score.noScores') }}</td>
                 </tr>
               </tbody>
             </v-table>
@@ -488,13 +525,23 @@ async function payFull(tu: TuitionRow) {
                 />
 
                 <div v-if="tu.payments.length" class="mb-3">
-                  <div v-for="p in tu.payments" :key="p.id" class="d-flex justify-space-between text-body-2 py-1 px-1">
+                  <div v-for="p in tu.payments" :key="p.id" class="d-flex align-center justify-space-between text-body-2 py-1 px-1">
                     <span class="text-medium-emphasis">
                       <v-icon size="14">mdi-cash</v-icon> {{ fmtDate(p.paidAt) }}
                       <span v-if="p.method"> · {{ p.method }}</span>
                       <span v-if="p.note"> · {{ p.note }}</span>
                     </span>
-                    <span class="font-weight-medium text-success">{{ money(p.amount) }}</span>
+                    <span class="d-flex align-center ga-1">
+                      <span class="font-weight-medium text-success">{{ money(p.amount) }}</span>
+                      <v-btn
+                        icon="mdi-close"
+                        size="x-small"
+                        variant="text"
+                        color="error"
+                        title="Xoá đợt đóng"
+                        @click="removeInstallment(tu.id, p.id)"
+                      />
+                    </span>
                   </div>
                 </div>
 
@@ -526,6 +573,16 @@ async function payFull(tu: TuitionRow) {
                   <v-spacer />
                   <v-btn size="small" variant="text" prepend-icon="mdi-pencil" @click="openEditTuition(tu)">
                     Sửa
+                  </v-btn>
+                  <v-btn
+                    v-if="!tu.payments.length"
+                    size="small"
+                    variant="text"
+                    color="error"
+                    prepend-icon="mdi-delete-outline"
+                    @click="removeTuition(tu)"
+                  >
+                    Xoá khoản
                   </v-btn>
                 </div>
               </v-card>
@@ -633,7 +690,7 @@ async function payFull(tu: TuitionRow) {
           </p>
           <v-text-field v-model.number="recordForm.amount" type="number" label="Số tiền" prepend-inner-icon="mdi-cash" />
           <v-text-field v-model="recordForm.paidAt" type="date" label="Ngày đóng (mặc định hôm nay)" />
-          <v-text-field v-model="recordForm.method" label="Phương thức (tiền mặt, chuyển khoản…)" />
+          <v-select v-model="recordForm.method" :items="PAYMENT_METHODS" label="Phương thức" />
           <v-text-field v-model="recordForm.note" label="Ghi chú (tuỳ chọn)" />
         </v-card-text>
         <v-card-actions class="px-4 pb-4">

@@ -5,9 +5,10 @@ const role = ref('');
 const status = ref('');
 const search = ref('');
 const page = ref(1);
-watch([role, status, search], () => (page.value = 1));
+const limit = ref(20);
+watch([role, status, search, limit], () => (page.value = 1));
 
-const { data, isLoading } = useAdminUsers({ role, status, search, page });
+const { data, isLoading } = useAdminUsers({ role, status, search, page }, limit);
 const { create, updateUser, deleteUser, lock, unlock, resetPassword } = useAdminUserMutations();
 const config = useRuntimeConfig();
 
@@ -192,9 +193,7 @@ async function doReset() {
       <div v-else-if="!isLoading" class="pa-12 text-center text-medium-emphasis">Không có người dùng.</div>
     </v-card>
 
-    <div v-if="meta && meta.totalPages > 1" class="d-flex justify-center mt-4">
-      <v-pagination v-model="page" :length="meta.totalPages" :total-visible="7" />
-    </div>
+    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
 
     <!-- Create dialog -->
     <v-dialog v-model="createOpen" max-width="460">

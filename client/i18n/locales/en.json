@@ -191,6 +191,22 @@
     "confirmDelete": "Delete class \"{name}\"? If the class has no data yet it is permanently deleted; if it has students/sessions/tuition it is archived (hidden) to preserve history.",
     "confirmRemoveStudent": "Remove student from class?"
   },
+  "score": {
+    "title": "Scores",
+    "class": "Class",
+    "type": "Type",
+    "date": "Date",
+    "score": "Score",
+    "max": "Max",
+    "note": "Note",
+    "add": "Add score",
+    "noScores": "No scores yet.",
+    "averageScore": "Average Score",
+    "assignmentsAvg": "Assignments Avg",
+    "quizAvg": "Quiz Avg",
+    "midtermAvg": "Midterm Avg",
+    "finalAvg": "Final Avg"
+  },
   "profile": {
     "subtitle": "Manage your account details.",
     "updated": "Profile updated.",
@@ -205,6 +221,10 @@
     "thisDevice": "This device",
     "signOut": "Sign out",
     "noSessions": "No active sessions."
+  },
+  "pager": {
+    "showing": "Showing {from}–{to} of {total}",
+    "perPage": "per page"
   },
   "lang": { "switch": "Language", "vi": "Tiếng Việt", "en": "English" },
   "errors": {

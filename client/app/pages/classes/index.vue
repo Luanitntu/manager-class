@@ -3,9 +3,10 @@ import { useClasses, useClassMutations, type ClassItem, type ClassStudentRef } f
 
 const search = ref('');
 const page = ref(1);
-watch(search, () => (page.value = 1));
+const limit = ref(9);
+watch([search, limit], () => (page.value = 1));
 
-const { data, isLoading } = useClasses(search, page, 9);
+const { data, isLoading } = useClasses(search, page, limit);
 const { create, update, remove } = useClassMutations();
 const avatar = useAvatar();
 
@@ -264,9 +265,7 @@ async function destroy(c: ClassItem) {
       Chưa có lớp học nào. Tạo lớp đầu tiên để bắt đầu xếp lịch.
     </v-card>
 
-    <div v-if="meta && meta.totalPages > 1" class="d-flex justify-center mt-6">
-      <v-pagination v-model="page" :length="meta.totalPages" :total-visible="7" />
-    </div>
+    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
 
     <!-- Create / edit dialog -->
     <v-dialog v-model="dialog" max-width="480">

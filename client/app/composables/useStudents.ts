@@ -78,6 +78,7 @@ export interface Score {
   value: string;
   maxValue: string;
   class?: { id: string; name: string };
+  scoredAt: string;
   createdAt: string;
 }
 
@@ -93,13 +94,16 @@ export function useStudents(
   search?: MaybeRefOrGetter<string | undefined>,
   status?: MaybeRefOrGetter<string | undefined>,
   page?: MaybeRefOrGetter<number>,
-  limit = 10,
+  limit: MaybeRefOrGetter<number> = 10,
 ) {
   const { requestPaged } = useApi();
   return useQuery({
     queryKey: ['students', search, status, page, limit],
     queryFn: () => {
-      const params = new URLSearchParams({ limit: String(limit), page: String(toValue(page) ?? 1) });
+      const params = new URLSearchParams({
+        limit: String(toValue(limit) ?? 10),
+        page: String(toValue(page) ?? 1),
+      });
       const term = toValue(search);
       const st = toValue(status);
       if (term) params.set('search', term);

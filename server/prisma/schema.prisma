@@ -382,9 +382,11 @@ model Score {
   classId   String    @map("class_id") @db.Uuid
   class     Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
   type      ScoreType
-  label     String?   // for CUSTOM scores
+  label     String?   // free-text note / custom score name
   value     Decimal   @db.Decimal(5, 2)
   maxValue  Decimal   @default(10) @map("max_value") @db.Decimal(5, 2)
+  // Date the score was achieved (e.g. exam date) — settable, defaults to now.
+  scoredAt  DateTime  @default(now()) @map("scored_at")
 
   createdBy String?  @map("created_by") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at")

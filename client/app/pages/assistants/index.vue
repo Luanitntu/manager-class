@@ -2,10 +2,14 @@
 import { useAssistants, useAssistantMutations } from '~/composables/useAssistants';
 
 const search = ref('');
-const { data, isLoading } = useAssistants(search);
+const page = ref(1);
+const limit = ref(10);
+watch([search, limit], () => (page.value = 1));
+const { data, isLoading } = useAssistants(search, page, limit);
 const { createAssistant } = useAssistantMutations();
 const avatar = useAvatar();
 const assistants = computed(() => data.value?.data ?? []);
+const meta = computed(() => data.value?.meta);
 
 function openDetail(id: string) {
   navigateTo(`/assistants/${id}`);
@@ -101,6 +105,8 @@ async function create() {
         No assistants yet.
       </div>
     </v-card>
+
+    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
 
     <v-dialog v-model="createOpen" max-width="460">
       <v-card>

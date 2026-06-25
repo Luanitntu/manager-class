@@ -61,14 +61,17 @@ export interface ClassEnrollment {
 export function useClasses(
   search?: MaybeRefOrGetter<string | undefined>,
   page?: MaybeRefOrGetter<number>,
-  limit = 9,
+  limit: MaybeRefOrGetter<number> = 10,
 ) {
   const { requestPaged } = useApi();
 
   return useQuery({
     queryKey: ['classes', search, page, limit],
     queryFn: () => {
-      const params = new URLSearchParams({ limit: String(limit), page: String(toValue(page) ?? 1) });
+      const params = new URLSearchParams({
+        limit: String(toValue(limit) ?? 10),
+        page: String(toValue(page) ?? 1),
+      });
       const term = toValue(search);
       if (term) params.set('search', term);
       return requestPaged<ClassItem[]>(`/classes?${params.toString()}`);

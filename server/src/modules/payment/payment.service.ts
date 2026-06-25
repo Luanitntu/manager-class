@@ -166,6 +166,55 @@ export class PaymentService {
     return result;
   }
 
+  async deletePayment(actor: AuthenticatedUser, tuitionId: string, paymentId: string) {
+    const teacherId = this.tenantId(actor);
+    const tuition = await this.repo.findForTenant(tuitionId, teacherId);
+    if (!tuition) {
+      throw new NotFoundException('Tuition not found');
+    }
+    const payment = await this.repo.findPaymentRecord(paymentId, tuitionId);
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    const newPaid = Math.max(0, Number(tuition.paidAmount) - Number(payment.amount));
+    const status = computePaymentStatus(
+      Number(tuition.totalAmount),
+      newPaid,
+      tuition.dueDate,
+      new Date(),
+    );
+    const result = await this.repo.deletePaymentRecord(paymentId, tuitionId, newPaid, status);
+    await this.audit.log(actor, {
+      action: 'PAYMENT_DELETED',
+      entityType: 'Tuition',
+      entityId: tuitionId,
+      newValue: { amount: Number(payment.amount), status },
+    });
+    return result;
+  }
+
+  async deleteTuition(actor: AuthenticatedUser, id: string) {
+    const teacherId = this.tenantId(actor);
+    const tuition = await this.repo.findForTenant(id, teacherId);
+    if (!tuition) {
+      throw new NotFoundException('Tuition not found');
+    }
+    const paymentCount = await this.repo.countPayments(id);
+    if (paymentCount > 0) {
+      throw new ConflictException(
+        'This tuition has payment records — delete those first before removing it',
+      );
+    }
+    await this.repo.deleteTuition(id);
+    await this.audit.log(actor, {
+      action: 'TUITION_DELETED',
+      entityType: 'Tuition',
+      entityId: id,
+    });
+    return { deleted: true };
+  }
+
   async sendReminder(actor: AuthenticatedUser, tuitionId: string) {
     const teacherId = this.tenantId(actor);
     const tuition = await this.repo.findForTenant(tuitionId, teacherId);

@@ -7,7 +7,7 @@ import {
 } from '~/composables/useClasses';
 import { useStudents } from '~/composables/useStudents';
 import type { ClassEnrollment } from '~/composables/useClasses';
-import { usePaymentMutations, statusColor as paymentStatusColor } from '~/composables/usePayments';
+import { usePaymentMutations, statusColor as paymentStatusColor, PAYMENT_METHODS } from '~/composables/usePayments';
 import {
   useDocuments,
   useDocumentMutations,
@@ -170,7 +170,16 @@ async function removeStudent(studentId: string) {
 }
 
 // ----- Tuition / payments (per student in this class) -----
-const { createTuition, updateTuition, recordPayment } = usePaymentMutations();
+const { createTuition, updateTuition, recordPayment, deleteTuition } = usePaymentMutations();
+async function removeTuition(e: ClassEnrollment) {
+  if (!e.tuition) return;
+  if (!confirm(`Xoá khoản học phí của ${e.student.fullName}? (chỉ được khi chưa có đợt đóng)`)) return;
+  try {
+    await deleteTuition.mutateAsync(e.tuition.id);
+  } catch (err) {
+    alert(extractApiError(err));
+  }
+}
 function money(n?: number | string) {
   return Number(n ?? 0).toLocaleString('vi-VN');
 }
@@ -240,12 +249,12 @@ async function submitEditFee() {
 const payOpen = ref(false);
 const payError = ref<string | null>(null);
 const payStudent = ref<ClassEnrollment | null>(null);
-const payForm = reactive({ amount: 0, paidAt: '', method: '', note: '' });
+const payForm = reactive({ amount: 0, paidAt: '', method: 'cash', note: '' });
 function openPay(e: ClassEnrollment) {
   payStudent.value = e;
   payForm.amount = remainingOf(e);
   payForm.paidAt = '';
-  payForm.method = '';
+  payForm.method = 'cash';
   payForm.note = '';
   payError.value = null;
   payOpen.value = true;
@@ -272,7 +281,7 @@ async function payFull(e: ClassEnrollment) {
   if (!e.tuition) return;
   const remaining = remainingOf(e);
   if (remaining <= 0) return;
-  await recordPayment.mutateAsync({ id: e.tuition.id, body: { amount: remaining, method: 'Đóng đủ' } });
+  await recordPayment.mutateAsync({ id: e.tuition.id, body: { amount: remaining } });
 }
 
 // ----- Progress (REAL: completed / total, excluding cancelled) -----
@@ -427,6 +436,14 @@ const statusColor: Record<string, string> = {
                       variant="text"
                       title="Sửa học phí"
                       @click="openEditFee(e)"
+                    />
+                    <v-btn
+                      icon="mdi-cash-remove"
+                      size="x-small"
+                      variant="text"
+                      color="error"
+                      title="Xoá khoản học phí"
+                      @click="removeTuition(e)"
                     />
                   </template>
                   <v-btn
@@ -758,7 +775,7 @@ const statusColor: Record<string, string> = {
           <p class="text-caption text-medium-emphasis mb-2">Còn lại: {{ money(remainingOf(payStudent)) }}</p>
           <v-text-field v-model.number="payForm.amount" type="number" label="Số tiền" prepend-inner-icon="mdi-cash" />
           <v-text-field v-model="payForm.paidAt" type="date" label="Ngày đóng (mặc định hôm nay)" />
-          <v-text-field v-model="payForm.method" label="Phương thức (tiền mặt, chuyển khoản…)" />
+          <v-select v-model="payForm.method" :items="PAYMENT_METHODS" label="Phương thức" />
           <v-text-field v-model="payForm.note" label="Ghi chú (tuỳ chọn)" />
         </v-card-text>
         <v-card-actions class="px-4 pb-4">

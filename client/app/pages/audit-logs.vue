@@ -6,9 +6,10 @@ const entityType = ref('');
 const from = ref('');
 const to = ref('');
 const page = ref(1);
-watch([action, entityType, from, to], () => (page.value = 1));
+const limit = ref(25);
+watch([action, entityType, from, to, limit], () => (page.value = 1));
 
-const { data, isLoading } = useAuditLogs({ action, entityType, from, to, page });
+const { data, isLoading } = useAuditLogs({ action, entityType, from, to, page }, limit);
 const logs = computed(() => data.value?.data ?? []);
 const meta = computed(() => data.value?.meta);
 
@@ -122,8 +123,6 @@ function clearFilters() {
       </v-table>
     </v-card>
 
-    <div v-if="meta && meta.totalPages > 1" class="d-flex justify-center mt-4">
-      <v-pagination v-model="page" :length="meta.totalPages" :total-visible="7" />
-    </div>
+    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
   </div>
 </template>

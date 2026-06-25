@@ -15,9 +15,10 @@ const category = ref('');
 const scope = ref('');
 const search = ref('');
 const page = ref(1);
-watch([category, scope, search], () => (page.value = 1));
+const limit = ref(12);
+watch([category, scope, search, limit], () => (page.value = 1));
 
-const { data, isLoading } = useDocuments({ category, scope, search, page });
+const { data, isLoading } = useDocuments({ category, scope, search, page }, limit);
 const { data: categoriesData } = useDocumentCategories();
 const { createLink, upload, assign, unassign, remove } = useDocumentMutations();
 const { data: classesData } = useClasses(undefined, undefined, 100);
@@ -227,9 +228,7 @@ async function destroy(doc: DocumentItem) {
       Chưa có tài liệu nào.
     </v-card>
 
-    <div v-if="meta && meta.totalPages > 1" class="d-flex justify-center mt-6">
-      <v-pagination v-model="page" :length="meta.totalPages" :total-visible="7" />
-    </div>
+    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
 
     <!-- Upload / link dialog -->
     <v-dialog v-model="uploadOpen" max-width="480">

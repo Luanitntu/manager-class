@@ -101,4 +101,33 @@ export class PaymentRepository {
       return { payment, tuition };
     });
   }
+
+  findPaymentRecord(paymentId: string, tuitionId: string) {
+    return this.prisma.paymentRecord.findFirst({ where: { id: paymentId, tuitionId } });
+  }
+
+  /** Deletes a payment record and rolls paidAmount/status back atomically. */
+  deletePaymentRecord(
+    paymentId: string,
+    tuitionId: string,
+    newPaidAmount: number,
+    newStatus: Prisma.TuitionUpdateInput['status'],
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.paymentRecord.delete({ where: { id: paymentId } });
+      return tx.tuition.update({
+        where: { id: tuitionId },
+        data: { paidAmount: newPaidAmount, status: newStatus },
+        include: TUITION_INCLUDE,
+      });
+    });
+  }
+
+  countPayments(tuitionId: string) {
+    return this.prisma.paymentRecord.count({ where: { tuitionId } });
+  }
+
+  deleteTuition(id: string) {
+    return this.prisma.tuition.delete({ where: { id } });
+  }
 }

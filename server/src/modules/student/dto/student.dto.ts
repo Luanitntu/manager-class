@@ -96,6 +96,11 @@ export class CreateScoreDto {
   @Min(1)
   @Max(1000)
   maxValue?: number;
+
+  @ApiPropertyOptional({ example: '2026-06-20', description: 'Date the score was achieved.' })
+  @IsOptional()
+  @IsDateString()
+  date?: string;
 }
 
 export class UpdateScoreDto extends PartialType(CreateScoreDto) {}

@@ -21,12 +21,15 @@ interface AuditFilters {
   page?: MaybeRefOrGetter<number>;
 }
 
-export function useAuditLogs(f: AuditFilters = {}) {
+export function useAuditLogs(f: AuditFilters = {}, limit: MaybeRefOrGetter<number> = 25) {
   const { requestPaged } = useApi();
   return useQuery({
-    queryKey: ['audit-logs', f.action, f.entityType, f.from, f.to, f.page],
+    queryKey: ['audit-logs', f.action, f.entityType, f.from, f.to, f.page, limit],
     queryFn: () => {
-      const params = new URLSearchParams({ limit: '25', page: String(toValue(f.page) ?? 1) });
+      const params = new URLSearchParams({
+        limit: String(toValue(limit) ?? 25),
+        page: String(toValue(f.page) ?? 1),
+      });
       const action = toValue(f.action);
       const entityType = toValue(f.entityType);
       const from = toValue(f.from);

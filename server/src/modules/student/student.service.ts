@@ -197,6 +197,7 @@ export class StudentService {
       label: dto.label,
       value: dto.value,
       maxValue: dto.maxValue ?? 10,
+      scoredAt: dto.date ? new Date(dto.date) : undefined,
       createdBy: actor.id,
     });
   }
@@ -214,6 +215,7 @@ export class StudentService {
       ...(dto.label !== undefined ? { label: dto.label } : {}),
       ...(dto.value !== undefined ? { value: dto.value } : {}),
       ...(dto.maxValue !== undefined ? { maxValue: dto.maxValue } : {}),
+      ...(dto.date ? { scoredAt: new Date(dto.date) } : {}),
     });
     if (result.count === 0) {
       throw new NotFoundException('Score not found');

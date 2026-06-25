@@ -502,9 +502,100 @@ Create existed but not edit → added. Backend PATCH /payments/tuitions/:id alre
 * Class Detail student row: "Sửa học phí" pencil (edit total + due date) for students with a
   tuition. Student Detail Payments: "Sửa" per tuition card. Both via a dialog; warns that a
   total below the paid amount flips status to fully-paid. No DB change.
-* Note: editing/deleting an individual payment installment (PaymentRecord) is NOT yet
-  supported (no backend endpoint) — only the tuition total/due. Future if needed.
 * Verified: client lint + build green.
+
+## Delete payment installment + delete tuition (2026-06-24)
+Fix mistaken entries. New backend endpoints:
+* DELETE /payments/tuitions/:id/payments/:paymentId — removes a PaymentRecord, rolls
+  paidAmount back (clamped ≥0) + recomputes status atomically. Audit PAYMENT_DELETED.
+* DELETE /payments/tuitions/:id — deletes a tuition, but ONLY when it has no payment
+  records (ConflictException otherwise, to protect financial history). Audit TUITION_DELETED.
+* Frontend: usePaymentMutations gains deletePayment + deleteTuition. Student Detail Payments:
+  × per installment (confirm → roll back) + "Xoá khoản" per tuition (shown only when it has
+  no installments). Class Detail student row: "Xoá học phí" (cash-remove) — errors shown via
+  alert if the tuition already has payments. All invalidate the same query set (live refresh).
+* Verified: server lint + build + 16 tests green; client lint + build green.
+
+## Student Scores tab — date, note, fuller summary + i18n (2026-06-24)
+* DB: migration 0019 — Score.scored_at (settable date a score was achieved; default now,
+  backfilled from created_at). CreateScoreDto/UpdateScoreDto accept `date`; service maps it;
+  listScores orders by scoredAt desc.
+* Frontend (student detail Scores tab): add-form is now Class · Type · Date · Score · Max ·
+  Note · [Add] (Note = the existing `label` field). Table columns: Date · Class · Type ·
+  Score · Max · Note · delete. Summary cards expanded to 5: Average / Assignments / Quiz /
+  Midterm / Final (averages computed client-side per type). Score type gains scoredAt.
+* i18n: new `score` namespace (vi + en); the whole Scores tab is now translated.
+* Verified: migration applied; server lint + build + 16 tests green; client lint + build green.
+
+## Payment method → fixed options everywhere (2026-06-24)
+Payment "method" was a free-text field in the Student/Class detail record dialogs (vs a
+select on the Payments page) → inconsistent values, hard to report. Unified:
+* usePayments exports PAYMENT_METHODS = ['cash','transfer','card']; payments.vue, Student
+  detail "Ghi nhận đợt đóng", and Class detail "Thu tiền" all use a v-select with it
+  (default 'cash'). Stored values are now from a fixed set → clean grouping for reports/export.
+* "Đóng đủ" quick action no longer writes the junk method "Đóng đủ" — it records the
+  remaining with no method (unspecified), keeping method data clean.
+* Frontend-only (method stays a string column; UI constrains the value). Verified: client
+  lint + build green.
+
+## Payments table — totals footer (2026-06-24)
+payments.vue: added a bold footer row summing Total / Paid (green) / Remaining (red) across
+the loaded tuitions ("Tổng cộng (N)"). Client-side sum of the loaded rows (page fetches ≤100,
+no pagination yet) — switch to a backend aggregate when pagination/reporting lands.
+Verified: client lint + build green.
+
+## Pagination + page-size dropdown across all list pages (2026-06-24)
+Standardized pagination with a reusable component + per-page size selector.
+* New components/TablePager.vue: "Hiển thị x–y / N" + page-size v-select (10/20/30/40/50,
+  plus the page's own default so it always shows) + v-pagination. v-model:page + v-model:limit.
+  New i18n `pager` namespace.
+* All list composables now take a reactive `limit` (MaybeRefOrGetter) and include it in the
+  query key: useClasses, useStudents, useDocuments, useAudit, useAdminUsers, useTuitions,
+  useAssistants. useTuitions/useAssistants gained page+limit (were fixed limit=100, no page).
+* Pages wired to TablePager: Classes (9), Students (10), Documents (12), Audit Logs (25),
+  Admin Users (20) — all gained the size dropdown; Payments (10) + Assistants (10) — gained
+  full pagination (previously none). Backends already supported page/limit (no server change).
+* Bug fixed first: useClasses() default limit had become 9, so class DROPDOWNS that called
+  useClasses() with no args only showed 9 classes — SessionDialog, payments New Tuition,
+  reports export picker, student add-score picker. All now pass limit 100.
+* Note: Payments totals footer now sums the CURRENT PAGE (relabeled "Tổng trang này"); a
+  cross-all grand total would need a backend aggregate (future, with reports).
+* Still TODO (next batch): nested detail sub-lists (class sessions, student scores/comments/
+  activity, assistant schedule/salary history) — need backend pagination params first.
+* Verified: client lint + build green.
+
+## Reports — 4 types + filters + Excel & PDF (2026-06-26)
+Reworked the teacher Reports page (report module). Added pdfmake (server printer + bundled
+Roboto → Vietnamese-correct PDF).
+* report.service refactored to generic data → render: build(type, q) returns a ReportTable
+  ({title, columns, rows}); toExcel (ExcelJS) + toPdf (pdfmake, landscape, Roboto). Reports:
+  - tuition (existing)
+  - scores — now filters classId + date range (scoredAt from/to); columns add Date + Note.
+  - students (NEW) — Student List: ID/Name/Phone/Email/Classes/Status/Joined; filters
+    classId + studyStatus.
+  - classes (NEW) — Class Report: Class/Level/Students/Total Sessions/Completed/Remaining
+    (total = totalSessions ?? non-cancelled count; completed = COMPLETED sessions).
+* Controller is now GET /reports/:type?format=xlsx|pdf (+ classId/status/from/to), dynamic
+  Content-Type/Disposition via res (SkipTransform). Old `/reports/tuition.xlsx` paths replaced.
+* Frontend reports.vue rebuilt: 4 cards (Học phí, Lớp học, Danh sách học viên, Điểm học viên)
+  each with Excel + PDF buttons; Scores card has class + date-range filters, Student List card
+  has class + status filters. download() builds /reports/:type?format=…&filters.
+* Verified: server lint + build + 16 tests green; client lint + build green.
+
+## Reports v2 — localized PDF, new columns, date range, footer (2026-06-26)
+* PDF formatting: centered title (page header) + centered subtitle, full-width table
+  (widths '*'), branded header fill + zebra rows, footer "Generated by Schedule Teacher
+  LMS" + page x/y. Landscape A4.
+* Localized: exports render in the app's current language — frontend sends ?lang=vi|en
+  (from i18n locale); backend has vi/en dictionaries for titles, column headers, and the
+  period/generated subtitle. Both PDF + Excel localized.
+* New columns: Tuition → Payment Count (số đợt đã đóng, via _count.payments); Scores →
+  Recorded-by/Người nhập (resolves Score.createdBy → user name, future-proof for assistants);
+  Student List → Current Level (from enrolled class level); Class Report → Teacher (class owner).
+* Date range on ALL reports (From/To): tuition+students+classes filter createdAt, scores
+  filters scoredAt; the range is printed in the PDF subtitle. Frontend cards all gained
+  From/To inputs.
+* Verified: server lint + build + 16 tests green; client lint + build green.
 
 ---
 

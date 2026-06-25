@@ -4,6 +4,7 @@ import {
   useTuitionDetail,
   usePaymentMutations,
   statusColor,
+  PAYMENT_METHODS,
   type Tuition,
 } from '~/composables/usePayments';
 import { useClasses } from '~/composables/useClasses';
@@ -12,7 +13,11 @@ import { useStudents } from '~/composables/useStudents';
 const auth = useAuthStore();
 const canManage = computed(() => auth.role === 'TEACHER');
 
-const { data } = useTuitions();
+const page = ref(1);
+const limit = ref(10);
+watch(limit, () => (page.value = 1));
+const { data } = useTuitions({ page }, limit);
+const meta = computed(() => data.value?.meta);
 const { createTuition, recordPayment, sendReminder } = usePaymentMutations();
 const reminderSent = ref(false);
 
@@ -22,7 +27,7 @@ async function remind() {
   reminderSent.value = true;
   setTimeout(() => (reminderSent.value = false), 3000);
 }
-const { data: classesData } = useClasses();
+const { data: classesData } = useClasses(undefined, undefined, 100);
 const { data: studentsData } = useStudents();
 
 const tuitions = computed(() => data.value?.data ?? []);
@@ -32,6 +37,19 @@ const students = computed(() => studentsData.value?.data ?? []);
 function money(n: string | number) {
   return Number(n).toLocaleString();
 }
+
+// Column totals across the loaded tuitions.
+const totals = computed(() =>
+  tuitions.value.reduce(
+    (acc, t) => {
+      acc.total += Number(t.totalAmount);
+      acc.paid += Number(t.paidAmount);
+      acc.remaining += Number(t.totalAmount) - Number(t.paidAmount);
+      return acc;
+    },
+    { total: 0, paid: 0, remaining: 0 },
+  ),
+);
 
 // --- Create tuition ---
 const createOpen = ref(false);
@@ -130,8 +148,19 @@ async function pay() {
             <td colspan="7" class="text-center text-medium-emphasis pa-6">No tuition records yet.</td>
           </tr>
         </tbody>
+        <tfoot v-if="tuitions.length">
+          <tr class="font-weight-bold">
+            <td colspan="2">Tổng trang này ({{ tuitions.length }})</td>
+            <td class="text-right">{{ money(totals.total) }}</td>
+            <td class="text-right text-success">{{ money(totals.paid) }}</td>
+            <td class="text-right text-error">{{ money(totals.remaining) }}</td>
+            <td colspan="2" />
+          </tr>
+        </tfoot>
       </v-table>
     </v-card>
+
+    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
 
     <!-- Create tuition -->
     <v-dialog v-model="createOpen" max-width="480">
@@ -184,7 +213,7 @@ async function pay() {
             </v-alert>
             <div class="d-flex ga-2 align-center mb-4">
               <v-text-field v-model="payForm.amount" type="number" label="Amount" density="compact" hide-details style="max-width: 140px" />
-              <v-select v-model="payForm.method" :items="['cash', 'transfer', 'card']" label="Method" density="compact" hide-details style="max-width: 130px" />
+              <v-select v-model="payForm.method" :items="PAYMENT_METHODS" label="Method" density="compact" hide-details style="max-width: 130px" />
               <v-text-field v-model="payForm.note" label="Note" density="compact" hide-details />
               <v-btn color="primary" :loading="recordPayment.isPending.value" :disabled="payForm.amount <= 0" @click="pay">
                 Record

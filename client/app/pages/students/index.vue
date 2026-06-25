@@ -4,17 +4,16 @@ import { useStudents, useStudentMutations, type Student, type StudyStatus } from
 const search = ref('');
 const status = ref('');
 const page = ref(1);
-watch([search, status], () => (page.value = 1));
+const limit = ref(10);
+watch([search, status, limit], () => (page.value = 1));
 
-const { data, isLoading } = useStudents(search, status, page, 10);
+const { data, isLoading } = useStudents(search, status, page, limit);
 const { createStudent, setStatus, deleteStudent } = useStudentMutations();
 const avatar = useAvatar();
 
 const students = computed(() => data.value?.data ?? []);
 const meta = computed(() => data.value?.meta);
 const total = computed(() => meta.value?.total ?? students.value.length);
-const fromRow = computed(() => (meta.value ? (meta.value.page - 1) * meta.value.limit + 1 : 0));
-const toRow = computed(() => (meta.value ? Math.min(meta.value.page * meta.value.limit, total.value) : 0));
 
 // Study-status presentation.
 const STATUS_META: Record<StudyStatus, { label: string; color: string }> = {
@@ -200,28 +199,8 @@ async function create() {
         Chưa có học viên nào.
       </div>
 
-      <div class="d-flex align-center justify-space-between px-4 py-3 flex-wrap ga-2">
-        <span class="text-caption text-medium-emphasis">
-          Hiển thị {{ fromRow }} - {{ toRow }} của {{ total }} học viên
-        </span>
-        <div class="d-flex ga-2">
-          <v-btn
-            variant="outlined"
-            size="small"
-            :disabled="(meta?.page ?? 1) <= 1"
-            @click="page = Math.max(1, (meta?.page ?? 1) - 1)"
-          >
-            Trước
-          </v-btn>
-          <v-btn
-            variant="outlined"
-            size="small"
-            :disabled="(meta?.page ?? 1) >= (meta?.totalPages ?? 1)"
-            @click="page = (meta?.page ?? 1) + 1"
-          >
-            Tiếp
-          </v-btn>
-        </div>
+      <div v-if="meta" class="px-4 pb-3">
+        <TablePager v-model:page="page" v-model:limit="limit" :meta="meta" />
       </div>
     </v-card>
 

@@ -32,12 +32,15 @@ interface DocFilters {
   page?: MaybeRefOrGetter<number>;
 }
 
-export function useDocuments(f: DocFilters = {}, limit = 12) {
+export function useDocuments(f: DocFilters = {}, limit: MaybeRefOrGetter<number> = 12) {
   const { requestPaged } = useApi();
   return useQuery({
-    queryKey: ['documents', f.category, f.scope, f.classId, f.search, f.page],
+    queryKey: ['documents', f.category, f.scope, f.classId, f.search, f.page, limit],
     queryFn: () => {
-      const params = new URLSearchParams({ limit: String(limit), page: String(toValue(f.page) ?? 1) });
+      const params = new URLSearchParams({
+        limit: String(toValue(limit) ?? 12),
+        page: String(toValue(f.page) ?? 1),
+      });
       const cat = toValue(f.category);
       const scope = toValue(f.scope);
       const classId = toValue(f.classId);

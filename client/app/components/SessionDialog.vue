@@ -13,7 +13,7 @@ const emit = defineEmits<{
   saved: [];
 }>();
 
-const { data: classesData } = useClasses();
+const { data: classesData } = useClasses(undefined, undefined, 100);
 const { data: assistantsData } = useAssistants();
 const { create, update, bulkCreate, remove } = useSessionMutations();
 const userTz = useUserTimezone();
