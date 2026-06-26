@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 @theme {
@@ -49,7 +50,17 @@
 
 :root {
   --st-content-max: 1400px;
-  --st-font-family: 'Nunito', 'Roboto', sans-serif;
+  --st-font-family: 'Plus Jakarta Sans', 'Roboto', sans-serif;
+  --st-primary: #0d6efd;
+  --st-primary-dark: #075dee;
+  --st-secondary: #49beff;
+  --st-accent: #ff6b00;
+  --st-bg-soft: #f5f8ff;
+  --st-surface: #ffffff;
+  --st-text: #17233c;
+  --st-muted: #475569;
+  --st-border: #dce5f1;
+  --st-focus: 0 0 0 3px rgb(13 110 253 / 16%);
 }
 
 html {
@@ -61,6 +72,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: var(--st-font-family);
+  color: var(--st-text);
 }
 
 button,
@@ -68,6 +80,16 @@ input,
 textarea,
 select {
   font-family: inherit;
+}
+
+a,
+button,
+[role='button'] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 .v-application {

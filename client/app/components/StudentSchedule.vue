@@ -1,0 +1,604 @@
+<script setup lang="ts">
+import type { TeachingSession } from '~/composables/useSessions';
+
+interface StudentScheduleItem {
+  id: string;
+  className: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  date: Date;
+  color: string;
+  location: string;
+  isOnline: boolean;
+  isToday: boolean;
+}
+
+interface DayGroup {
+  key: string;
+  date: Date;
+  items: StudentScheduleItem[];
+}
+
+const props = defineProps<{
+  sessions: TeachingSession[];
+  weekStart: Date;
+  isLoading?: boolean;
+}>();
+
+const emit = defineEmits<{
+  today: [];
+  previous: [];
+  next: [];
+}>();
+
+const fallbackColors = ['#0071f9', '#10b981', '#7367f0', '#ff6b00'];
+
+const scheduleItems = computed<StudentScheduleItem[]>(() => {
+  const weekEnd = addDays(props.weekStart, 6);
+  return props.sessions
+    .filter((session) => {
+      const date = new Date(session.startTime);
+      return date >= startOfDay(props.weekStart) && date <= endOfDay(weekEnd);
+    })
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+    .map((session, index) => {
+      const online = index % 2 === 0;
+      return {
+        id: session.id,
+        className: session.class.name,
+        title: session.lessonTopic || session.class.name,
+        startTime: formatTime(session.startTime),
+        endTime: formatTime(session.endTime),
+        date: new Date(session.startTime),
+        color: session.class.color || fallbackColors[index % fallbackColors.length] || '#0071f9',
+        location: online ? 'Học trực tuyến (Google Meet)' : locationForIndex(index),
+        isOnline: online,
+        isToday: isToday(new Date(session.startTime)),
+      };
+    });
+});
+
+const dayGroups = computed<DayGroup[]>(() => {
+  const itemsByDay = scheduleItems.value.reduce<Record<string, StudentScheduleItem[]>>((days, item) => {
+    const key = toDateKey(item.date);
+    days[key] ??= [];
+    days[key].push(item);
+    return days;
+  }, {});
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = addDays(props.weekStart, index);
+    const key = toDateKey(date);
+    return {
+      key,
+      date,
+      items: itemsByDay[key] ?? [],
+    };
+  });
+});
+
+const visibleDayGroups = computed(() => dayGroups.value.filter((group) => group.items.length > 0));
+
+const weekTitle = computed(() => {
+  const start = props.weekStart;
+  const end = addDays(start, 6);
+  return `Tuần ${formatDateShort(start)} - ${formatDateShort(end)}`;
+});
+
+function weekdayLabel(date: Date) {
+  const day = date.getDay();
+  if (day === 0) return ['CHỦ', 'NHẬT'];
+  return ['THỨ', String(day + 1)];
+}
+
+function isToday(date: Date) {
+  return toDateKey(date) === toDateKey(new Date());
+}
+
+function actionLabel(item: StudentScheduleItem) {
+  return item.isOnline ? 'Vào phòng học' : 'Xem bản đồ';
+}
+
+function actionIcon(item: StudentScheduleItem) {
+  return item.isOnline ? 'mdi-video-outline' : 'mdi-map-marker-outline';
+}
+
+function toneStyle(color: string, soft = true) {
+  return {
+    '--schedule-accent': normalizeColor(color),
+    '--schedule-accent-soft': softColor(color, soft ? 0.1 : 0.16),
+  };
+}
+
+function normalizeColor(hex: string) {
+  return /^#[0-9a-f]{6}$/i.test(hex) ? hex : '#0071f9';
+}
+
+function softColor(hex: string, alpha: number) {
+  const normalized = normalizeColor(hex).replace('#', '');
+  const bigint = Number.parseInt(normalized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function locationForIndex(index: number) {
+  return index % 3 === 1 ? 'Phòng 101 - Cơ sở 1' : 'Phòng 202 - Cơ sở 2';
+}
+
+function formatTime(value: string) {
+  return new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(value));
+}
+
+function formatDateShort(date: Date) {
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function toDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+}
+
+function endOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+}
+
+function addDays(date: Date, amount: number) {
+  const result = new Date(date);
+  result.setDate(result.getDate() + amount);
+  return result;
+}
+</script>
+
+<template>
+  <section class="student-schedule">
+    <header class="student-schedule__header">
+      <div>
+        <h1>Lịch học</h1>
+        <p>Lịch học chi tiết trong tuần của bạn</p>
+      </div>
+
+      <nav class="student-schedule__week-nav" aria-label="Điều hướng tuần">
+        <v-btn
+          aria-label="Tuần trước"
+          class="student-schedule__nav-btn"
+          icon="mdi-chevron-left"
+          variant="text"
+          @click="emit('previous')"
+        />
+        <strong>{{ weekTitle }}</strong>
+        <v-btn
+          aria-label="Tuần sau"
+          class="student-schedule__nav-btn"
+          icon="mdi-chevron-right"
+          variant="text"
+          @click="emit('next')"
+        />
+      </nav>
+    </header>
+
+    <section class="student-schedule__timeline" aria-label="Lịch học trong tuần">
+      <div v-if="isLoading && !scheduleItems.length" class="student-schedule__empty">
+        <v-progress-circular color="#0071f9" indeterminate size="28" />
+        <span>Đang tải lịch học...</span>
+      </div>
+
+      <div v-else-if="!scheduleItems.length" class="student-schedule__empty">
+        <v-icon icon="mdi-calendar-blank-outline" size="30" />
+        <span>Tuần này chưa có lịch học</span>
+      </div>
+
+      <template v-else>
+        <article
+          v-for="group in visibleDayGroups"
+          :key="group.key"
+          class="student-schedule__day-row"
+        >
+          <div class="student-schedule__date-cell">
+            <span v-for="part in weekdayLabel(group.date)" :key="part">{{ part }}</span>
+            <strong :class="{ 'is-today': isToday(group.date) }">{{ group.date.getDate() }}</strong>
+          </div>
+
+          <span class="student-schedule__dot" />
+
+          <div class="student-schedule__cards">
+            <article
+              v-for="item in group.items"
+              :key="item.id"
+              class="student-schedule__card"
+              :style="toneStyle(item.color)"
+            >
+              <div class="student-schedule__card-top">
+                <span class="student-schedule__class-pill">{{ item.className }}</span>
+                <span v-if="item.isToday" class="student-schedule__today-pill">Hôm nay</span>
+              </div>
+
+              <h2>{{ item.title }}</h2>
+
+              <div class="student-schedule__meta">
+                <span>
+                  <v-icon size="17">mdi-clock-time-four-outline</v-icon>
+                  {{ item.startTime }} - {{ item.endTime }}
+                </span>
+                <span :class="{ 'is-location': !item.isOnline }">
+                  <v-icon size="17">{{ item.isOnline ? 'mdi-video-outline' : 'mdi-map-marker-outline' }}</v-icon>
+                  {{ item.location }}
+                </span>
+              </div>
+
+              <v-btn
+                :class="['student-schedule__action', { 'is-primary': item.isOnline }]"
+                flat
+              >
+                <v-icon start size="16">{{ actionIcon(item) }}</v-icon>
+                {{ actionLabel(item) }}
+              </v-btn>
+            </article>
+          </div>
+        </article>
+      </template>
+    </section>
+  </section>
+</template>
+
+<style scoped lang="scss">
+.student-schedule {
+  --schedule-blue: #0071f9;
+  --schedule-text: #0f172a;
+  --schedule-muted: #64748b;
+  --schedule-border: #e2e8f0;
+
+  color: var(--schedule-text);
+  display: grid;
+  gap: 24px;
+  max-width: min(100%, 1152px);
+  width: 100%;
+
+  &__header {
+    align-items: end;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 4px;
+
+    h1 {
+      color: #0f172a;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 0;
+      line-height: 1.15;
+      margin: 0 0 6px;
+    }
+
+    p {
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+
+  &__week-nav {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+
+    strong {
+      color: #0f172a;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0;
+      min-width: 144px;
+      text-align: center;
+    }
+  }
+
+  &__nav-btn {
+    background: #fff !important;
+    border: 1px solid #dbe4ef;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    color: #45617f !important;
+    height: 38px !important;
+    width: 38px !important;
+  }
+
+  &__timeline {
+    background: #fff;
+    border: 1px solid #dbe4ef;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+    overflow: hidden;
+  }
+
+  &__empty {
+    align-items: center;
+    color: #64748b;
+    display: flex;
+    font-size: 14px;
+    font-weight: 800;
+    gap: 12px;
+    justify-content: center;
+    min-height: 320px;
+    padding: 24px;
+  }
+
+  &__day-row {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    min-height: 238px;
+    position: relative;
+
+    + .student-schedule__day-row {
+      border-top: 1px solid #edf2f7;
+    }
+  }
+
+  &__date-cell {
+    align-items: center;
+    border-right: 1px solid #e7edf5;
+    display: flex;
+    flex-direction: column;
+    grid-column: 1;
+    padding-top: 26px;
+
+    span {
+      color: #536783;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      line-height: 1.25;
+    }
+
+    strong {
+      align-items: center;
+      color: #0f172a;
+      display: inline-flex;
+      font-size: 20px;
+      font-weight: 900;
+      height: 34px;
+      justify-content: center;
+      line-height: 1;
+      margin-top: 8px;
+      width: 34px;
+
+      &.is-today {
+        background: var(--schedule-blue);
+        border-radius: 999px;
+        color: #fff;
+      }
+    }
+  }
+
+  &__dot {
+    background: #cbd5e1;
+    border-radius: 999px;
+    height: 8px;
+    left: 84px;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+  }
+
+  &__cards {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: center;
+    min-width: 0;
+    padding: 24px;
+    width: 100%;
+  }
+
+  &__card {
+    background: #fff;
+    border: 1px solid #bfdbfe;
+    border-radius: 14px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 10px rgb(15 23 42 / 8%);
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    max-width: none;
+    min-height: 172px;
+    min-width: 0;
+    padding: 20px 24px 22px;
+    width: 100%;
+  }
+
+  &__card-top {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  &__class-pill {
+    background: var(--schedule-accent-soft);
+    border-radius: 10px;
+    color: var(--schedule-accent);
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 7px 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__today-pill {
+    background: #fff1f2;
+    border-radius: 999px;
+    color: #ff5d73;
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+
+  h2 {
+    color: #0f172a;
+    font-size: 19px;
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 1.25;
+    margin: 0 0 18px;
+  }
+
+  &__meta {
+    align-items: center;
+    display: grid;
+    gap: 12px 40px;
+    grid-template-columns: minmax(150px, 0.8fr) minmax(220px, 1.2fr);
+    margin-bottom: 18px;
+
+    span {
+      align-items: center;
+      color: #53627a;
+      display: inline-flex;
+      font-size: 15px;
+      font-weight: 800;
+      gap: 9px;
+      min-width: 0;
+      overflow-wrap: anywhere;
+
+      .v-icon {
+        color: #8aa4c5;
+        font-size: 19px !important;
+        height: 19px;
+        width: 19px;
+      }
+
+      &:not(:first-child) .v-icon {
+        color: var(--schedule-accent);
+      }
+
+      &.is-location .v-icon {
+        color: #10b981;
+      }
+    }
+  }
+
+  &__action {
+    background: #f1f5f9 !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    color: #1e3352 !important;
+    font-size: 15px;
+    font-weight: 900;
+    height: 40px !important;
+    letter-spacing: 0;
+    min-width: 170px !important;
+    padding: 0 22px !important;
+    width: auto !important;
+
+    &.is-primary {
+      background: var(--schedule-blue) !important;
+      box-shadow: 0 8px 14px rgb(0 113 249 / 22%) !important;
+      color: #fff !important;
+    }
+
+    :deep(.v-icon) {
+      font-size: 17px !important;
+      height: 17px;
+      width: 17px;
+    }
+  }
+}
+
+@media (max-width: 820px) {
+  .student-schedule {
+    &__header {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    &__week-nav {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) 38px;
+      width: 100%;
+
+      strong {
+        min-width: 0;
+      }
+    }
+
+    &__day-row {
+      grid-template-columns: 72px minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    &__dot {
+      left: 68px;
+    }
+
+    &__cards {
+      padding: 16px;
+    }
+
+    &__card {
+      min-height: 0;
+    }
+
+    &__meta {
+      align-items: start;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .student-schedule {
+    &__day-row {
+      grid-template-columns: 62px minmax(0, 1fr);
+    }
+
+    &__date-cell {
+      padding-top: 20px;
+
+      span {
+        font-size: 11px;
+      }
+
+      strong {
+        font-size: 17px;
+        height: 30px;
+        width: 30px;
+      }
+    }
+
+    &__dot {
+      left: 58px;
+    }
+
+    &__cards {
+      padding: 12px;
+    }
+
+    &__card {
+      padding: 16px;
+    }
+  }
+}
+</style>

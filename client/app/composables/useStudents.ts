@@ -69,6 +69,18 @@ export function useStudentScores(id: Ref<string | null>) {
   });
 }
 
+export function useStudentTestScores() {
+  const { request } = useApi();
+  const auth = useAuthStore();
+  const studentId = computed(() => auth.user?.id ?? null);
+
+  return useQuery({
+    queryKey: ['student-test-scores', studentId],
+    enabled: computed(() => auth.role === 'STUDENT' && !!studentId.value),
+    queryFn: () => request<Score[]>(`/students/${studentId.value}/scores`),
+  });
+}
+
 export function useStudentComments(id: Ref<string | null>) {
   const { request } = useApi();
   return useQuery({
@@ -97,12 +109,18 @@ export function useStudentMutations() {
   const addScore = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
       request(`/students/${id}/scores`, { method: 'POST', body }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['student-scores'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['student-scores'] });
+      qc.invalidateQueries({ queryKey: ['student-test-scores'] });
+    },
   });
 
   const deleteScore = useMutation({
     mutationFn: (scoreId: string) => request(`/students/scores/${scoreId}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['student-scores'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['student-scores'] });
+      qc.invalidateQueries({ queryKey: ['student-test-scores'] });
+    },
   });
 
   const addComment = useMutation({

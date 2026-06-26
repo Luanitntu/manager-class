@@ -77,7 +77,7 @@ const footerGroups = [
       <div class="topbar">
         <div class="topbar__left">
           <span><v-icon icon="mdi-phone-outline" size="14" /> Hotline: 0909 123 456</span>
-          <span class="topbar__email"><v-icon icon="mdi-email-outline" size="14" /> Email: support@prepteacher.vn</span>
+          <span class="topbar__email"><v-icon icon="mdi-email-outline" size="14" /> Email: support@scheduleteacher.vn</span>
         </div>
         <div class="topbar__claim">
           Phần mềm quản lý lớp học và giảng dạy số 1 Việt Nam
@@ -100,7 +100,7 @@ const footerGroups = [
           </nav>
 
           <div class="site-header__actions">
-            <NuxtLink to="/login" class="login-link">Đăng nhập</NuxtLink>
+            <a href="/login" class="login-link">Đăng nhập</a>
             <NuxtLink to="/register" class="trial-link">Dùng thử miễn phí</NuxtLink>
           </div>
         </div>
@@ -124,7 +124,7 @@ const footerGroups = [
             </h1>
 
             <p>
-              Chấm dứt sổ sách cồng kềnh. PrepTeacher giúp bạn điểm danh, xếp lịch, giao bài tập và theo dõi học phí tự động chỉ trên 1 nền tảng duy nhất.
+              Chấm dứt sổ sách cồng kềnh. ScheduleTeacher giúp bạn điểm danh, xếp lịch, giao bài tập và theo dõi học phí tự động chỉ trên 1 nền tảng duy nhất.
             </p>
 
             <div class="hero__actions">
@@ -178,7 +178,7 @@ const footerGroups = [
         <div class="section-inner">
           <div class="section-title">
             <h2>TẠI SAO CHỌN CHÚNG TÔI?</h2>
-            <h3>Lợi ích tuyệt vời khi sử dụng PrepTeacher</h3>
+            <h3>Lợi ích tuyệt vời khi sử dụng ScheduleTeacher</h3>
             <p>
               Phần mềm được phát triển dựa trên quy trình nghiệp vụ thực tế, giải quyết đúng "nỗi đau" của các giáo viên và quản lý trung tâm.
             </p>
@@ -260,7 +260,7 @@ const footerGroups = [
             ngay hôm nay!
           </h2>
           <p>
-            Hàng ngàn giáo viên đã thoát khỏi cảnh quản lý sổ sách bù đầu. Hãy để PrepTeacher đồng hành cùng bạn.
+            Hàng ngàn giáo viên đã thoát khỏi cảnh quản lý sổ sách bù đầu. Hãy để ScheduleTeacher đồng hành cùng bạn.
           </p>
           <NuxtLink to="/register">
             Đăng ký dùng thử miễn phí 14 ngày
@@ -274,14 +274,14 @@ const footerGroups = [
           <div class="footer-about">
             <NuxtLink to="/" class="footer-brand">
               <span><v-icon icon="mdi-calendar-check" size="24" /></span>
-              PrepTeacher
+              ScheduleTeacher
             </NuxtLink>
             <p>
               Giải pháp phần mềm quản lý lớp học, trung tâm ngoại ngữ và học viên toàn diện, dễ sử dụng nhất hiện nay.
             </p>
             <div class="footer-contact">
               <p><v-icon icon="mdi-phone-outline" size="18" /> 0909 123 456</p>
-              <p><v-icon icon="mdi-email-outline" size="18" /> support@prepteacher.vn</p>
+              <p><v-icon icon="mdi-email-outline" size="18" /> support@scheduleteacher.vn</p>
             </div>
           </div>
 
@@ -296,7 +296,7 @@ const footerGroups = [
         </div>
 
         <div class="footer-bottom">
-          <p>© 2026 PrepTeacher Vietnam. All rights reserved.</p>
+          <p>© 2026 ScheduleTeacher Vietnam. All rights reserved.</p>
           <div>
             <span>Facebook</span>
             <span>Youtube</span>
@@ -336,7 +336,7 @@ $content-max: 1280px;
 
 .landing-page {
   min-height: 100vh;
-  background: #fff;
+  background: var(--st-surface);
   color: $slate-800;
   font-family: var(--st-font-family);
 
@@ -352,7 +352,7 @@ $content-max: 1280px;
 
 .topbar {
   min-height: 32px;
-  background: $brand-blue;
+  background: $slate-900;
   color: #fff;
   display: flex;
   align-items: center;
@@ -385,7 +385,7 @@ $content-max: 1280px;
   z-index: 50;
   background: #fff;
   border-bottom: 1px solid $slate-200;
-  box-shadow: 0 1px 3px rgb(15 23 42 / 8%);
+  box-shadow: none;
 
   &__inner {
     @include content-shell;
@@ -424,11 +424,11 @@ $content-max: 1280px;
   &__icon {
     width: 40px;
     height: 40px;
-    border-radius: 12px;
+    border-radius: 8px;
     background: $brand-blue;
     color: #fff;
     @include center-flex;
-    box-shadow: 0 8px 18px rgb(0 113 249 / 22%);
+    box-shadow: none;
   }
 }
 
@@ -463,7 +463,7 @@ $content-max: 1280px;
   justify-content: center;
   color: $brand-blue;
   padding: 10px 20px;
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 800;
   line-height: 1;
   text-decoration: none;
@@ -481,23 +481,22 @@ $content-max: 1280px;
   background: $brand-orange;
   color: #fff;
   padding: 10px 24px;
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 800;
   line-height: 1;
   text-decoration: none;
-  box-shadow: 0 12px 22px rgb(255 107 0 / 22%);
-  transition: transform 160ms ease, background 160ms ease;
+  box-shadow: none;
+  transition: opacity 160ms ease, background 160ms ease;
 
   &:hover {
     background: #ea580c;
-    transform: translateY(-2px);
   }
 }
 
 .hero {
   position: relative;
   overflow: hidden;
-  background: $slate-50;
+  background: var(--st-bg-soft);
   padding: 80px 0 112px;
 
   &__inner {
@@ -588,22 +587,15 @@ $content-max: 1280px;
   }
 
   &__glow {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: 999px;
-    background: linear-gradient(45deg, $brand-blue, $brand-orange);
-    opacity: 0.2;
-    filter: blur(64px);
-    transform: translate(40px, 40px);
+    display: none;
   }
 
   &__frame {
     border: 1px solid $slate-200;
-    border-radius: 20px;
+    border-radius: 8px;
     background: #fff;
     padding: 8px;
-    box-shadow: 0 25px 70px rgb(15 23 42 / 22%);
+    box-shadow: 0 12px 28px rgb(15 23 42 / 10%);
     transform: rotate(1deg);
     transition: transform 500ms ease;
 
@@ -613,7 +605,7 @@ $content-max: 1280px;
 
     img {
       width: 100%;
-      border-radius: 14px;
+      border-radius: 6px;
       object-fit: cover;
       display: block;
     }
@@ -663,7 +655,7 @@ $content-max: 1280px;
   box-sizing: border-box;
   min-height: 58px;
   border: 2px solid transparent;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 16px 32px;
   display: inline-flex;
   align-items: center;
@@ -673,18 +665,17 @@ $content-max: 1280px;
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
-  transition: transform 160ms ease, background 160ms ease;
+  transition: opacity 160ms ease, background 160ms ease, border-color 160ms ease;
 }
 
 .primary-cta {
   background: $brand-blue;
   color: #fff;
   text-decoration: none;
-  box-shadow: 0 18px 28px rgb(0 113 249 / 20%);
+  box-shadow: none;
 
   &:hover {
     background: #0064df;
-    transform: translateY(-4px);
   }
 }
 
@@ -708,10 +699,10 @@ $content-max: 1280px;
   align-items: center;
   gap: 12px;
   border: 1px solid $slate-100;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #fff;
   padding: 16px;
-  box-shadow: 0 20px 35px rgb(15 23 42 / 18%);
+  box-shadow: 0 10px 24px rgb(15 23 42 / 10%);
   animation: bounce 3s infinite;
 
   &__icon {
@@ -744,9 +735,7 @@ $content-max: 1280px;
   padding: 48px 0;
 
   &__blob {
-    position: absolute;
-    border-radius: 999px;
-    filter: blur(40px);
+    display: none;
 
     &--one {
       top: 0;
@@ -847,20 +836,18 @@ $content-max: 1280px;
 
 .feature-card {
   border: 1px solid $slate-100;
-  border-radius: 20px;
+  border-radius: 8px;
   background: $slate-50;
   padding: 32px;
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transition: border-color 180ms ease, background 180ms ease;
 
   &:hover {
     border-color: rgb(0 113 249 / 30%);
-    box-shadow: 0 20px 50px rgb(15 23 42 / 8%);
-    transform: translateY(-2px);
+    background: #fff;
 
     .feature-card__icon {
       background: $brand-blue;
       color: #fff;
-      transform: scale(1.1);
     }
   }
 
@@ -869,13 +856,13 @@ $content-max: 1280px;
     height: 56px;
     flex: 0 0 56px;
     border: 1px solid $slate-100;
-    border-radius: 12px;
+    border-radius: 8px;
     background: #fff;
     color: $brand-blue;
     @include center-flex;
     margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgb(15 23 42 / 8%);
-    transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+    box-shadow: none;
+    transition: background 180ms ease, color 180ms ease;
   }
 
   h4 {
@@ -986,7 +973,7 @@ $content-max: 1280px;
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: 20px;
+    border-radius: 8px;
     opacity: 0.1;
   }
 
@@ -1004,10 +991,10 @@ $content-max: 1280px;
     position: relative;
     width: 100%;
     height: 400px;
-    border-radius: 20px;
+    border-radius: 8px;
     object-fit: cover;
     display: block;
-    box-shadow: 0 22px 55px rgb(15 23 42 / 18%);
+    box-shadow: 0 12px 28px rgb(15 23 42 / 10%);
   }
 }
 
@@ -1018,15 +1005,7 @@ $content-max: 1280px;
   padding: 80px 0;
 
   &__glow {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 384px;
-    height: 384px;
-    border-radius: 999px;
-    background: rgb(255 107 0 / 20%);
-    filter: blur(64px);
-    transform: translate(33%, -50%);
+    display: none;
   }
 
   &__content {
@@ -1059,7 +1038,7 @@ $content-max: 1280px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: 12px;
+      border-radius: 8px;
       background: $brand-orange;
       color: #fff;
       padding: 20px 40px;
@@ -1068,12 +1047,11 @@ $content-max: 1280px;
       line-height: 1.2;
       text-align: center;
       text-decoration: none;
-      box-shadow: 0 24px 50px rgb(124 45 18 / 45%);
-      transition: transform 160ms ease, background 160ms ease;
+      box-shadow: none;
+      transition: background 160ms ease;
 
       &:hover {
         background: #ea580c;
-        transform: translateY(-4px);
       }
     }
 
@@ -1107,7 +1085,7 @@ $content-max: 1280px;
   span {
     width: 40px;
     height: 40px;
-    border-radius: 12px;
+    border-radius: 8px;
     background: $brand-blue;
     color: #fff;
     @include center-flex;
@@ -1208,6 +1186,18 @@ $content-max: 1280px;
   50% {
     transform: none;
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-dot span:first-child,
+  .attendance-card {
+    animation: none;
+  }
+
+  .hero__frame {
+    transition: none;
+    transform: none;
   }
 }
 

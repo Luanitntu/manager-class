@@ -1,36 +1,91 @@
 <script setup lang="ts">
-import {
-  useTuitions,
-  useTuitionDetail,
-  usePaymentMutations,
-  statusColor,
-  type Tuition,
-} from '~/composables/usePayments';
 import { useClasses } from '~/composables/useClasses';
+import {
+  type Tuition,
+  usePaymentMutations,
+  useTuitionDetail,
+  useTuitions,
+} from '~/composables/usePayments';
 import { useStudents } from '~/composables/useStudents';
 
 const auth = useAuthStore();
 const canManage = computed(() => auth.role === 'TEACHER');
 
-const { data } = useTuitions();
+const search = ref('');
+const { data, isLoading } = useTuitions();
 const { createTuition, recordPayment, sendReminder } = usePaymentMutations();
 const reminderSent = ref(false);
-
-async function remind() {
-  if (!selectedId.value) return;
-  await sendReminder.mutateAsync(selectedId.value);
-  reminderSent.value = true;
-  setTimeout(() => (reminderSent.value = false), 3000);
-}
 const { data: classesData } = useClasses();
 const { data: studentsData } = useStudents();
 
 const tuitions = computed(() => data.value?.data ?? []);
+const filteredTuitions = computed(() => {
+  const keyword = search.value.trim().toLowerCase();
+  if (!keyword) return tuitions.value;
+  return tuitions.value.filter((tuition) =>
+    [
+      tuition.student?.fullName,
+      tuition.student?.email,
+      tuition.class?.name,
+      statusLabel(tuition.status),
+    ].some((value) => value?.toLowerCase().includes(keyword)),
+  );
+});
 const classes = computed(() => classesData.value?.data ?? []);
 const students = computed(() => studentsData.value?.data ?? []);
 
-function money(n: string | number) {
-  return Number(n).toLocaleString();
+const totalExpected = computed(() =>
+  tuitions.value.reduce((sum, tuition) => sum + numericAmount(tuition.totalAmount), 0),
+);
+const totalPaid = computed(() =>
+  tuitions.value.reduce((sum, tuition) => sum + numericAmount(tuition.paidAmount), 0),
+);
+const totalRemaining = computed(() => Math.max(0, totalExpected.value - totalPaid.value));
+
+async function remind(id = selectedId.value) {
+  if (!id) return;
+  await sendReminder.mutateAsync(id);
+  reminderSent.value = true;
+  setTimeout(() => (reminderSent.value = false), 3000);
+}
+
+function numericAmount(value: string | number) {
+  return Number(value) || 0;
+}
+
+function money(value: string | number) {
+  return numericAmount(value).toLocaleString('vi-VN');
+}
+
+function moneyDong(value: string | number) {
+  return `${money(value)}đ`;
+}
+
+function remainingAmount(tuition: Tuition) {
+  return Math.max(0, numericAmount(tuition.totalAmount) - numericAmount(tuition.paidAmount));
+}
+
+function statusLabel(status: Tuition['status']) {
+  return {
+    PAID: 'Đã thu',
+    PARTIALLY_PAID: 'Thu một phần',
+    PENDING: 'Chưa thu',
+    OVERDUE: 'Quá hạn',
+  }[status];
+}
+
+function statusClass(status: Tuition['status']) {
+  return {
+    PAID: 'is-paid',
+    PARTIALLY_PAID: 'is-partial',
+    PENDING: 'is-pending',
+    OVERDUE: 'is-overdue',
+  }[status];
+}
+
+function dueDateLabel(tuition: Tuition) {
+  if (!tuition.dueDate) return 'Chưa đặt hạn';
+  return new Date(tuition.dueDate).toLocaleDateString('vi-VN');
 }
 
 // --- Create tuition ---
@@ -51,7 +106,7 @@ async function create() {
     createOpen.value = false;
     Object.assign(form, { studentId: '', classId: '', totalAmount: 0, dueDate: '', notes: '' });
   } catch (e) {
-    error.value = extractApiError(e) ?? 'Could not create tuition';
+    error.value = extractApiError(e) ?? 'Không thể tạo hóa đơn';
   }
 }
 
@@ -62,10 +117,11 @@ const { data: detail } = useTuitionDetail(selectedId);
 const payForm = reactive({ amount: 0, method: 'cash', note: '' });
 const payError = ref<string | null>(null);
 
-function openDetail(t: Tuition) {
-  selectedId.value = t.id;
+function openDetail(tuition: Tuition) {
+  selectedId.value = tuition.id;
   Object.assign(payForm, { amount: 0, method: 'cash', note: '' });
   payError.value = null;
+  reminderSent.value = false;
   detailOpen.value = true;
 }
 
@@ -80,135 +136,231 @@ async function pay() {
     payForm.amount = 0;
     payForm.note = '';
   } catch (e) {
-    payError.value = extractApiError(e) ?? 'Could not record payment';
+    payError.value = extractApiError(e) ?? 'Không thể ghi nhận thanh toán';
   }
 }
 </script>
 
 <template>
-  <div>
-    <div class="d-flex align-center justify-space-between mb-6">
+  <div class="teacher-payments">
+    <header class="teacher-payments__header">
       <div>
-        <h1 class="text-h5 font-weight-bold mb-1">Payments</h1>
-        <p class="text-medium-emphasis ma-0">Tuition tracking and receipts.</p>
+        <h1>Học phí</h1>
+        <p>Quản lý hóa đơn và tình trạng đóng học phí</p>
       </div>
-      <v-btn v-if="canManage" color="primary" prepend-icon="mdi-plus" @click="createOpen = true">
-        New Tuition
-      </v-btn>
-    </div>
 
-    <v-card>
-      <v-table>
-        <thead>
-          <tr>
-            <th>Student</th>
-            <th>Class</th>
-            <th class="text-right">Total</th>
-            <th class="text-right">Paid</th>
-            <th class="text-right">Remaining</th>
-            <th>Status</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="t in tuitions" :key="t.id">
-            <td>{{ t.student?.fullName }}</td>
-            <td>{{ t.class?.name }}</td>
-            <td class="text-right">{{ money(t.totalAmount) }}</td>
-            <td class="text-right">{{ money(t.paidAmount) }}</td>
-            <td class="text-right">{{ money(Number(t.totalAmount) - Number(t.paidAmount)) }}</td>
-            <td>
-              <v-chip :color="statusColor[t.status]" size="small" variant="tonal">
-                {{ t.status.replace('_', ' ') }}
-              </v-chip>
-            </td>
-            <td class="text-right">
-              <v-btn size="small" variant="text" @click="openDetail(t)">View</v-btn>
-            </td>
-          </tr>
-          <tr v-if="!tuitions.length">
-            <td colspan="7" class="text-center text-medium-emphasis pa-6">No tuition records yet.</td>
-          </tr>
-        </tbody>
-      </v-table>
-    </v-card>
+      <div class="teacher-payments__actions">
+        <v-btn class="teacher-payments__export" variant="flat">
+          <v-icon start size="16">mdi-download-outline</v-icon>
+          Xuất Excel
+        </v-btn>
+        <v-btn v-if="canManage" class="teacher-payments__create" color="primary" @click="createOpen = true">
+          <v-icon start size="18">mdi-plus</v-icon>
+          Tạo hoá đơn
+        </v-btn>
+      </div>
+    </header>
+
+    <section class="teacher-payments__stats" aria-label="Tổng quan học phí">
+      <article class="teacher-payments__stat is-total">
+        <span><v-icon size="24">mdi-cash-multiple</v-icon></span>
+        <div>
+          <small>Tổng dự thu</small>
+          <strong>{{ moneyDong(totalExpected) }}</strong>
+        </div>
+      </article>
+      <article class="teacher-payments__stat is-paid">
+        <span><v-icon size="24">mdi-cash-check</v-icon></span>
+        <div>
+          <small>Đã thu</small>
+          <strong>{{ moneyDong(totalPaid) }}</strong>
+        </div>
+      </article>
+      <article class="teacher-payments__stat is-debt">
+        <span><v-icon size="24">mdi-cash-clock</v-icon></span>
+        <div>
+          <small>Còn nợ / Quá hạn</small>
+          <strong>{{ moneyDong(totalRemaining) }}</strong>
+        </div>
+      </article>
+    </section>
+
+    <section class="teacher-payments__panel">
+      <div class="teacher-payments__toolbar">
+        <label class="teacher-payments__search" for="payment-search">
+          <v-icon size="16">mdi-magnify</v-icon>
+          <input
+            id="payment-search"
+            v-model="search"
+            autocomplete="off"
+            placeholder="Tìm kiếm hoá đơn, học viên..."
+            type="search"
+          >
+        </label>
+
+        <v-btn class="teacher-payments__filter" icon="mdi-filter-variant" size="small" variant="flat" />
+      </div>
+
+      <div class="teacher-payments__table-wrap">
+        <table v-if="filteredTuitions.length" class="teacher-payments__table">
+          <thead>
+            <tr>
+              <th>Học viên & Lớp</th>
+              <th>Tổng tiền (VNĐ)</th>
+              <th>Đã thu (VNĐ)</th>
+              <th>Còn lại (VNĐ)</th>
+              <th>Trạng thái</th>
+              <th class="is-right">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="tuition in filteredTuitions" :key="tuition.id" @click="openDetail(tuition)">
+              <td>
+                <strong>{{ tuition.student?.fullName ?? 'Không rõ học viên' }}</strong>
+                <small>{{ tuition.class?.name ?? 'Chưa gán lớp' }}</small>
+              </td>
+              <td class="is-money">{{ money(tuition.totalAmount) }}</td>
+              <td class="is-money is-paid">{{ money(tuition.paidAmount) }}</td>
+              <td class="is-money" :class="{ 'is-zero': remainingAmount(tuition) === 0 }">
+                {{ money(remainingAmount(tuition)) }}
+              </td>
+              <td>
+                <span :class="['teacher-payments__status', statusClass(tuition.status)]">
+                  {{ statusLabel(tuition.status) }}
+                </span>
+                <small class="teacher-payments__due">Hạn: {{ dueDateLabel(tuition) }}</small>
+              </td>
+              <td class="is-right">
+                <div class="teacher-payments__row-actions">
+                  <v-btn
+                    v-if="canManage && remainingAmount(tuition) > 0"
+                    :loading="sendReminder.isPending.value && selectedId === tuition.id"
+                    class="teacher-payments__remind"
+                    icon="mdi-email-fast-outline"
+                    size="x-small"
+                    variant="text"
+                    @click.stop="remind(tuition.id)"
+                  />
+                  <v-btn
+                    class="teacher-payments__menu"
+                    icon="mdi-dots-horizontal"
+                    size="x-small"
+                    variant="text"
+                    @click.stop="openDetail(tuition)"
+                  />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div v-else class="teacher-payments__empty">
+          <v-progress-circular v-if="isLoading" color="primary" indeterminate size="32" />
+          <template v-else>
+            <v-icon size="38">mdi-cash-register</v-icon>
+            <strong>Chưa có hóa đơn học phí</strong>
+            <span>Tạo hóa đơn đầu tiên để theo dõi thanh toán của học viên.</span>
+          </template>
+        </div>
+      </div>
+    </section>
 
     <!-- Create tuition -->
     <v-dialog v-model="createOpen" max-width="480">
-      <v-card>
-        <v-card-title>New tuition</v-card-title>
+      <v-card class="teacher-payments__dialog">
+        <v-card-title>Tạo hóa đơn</v-card-title>
         <v-card-text>
           <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mb-4">
             {{ error }}
           </v-alert>
-          <v-select v-model="form.studentId" :items="students" item-title="fullName" item-value="id" label="Student" />
-          <v-select v-model="form.classId" :items="classes" item-title="name" item-value="id" label="Class" />
-          <v-text-field v-model="form.totalAmount" type="number" label="Total amount" />
-          <v-text-field v-model="form.dueDate" type="date" label="Due date (optional)" />
-          <v-textarea v-model="form.notes" label="Notes" rows="2" />
+          <v-select v-model="form.studentId" :items="students" item-title="fullName" item-value="id" label="Học viên" />
+          <v-select v-model="form.classId" :items="classes" item-title="name" item-value="id" label="Lớp" />
+          <v-text-field v-model="form.totalAmount" type="number" label="Tổng tiền" />
+          <v-text-field v-model="form.dueDate" type="date" label="Hạn đóng (tuỳ chọn)" />
+          <v-textarea v-model="form.notes" label="Ghi chú" rows="2" />
         </v-card-text>
         <v-card-actions class="px-4 pb-4">
           <v-spacer />
-          <v-btn variant="text" @click="createOpen = false">Cancel</v-btn>
+          <v-btn variant="text" @click="createOpen = false">Hủy</v-btn>
           <v-btn
             color="primary"
             :loading="createTuition.isPending.value"
             :disabled="!form.studentId || !form.classId || form.totalAmount <= 0"
             @click="create"
           >
-            Create
+            Tạo
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <!-- Detail + record payment -->
-    <v-dialog v-model="detailOpen" max-width="600" scrollable>
-      <v-card v-if="detail">
-        <v-card-title class="d-flex align-center justify-space-between">
-          <span>{{ detail.student?.fullName }} — {{ detail.class?.name }}</span>
-          <v-chip :color="statusColor[detail.status]" size="small" variant="tonal">
-            {{ detail.status.replace('_', ' ') }}
-          </v-chip>
+    <v-dialog v-model="detailOpen" max-width="680" scrollable>
+      <v-card v-if="detail" class="teacher-payments__dialog teacher-payments__detail">
+        <v-card-title class="teacher-payments__detail-title">
+          <span>{{ detail.student?.fullName }} - {{ detail.class?.name }}</span>
+          <span :class="['teacher-payments__status', statusClass(detail.status)]">
+            {{ statusLabel(detail.status) }}
+          </span>
         </v-card-title>
         <v-card-text>
-          <div class="d-flex ga-6 mb-4">
-            <div><div class="text-h6 font-weight-bold">{{ money(detail.totalAmount) }}</div><div class="text-caption text-medium-emphasis">Total</div></div>
-            <div><div class="text-h6 font-weight-bold">{{ money(detail.paidAmount) }}</div><div class="text-caption text-medium-emphasis">Paid</div></div>
-            <div><div class="text-h6 font-weight-bold">{{ money(Number(detail.totalAmount) - Number(detail.paidAmount)) }}</div><div class="text-caption text-medium-emphasis">Remaining</div></div>
+          <div class="teacher-payments__detail-stats">
+            <div>
+              <strong>{{ moneyDong(detail.totalAmount) }}</strong>
+              <span>Tổng tiền</span>
+            </div>
+            <div>
+              <strong>{{ moneyDong(detail.paidAmount) }}</strong>
+              <span>Đã thu</span>
+            </div>
+            <div>
+              <strong>{{ moneyDong(remainingAmount(detail)) }}</strong>
+              <span>Còn lại</span>
+            </div>
           </div>
 
           <template v-if="canManage && detail.status !== 'PAID'">
             <v-alert v-if="payError" type="error" variant="tonal" density="compact" class="mb-3">
               {{ payError }}
             </v-alert>
-            <div class="d-flex ga-2 align-center mb-4">
-              <v-text-field v-model="payForm.amount" type="number" label="Amount" density="compact" hide-details style="max-width: 140px" />
-              <v-select v-model="payForm.method" :items="['cash', 'transfer', 'card']" label="Method" density="compact" hide-details style="max-width: 130px" />
-              <v-text-field v-model="payForm.note" label="Note" density="compact" hide-details />
+            <div class="teacher-payments__pay-form">
+              <v-text-field v-model="payForm.amount" type="number" label="Số tiền" density="compact" hide-details />
+              <v-select
+                v-model="payForm.method"
+                :items="['cash', 'transfer', 'card']"
+                label="Phương thức"
+                density="compact"
+                hide-details
+              />
+              <v-text-field v-model="payForm.note" label="Ghi chú" density="compact" hide-details />
               <v-btn color="primary" :loading="recordPayment.isPending.value" :disabled="payForm.amount <= 0" @click="pay">
-                Record
+                Ghi nhận
               </v-btn>
             </div>
           </template>
 
-          <h3 class="text-subtitle-2 font-weight-bold mb-2">Payment history</h3>
-          <v-table density="compact">
-            <thead>
-              <tr><th>Date</th><th>Receipt</th><th>Method</th><th class="text-right">Amount</th></tr>
-            </thead>
-            <tbody>
-              <tr v-for="p in detail.payments" :key="p.id">
-                <td>{{ new Date(p.paidAt).toLocaleDateString() }}</td>
-                <td>{{ p.receiptNumber }}</td>
-                <td>{{ p.method }}</td>
-                <td class="text-right">{{ money(p.amount) }}</td>
-              </tr>
-              <tr v-if="!detail.payments.length">
-                <td colspan="4" class="text-center text-medium-emphasis">No payments yet.</td>
-              </tr>
-            </tbody>
-          </v-table>
+          <h3>Lịch sử thanh toán</h3>
+          <div class="teacher-payments__history">
+            <table v-if="detail.payments.length">
+              <thead>
+                <tr>
+                  <th>Ngày</th>
+                  <th>Biên lai</th>
+                  <th>Phương thức</th>
+                  <th class="is-right">Số tiền</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="payment in detail.payments" :key="payment.id">
+                  <td>{{ new Date(payment.paidAt).toLocaleDateString('vi-VN') }}</td>
+                  <td>{{ payment.receiptNumber }}</td>
+                  <td>{{ payment.method || '-' }}</td>
+                  <td class="is-right">{{ moneyDong(payment.amount) }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-else class="teacher-payments__history-empty">Chưa có lịch sử thanh toán.</div>
+          </div>
         </v-card-text>
         <v-card-actions class="px-4 pb-4">
           <v-btn
@@ -217,14 +369,511 @@ async function pay() {
             color="warning"
             prepend-icon="mdi-email-fast"
             :loading="sendReminder.isPending.value"
-            @click="remind"
+            @click="remind()"
           >
-            {{ reminderSent ? 'Reminder sent' : 'Send reminder' }}
+            {{ reminderSent ? 'Đã gửi nhắc nhở' : 'Gửi nhắc nhở' }}
           </v-btn>
           <v-spacer />
-          <v-btn variant="text" @click="detailOpen = false">Close</v-btn>
+          <v-btn variant="text" @click="detailOpen = false">Đóng</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
 </template>
+
+<style scoped lang="scss">
+.teacher-payments {
+  --payments-blue: #0071f9;
+  --payments-text: #1e293b;
+  --payments-muted: #64748b;
+  --payments-border: #e2e8f0;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: 0 auto;
+  max-width: 1152px;
+  padding-bottom: 24px;
+  width: 100%;
+
+  &__header {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 24px;
+
+    h1 {
+      color: var(--payments-text);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0;
+      line-height: 1.33;
+      margin: 0;
+    }
+
+    p {
+      color: var(--payments-muted);
+      font-size: 14px;
+      font-weight: 500;
+      margin: 4px 0 0;
+    }
+  }
+
+  &__actions {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+  }
+
+  &__export,
+  &__create {
+    border-radius: 8px !important;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
+    font-size: 14px;
+    font-weight: 800;
+    height: 38px !important;
+    letter-spacing: 0;
+    padding: 0 16px !important;
+  }
+
+  &__export {
+    background: #fff !important;
+    border: 1px solid var(--payments-border);
+    color: #334155 !important;
+  }
+
+  &__create {
+    background: var(--payments-blue) !important;
+    color: #fff !important;
+  }
+
+  &__stats {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 24px;
+  }
+
+  &__stat {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--payments-border);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+    display: flex;
+    gap: 16px;
+    min-height: 92px;
+    padding: 20px;
+
+    > span {
+      align-items: center;
+      border-radius: 50%;
+      display: inline-flex;
+      flex: 0 0 48px;
+      height: 48px;
+      justify-content: center;
+      width: 48px;
+    }
+
+    small {
+      color: var(--payments-muted);
+      display: block;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    strong {
+      color: var(--payments-text);
+      display: block;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    &.is-total > span {
+      background: #eff6ff;
+      color: var(--payments-blue);
+    }
+
+    &.is-paid > span {
+      background: #ecfdf5;
+      color: #10b981;
+    }
+
+    &.is-debt {
+      > span {
+        background: #fef2f2;
+        color: #ef4444;
+      }
+
+      strong {
+        color: #dc2626;
+      }
+    }
+  }
+
+  &__panel {
+    background: #fff;
+    border: 1px solid var(--payments-border);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  &__toolbar {
+    align-items: center;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--payments-border);
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    padding: 16px;
+  }
+
+  &__search {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--payments-border);
+    border-radius: 8px;
+    color: #94a3b8;
+    display: flex;
+    flex: 1 1 448px;
+    gap: 8px;
+    height: 38px;
+    max-width: 448px;
+    padding: 0 12px;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+
+    &:focus-within {
+      border-color: var(--payments-blue);
+      box-shadow: 0 0 0 3px rgb(0 113 249 / 12%);
+    }
+
+    input {
+      color: #334155;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 0;
+      outline: 0;
+      width: 100%;
+
+      &::placeholder {
+        color: #94a3b8;
+      }
+    }
+  }
+
+  &__filter {
+    background: #fff !important;
+    border: 1px solid var(--payments-border);
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    color: var(--payments-muted) !important;
+  }
+
+  &__table-wrap {
+    overflow-x: auto;
+  }
+
+  &__table {
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 980px;
+    text-align: left;
+    width: 100%;
+
+    thead {
+      background: #fff;
+      border-bottom: 1px solid var(--payments-border);
+      color: var(--payments-muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    th,
+    td {
+      padding: 16px 24px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: background 180ms ease;
+
+      &:hover {
+        background: #f8fafc;
+      }
+
+      &:last-child {
+        border-bottom: 0;
+      }
+    }
+
+    td > strong {
+      color: var(--payments-text);
+      display: block;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    td > small {
+      color: var(--payments-blue);
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 3px;
+    }
+
+    .is-right {
+      text-align: right;
+    }
+
+    .is-money {
+      color: #dc2626;
+      font-weight: 800;
+
+      &.is-paid {
+        color: #059669;
+      }
+
+      &.is-zero {
+        color: #334155;
+      }
+    }
+  }
+
+  &__status {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    padding: 7px 10px;
+
+    &.is-paid {
+      background: #d1fae5;
+      color: #047857;
+    }
+
+    &.is-partial {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    &.is-pending {
+      background: #f1f5f9;
+      color: #334155;
+    }
+
+    &.is-overdue {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+  }
+
+  &__due {
+    color: #94a3b8;
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 5px;
+  }
+
+  &__row-actions {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  &__remind {
+    color: #f97316 !important;
+
+    &:hover {
+      background: #fff7ed !important;
+    }
+  }
+
+  &__menu {
+    color: #94a3b8 !important;
+
+    &:hover {
+      background: #eff6ff !important;
+      color: var(--payments-blue) !important;
+    }
+  }
+
+  &__empty {
+    align-items: center;
+    color: var(--payments-muted);
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+    min-height: 320px;
+    padding: 40px;
+    text-align: center;
+
+    strong {
+      color: var(--payments-text);
+      font-size: 18px;
+      font-weight: 800;
+    }
+  }
+
+  &__dialog {
+    border-radius: 12px !important;
+  }
+
+  &__detail-title {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+  }
+
+  &__detail-stats {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 20px;
+
+    div {
+      background: #f8fafc;
+      border: 1px solid #f1f5f9;
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    strong {
+      color: var(--payments-text);
+      display: block;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    span {
+      color: var(--payments-muted);
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+  }
+
+  &__pay-form {
+    align-items: center;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 130px 130px minmax(0, 1fr) auto;
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    color: var(--payments-text);
+    font-size: 15px;
+    font-weight: 800;
+    margin: 0 0 10px;
+  }
+
+  &__history {
+    border: 1px solid var(--payments-border);
+    border-radius: 10px;
+    overflow: hidden;
+
+    table {
+      border-collapse: collapse;
+      font-size: 13px;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #f1f5f9;
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--payments-muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .is-right {
+      text-align: right;
+    }
+  }
+
+  &__history-empty {
+    color: var(--payments-muted);
+    font-size: 14px;
+    padding: 20px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 900px) {
+  .teacher-payments {
+    &__stats {
+      grid-template-columns: 1fr;
+    }
+
+    &__pay-form {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+@media (max-width: 720px) {
+  .teacher-payments {
+    &__header {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__export,
+    &__create {
+      width: 100%;
+    }
+
+    &__toolbar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__search {
+      flex-basis: auto;
+      max-width: none;
+      width: 100%;
+    }
+
+    &__detail-title,
+    &__detail-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+</style>

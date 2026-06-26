@@ -24,6 +24,19 @@ export function useClasses(search?: MaybeRefOrGetter<string | undefined>) {
   });
 }
 
+export function useStudentClasses(search?: MaybeRefOrGetter<string | undefined>) {
+  const { requestPaged } = useApi();
+
+  return useQuery({
+    queryKey: ['student-classes', search],
+    queryFn: () => {
+      const term = toValue(search);
+      const qs = term ? `?search=${encodeURIComponent(term)}&limit=100` : '?limit=100';
+      return requestPaged<ClassItem[]>(`/classes${qs}`);
+    },
+  });
+}
+
 export function useClassMutations() {
   const { request } = useApi();
   const qc = useQueryClient();

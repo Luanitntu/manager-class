@@ -160,6 +160,7 @@ const onSubmit = handleSubmit(async (values) => {
               v-for="button in socialButtons"
               :key="button.name"
               type="button"
+              disabled
               aria-disabled="true"
               title="Chưa hỗ trợ đăng nhập bằng mạng xã hội"
               class="login-social-button"
@@ -231,7 +232,7 @@ const onSubmit = handleSubmit(async (values) => {
 .login-shell {
   min-height: 100vh;
   display: flex;
-  background: #fff;
+  background: var(--st-surface);
   color: #0f172a;
   font-family: var(--st-font-family);
 }
@@ -263,7 +264,7 @@ const onSubmit = handleSubmit(async (values) => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #0071f9;
+  color: var(--st-primary);
   font-size: 20px;
   line-height: 1;
   font-weight: 800;
@@ -274,8 +275,8 @@ const onSubmit = handleSubmit(async (values) => {
   width: 32px;
   height: 32px;
   flex: 0 0 32px;
-  border-radius: 10px;
-  background: #0071f9;
+  border-radius: 8px;
+  background: var(--st-primary);
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -296,13 +297,13 @@ const onSubmit = handleSubmit(async (values) => {
   color: #0f172a;
   font-size: 30px;
   line-height: 1.2;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0;
 }
 
 .login-heading p {
   margin: 0;
-  color: #64748b;
+  color: #475569;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -314,7 +315,7 @@ const onSubmit = handleSubmit(async (values) => {
 
 .login-error {
   border: 1px solid #fecaca;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #fef2f2;
   color: #b91c1c;
   padding: 12px 16px;
@@ -356,8 +357,8 @@ const onSubmit = handleSubmit(async (values) => {
 .login-input-wrap input {
   width: 100%;
   height: 52px;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  border: 1px solid var(--st-border);
+  border-radius: 8px;
   background: #fff;
   color: #0f172a;
   padding: 0 16px 0 44px;
@@ -372,8 +373,12 @@ const onSubmit = handleSubmit(async (values) => {
 }
 
 .login-input-wrap input:focus {
-  border-color: #0071f9;
-  box-shadow: 0 0 0 3px rgb(0 113 249 / 16%);
+  border-color: var(--st-primary);
+  box-shadow: var(--st-focus);
+}
+
+.login-input-wrap input[aria-invalid="true"] {
+  border-color: #dc2626;
 }
 
 .login-field-error {
@@ -406,7 +411,7 @@ const onSubmit = handleSubmit(async (values) => {
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  accent-color: #0071f9;
+  accent-color: var(--st-primary);
   cursor: pointer;
 }
 
@@ -414,7 +419,7 @@ const onSubmit = handleSubmit(async (values) => {
 .login-register a {
   display: inline-flex;
   align-items: center;
-  color: #0071f9;
+  color: var(--st-primary);
   font-weight: 800;
   line-height: 1.2;
   text-decoration: none;
@@ -424,8 +429,8 @@ const onSubmit = handleSubmit(async (values) => {
   width: 100%;
   height: 54px;
   border: 0;
-  border-radius: 14px;
-  background: #0071f9;
+  border-radius: 8px;
+  background: var(--st-primary);
   color: #fff;
   display: flex;
   align-items: center;
@@ -434,13 +439,13 @@ const onSubmit = handleSubmit(async (values) => {
   line-height: 1;
   font-size: 16px;
   font-weight: 800;
-  box-shadow: 0 10px 18px rgb(0 113 249 / 22%);
+  box-shadow: none;
   cursor: pointer;
   transition: background 160ms ease, opacity 160ms ease;
 }
 
 .login-submit:hover {
-  background: #0064df;
+  background: var(--st-primary-dark);
 }
 
 .login-submit:disabled {
@@ -483,8 +488,8 @@ const onSubmit = handleSubmit(async (values) => {
 
 .login-social-button {
   height: 46px;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  border: 1px solid var(--st-border);
+  border-radius: 8px;
   background: #fff;
   color: #334155;
   display: flex;
@@ -494,6 +499,16 @@ const onSubmit = handleSubmit(async (values) => {
   line-height: 1;
   font-size: 15px;
   font-weight: 700;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.login-social-button:hover:not(:disabled) {
+  border-color: var(--st-primary);
+  background: var(--st-bg-soft);
+}
+
+.login-social-button:disabled {
+  opacity: 0.58;
 }
 
 .login-social-icon {
@@ -516,7 +531,7 @@ const onSubmit = handleSubmit(async (values) => {
   width: 50%;
   min-height: 100vh;
   overflow: hidden;
-  background: #f1f5f9;
+  background: var(--st-bg-soft);
 }
 
 .login-visual img {
@@ -531,7 +546,7 @@ const onSubmit = handleSubmit(async (values) => {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: rgb(37 99 235 / 10%);
+  background: rgb(8 145 178 / 12%);
   mix-blend-mode: multiply;
 }
 
@@ -539,7 +554,7 @@ const onSubmit = handleSubmit(async (values) => {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: linear-gradient(to top, rgb(15 23 42 / 80%), rgb(15 23 42 / 20%), transparent);
+  background: linear-gradient(to top, rgb(22 78 99 / 82%), rgb(22 78 99 / 24%), transparent);
 }
 
 .login-quote {
@@ -576,6 +591,7 @@ const onSubmit = handleSubmit(async (values) => {
   font-size: 20px;
   font-weight: 800;
   backdrop-filter: blur(8px);
+  border: 1px solid rgb(255 255 255 / 24%);
 }
 
 .login-person-name {

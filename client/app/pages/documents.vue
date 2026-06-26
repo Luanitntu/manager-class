@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { useDocuments, useDocumentMutations, type DocumentItem } from '~/composables/useDocuments';
 import { useClasses } from '~/composables/useClasses';
+import { type DocumentItem, useDocumentMutations, useDocuments } from '~/composables/useDocuments';
 import { useStudents } from '~/composables/useStudents';
 
-const category = ref<string | undefined>(undefined);
-const { data, isLoading } = useDocuments(category);
+type CategoryFilter = 'Tất cả' | 'IELTS' | 'TOEIC' | 'Giao tiếp' | 'Ngữ pháp';
+
+const selectedCategory = ref<CategoryFilter>('Tất cả');
+const search = ref('');
+const apiCategory = computed(() => (selectedCategory.value === 'Tất cả' ? undefined : selectedCategory.value));
+const { data, isLoading } = useDocuments(apiCategory);
 const { createLink, upload, assign, remove } = useDocumentMutations();
 const { data: classesData } = useClasses();
 const { data: studentsData } = useStudents();
@@ -12,21 +16,24 @@ const auth = useAuthStore();
 const config = useRuntimeConfig();
 
 const documents = computed(() => data.value?.data ?? []);
+const filteredDocuments = computed(() => {
+  const keyword = search.value.trim().toLowerCase();
+  if (!keyword) return documents.value;
+  return documents.value.filter((doc) =>
+    [doc.title, doc.category, doc.type].some((value) => value?.toLowerCase().includes(keyword)),
+  );
+});
 const classes = computed(() => classesData.value?.data ?? []);
 const students = computed(() => studentsData.value?.data ?? []);
-const categories = ['A1', 'A2', 'B1', 'B2'];
+const categories: CategoryFilter[] = ['Tất cả', 'IELTS', 'TOEIC', 'Giao tiếp', 'Ngữ pháp'];
+const formCategories: string[] = ['IELTS', 'TOEIC', 'Giao tiếp', 'Ngữ pháp'];
 const canManage = computed(() => auth.role === 'TEACHER' || auth.role === 'ASSISTANT');
-
-const typeIcon: Record<string, string> = {
-  PDF: 'mdi-file-pdf-box',
-  MP3: 'mdi-music-note',
-  LINK: 'mdi-link-variant',
-};
 
 // --- Create / upload dialog ---
 const createOpen = ref(false);
 const mode = ref<'link' | 'file'>('link');
 const error = ref<string | null>(null);
+const pageError = ref<string | null>(null);
 const form = reactive({ title: '', url: '', category: '', file: null as File | null });
 
 function openCreate() {
@@ -55,106 +62,216 @@ async function submit() {
     }
     createOpen.value = false;
   } catch (e) {
-    error.value = extractApiError(e) ?? 'Could not save document';
+    error.value = extractApiError(e) ?? 'Không thể lưu tài liệu';
   }
 }
 
 // --- Assign dialog ---
 const assignOpen = ref(false);
 const assignDoc = ref<DocumentItem | null>(null);
+const assignError = ref<string | null>(null);
 const assignForm = reactive({ targetType: 'CLASS', classId: '', studentId: '' });
 
 function openAssign(doc: DocumentItem) {
   assignDoc.value = doc;
+  assignError.value = null;
   Object.assign(assignForm, { targetType: 'CLASS', classId: '', studentId: '' });
   assignOpen.value = true;
 }
 
 async function submitAssign() {
   if (!assignDoc.value) return;
+  assignError.value = null;
   const body =
     assignForm.targetType === 'CLASS'
       ? { targetType: 'CLASS', classId: assignForm.classId }
       : { targetType: 'STUDENT', studentId: assignForm.studentId };
-  await assign.mutateAsync({ id: assignDoc.value.id, body });
-  assignOpen.value = false;
+  try {
+    await assign.mutateAsync({ id: assignDoc.value.id, body });
+    assignOpen.value = false;
+  } catch (e) {
+    assignError.value = extractApiError(e) ?? 'Không thể chia sẻ tài liệu';
+  }
+}
+
+async function deleteDocument(doc: DocumentItem) {
+  if (!confirm(`Xóa tài liệu "${doc.title}"?`)) return;
+  pageError.value = null;
+  try {
+    await remove.mutateAsync(doc.id);
+  } catch (e) {
+    pageError.value = extractApiError(e) ?? 'Không thể xóa tài liệu';
+  }
 }
 
 function downloadUrl(doc: DocumentItem) {
   return `${config.public.apiBase}/documents/${doc.id}/download`;
 }
+
+function iconFor(doc: DocumentItem) {
+  if (doc.type === 'PDF') return 'mdi-file-pdf-box';
+  if (doc.type === 'MP3') return 'mdi-music-note';
+  return 'mdi-link-variant';
+}
+
+function toneFor(doc: DocumentItem) {
+  if (doc.type === 'PDF') return 'is-pdf';
+  if (doc.type === 'MP3') return 'is-audio';
+  return 'is-link';
+}
+
+function metaLine(doc: DocumentItem) {
+  const assignments = doc._count?.assignments ?? 0;
+  return `${doc.type} • ${assignments} lượt chia sẻ`;
+}
+
+function categoryLabel(doc: DocumentItem) {
+  return doc.category || 'Chưa phân loại';
+}
 </script>
 
 <template>
-  <div>
-    <div class="d-flex align-center justify-space-between mb-6">
+  <div class="teacher-documents">
+    <header class="teacher-documents__header">
       <div>
-        <h1 class="text-h5 font-weight-bold mb-1">Documents</h1>
-        <p class="text-medium-emphasis ma-0">Learning materials (PDF, MP3, links).</p>
+        <h1>Tài liệu học tập</h1>
+        <p>Quản lý và chia sẻ tài liệu cho học viên</p>
       </div>
-      <v-btn v-if="canManage" color="primary" prepend-icon="mdi-plus" @click="openCreate">
-        Add Material
-      </v-btn>
+
+      <div class="teacher-documents__actions">
+        <v-btn v-if="canManage" class="teacher-documents__create" color="primary" @click="openCreate">
+          <v-icon start size="18">mdi-plus</v-icon>
+          Tải lên tài liệu
+        </v-btn>
+      </div>
+    </header>
+
+    <section class="teacher-documents__filters">
+      <div class="teacher-documents__chips" aria-label="Lọc tài liệu">
+        <button
+          v-for="categoryItem in categories"
+          :key="categoryItem"
+          :class="{ 'is-active': selectedCategory === categoryItem }"
+          type="button"
+          @click="selectedCategory = categoryItem"
+        >
+          {{ categoryItem }}
+        </button>
+      </div>
+
+      <label class="teacher-documents__search" for="document-search">
+        <v-icon size="16">mdi-magnify</v-icon>
+        <input
+          id="document-search"
+          v-model="search"
+          autocomplete="off"
+          placeholder="Tìm kiếm tài liệu..."
+          type="search"
+        >
+      </label>
+    </section>
+
+    <v-alert v-if="pageError" class="teacher-documents__alert" color="error" density="compact" variant="tonal">
+      {{ pageError }}
+    </v-alert>
+
+    <section class="teacher-documents__grid">
+      <button v-if="canManage" class="teacher-documents__folder" type="button" @click="openCreate">
+        <v-icon size="32">mdi-folder-plus-outline</v-icon>
+        <span>Tạo thư mục mới</span>
+      </button>
+
+      <article
+        v-for="doc in filteredDocuments"
+        :key="doc.id"
+        class="teacher-documents__card"
+        :class="toneFor(doc)"
+      >
+        <div class="teacher-documents__card-head">
+          <span class="teacher-documents__file-icon">
+            <v-icon size="24">{{ iconFor(doc) }}</v-icon>
+          </span>
+
+          <v-menu>
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                class="teacher-documents__menu"
+                icon="mdi-dots-horizontal"
+                size="small"
+                variant="text"
+              />
+            </template>
+            <v-list density="compact">
+              <v-list-item
+                v-if="doc.type === 'LINK'"
+                :href="doc.url ?? undefined"
+                prepend-icon="mdi-open-in-new"
+                target="_blank"
+                title="Mở link"
+              />
+              <v-list-item
+                v-else
+                :href="downloadUrl(doc)"
+                prepend-icon="mdi-download"
+                target="_blank"
+                title="Tải xuống"
+              />
+              <v-list-item
+                v-if="canManage"
+                prepend-icon="mdi-account-multiple-plus"
+                title="Chia sẻ"
+                @click="openAssign(doc)"
+              />
+              <v-list-item
+                v-if="canManage"
+                prepend-icon="mdi-delete-outline"
+                title="Xóa"
+                @click="deleteDocument(doc)"
+              />
+            </v-list>
+          </v-menu>
+        </div>
+
+        <h2 :title="doc.title">{{ doc.title }}</h2>
+
+        <div class="teacher-documents__card-spacer" />
+
+        <span class="teacher-documents__category">{{ categoryLabel(doc) }}</span>
+
+        <footer>
+          <span>{{ metaLine(doc) }}</span>
+          <a
+            v-if="doc.type === 'LINK'"
+            :href="doc.url ?? undefined"
+            rel="noopener"
+            target="_blank"
+          >
+            <v-icon size="14">mdi-link-variant</v-icon>
+            Mở link
+          </a>
+          <a v-else :href="downloadUrl(doc)" rel="noopener" target="_blank">
+            <v-icon size="14">mdi-download</v-icon>
+            Tải xuống
+          </a>
+        </footer>
+      </article>
+    </section>
+
+    <div v-if="!filteredDocuments.length && !isLoading" class="teacher-documents__empty">
+      <v-icon size="38">mdi-file-document-outline</v-icon>
+      <strong>Chưa có tài liệu</strong>
+      <span>Tải lên tài liệu hoặc thêm link học tập để chia sẻ cho lớp.</span>
     </div>
 
-    <v-chip-group v-model="category" class="mb-4">
-      <v-chip :value="undefined" filter variant="outlined">All</v-chip>
-      <v-chip v-for="c in categories" :key="c" :value="c" filter variant="outlined">{{ c }}</v-chip>
-    </v-chip-group>
-
-    <v-row v-if="documents.length">
-      <v-col v-for="d in documents" :key="d.id" cols="12" sm="6" md="4">
-        <v-card class="pa-4">
-          <div class="d-flex align-center ga-3 mb-2">
-            <v-avatar color="info" size="36" rounded="lg">
-              <v-icon color="white">{{ typeIcon[d.type] }}</v-icon>
-            </v-avatar>
-            <div class="flex-grow-1">
-              <div class="font-weight-bold">{{ d.title }}</div>
-              <div class="text-caption text-medium-emphasis">
-                {{ d.type }}<span v-if="d.category"> · {{ d.category }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="d-flex ga-2">
-            <v-btn
-              v-if="d.type === 'LINK'"
-              :href="d.url ?? undefined"
-              target="_blank"
-              size="small"
-              variant="tonal"
-              prepend-icon="mdi-open-in-new"
-            >
-              Open
-            </v-btn>
-            <v-btn
-              v-else
-              :href="downloadUrl(d)"
-              target="_blank"
-              size="small"
-              variant="tonal"
-              prepend-icon="mdi-download"
-            >
-              Download
-            </v-btn>
-            <v-spacer />
-            <template v-if="canManage">
-              <v-btn size="small" variant="text" icon="mdi-account-multiple-plus" @click="openAssign(d)" />
-              <v-btn size="small" variant="text" icon="mdi-delete" @click="remove.mutate(d.id)" />
-            </template>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <v-card v-else-if="!isLoading" class="pa-12 text-center text-medium-emphasis">
-      No documents yet.
-    </v-card>
+    <div v-if="isLoading" class="teacher-documents__loading">
+      <v-progress-circular color="primary" indeterminate size="32" />
+    </div>
 
     <!-- Create / upload -->
     <v-dialog v-model="createOpen" max-width="480">
-      <v-card>
-        <v-card-title>Add material</v-card-title>
+      <v-card class="teacher-documents__dialog">
+        <v-card-title>Thêm tài liệu</v-card-title>
         <v-card-text>
           <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mb-4">
             {{ error }}
@@ -163,7 +280,7 @@ function downloadUrl(doc: DocumentItem) {
             <v-btn value="link" size="small">Link</v-btn>
             <v-btn value="file" size="small">File (PDF/MP3)</v-btn>
           </v-btn-toggle>
-          <v-text-field v-model="form.title" label="Title" />
+          <v-text-field v-model="form.title" label="Tiêu đề" />
           <v-text-field v-if="mode === 'link'" v-model="form.url" label="URL" />
           <v-file-input
             v-else
@@ -171,18 +288,18 @@ function downloadUrl(doc: DocumentItem) {
             label="File"
             accept=".pdf,.mp3,audio/*,application/pdf"
           />
-          <v-select v-model="form.category" :items="categories" label="Category" clearable />
+          <v-select v-model="form.category" :items="formCategories" label="Danh mục" clearable />
         </v-card-text>
         <v-card-actions class="px-4 pb-4">
           <v-spacer />
-          <v-btn variant="text" @click="createOpen = false">Cancel</v-btn>
+          <v-btn variant="text" @click="createOpen = false">Hủy</v-btn>
           <v-btn
             color="primary"
             :loading="createLink.isPending.value || upload.isPending.value"
             :disabled="!form.title || (mode === 'link' ? !form.url : !form.file)"
             @click="submit"
           >
-            Save
+            Lưu
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -190,12 +307,15 @@ function downloadUrl(doc: DocumentItem) {
 
     <!-- Assign -->
     <v-dialog v-model="assignOpen" max-width="440">
-      <v-card>
-        <v-card-title>Share document</v-card-title>
+      <v-card class="teacher-documents__dialog">
+        <v-card-title>Chia sẻ tài liệu</v-card-title>
         <v-card-text>
+          <v-alert v-if="assignError" type="error" variant="tonal" density="compact" class="mb-4">
+            {{ assignError }}
+          </v-alert>
           <v-btn-toggle v-model="assignForm.targetType" mandatory color="primary" class="mb-4" density="comfortable">
-            <v-btn value="CLASS" size="small">Class</v-btn>
-            <v-btn value="STUDENT" size="small">Student</v-btn>
+            <v-btn value="CLASS" size="small">Lớp</v-btn>
+            <v-btn value="STUDENT" size="small">Học viên</v-btn>
           </v-btn-toggle>
           <v-select
             v-if="assignForm.targetType === 'CLASS'"
@@ -203,7 +323,7 @@ function downloadUrl(doc: DocumentItem) {
             :items="classes"
             item-title="name"
             item-value="id"
-            label="Class"
+            label="Lớp"
           />
           <v-select
             v-else
@@ -211,22 +331,407 @@ function downloadUrl(doc: DocumentItem) {
             :items="students"
             item-title="fullName"
             item-value="id"
-            label="Student"
+            label="Học viên"
           />
         </v-card-text>
         <v-card-actions class="px-4 pb-4">
           <v-spacer />
-          <v-btn variant="text" @click="assignOpen = false">Cancel</v-btn>
+          <v-btn variant="text" @click="assignOpen = false">Hủy</v-btn>
           <v-btn
             color="primary"
             :loading="assign.isPending.value"
             :disabled="assignForm.targetType === 'CLASS' ? !assignForm.classId : !assignForm.studentId"
             @click="submitAssign"
           >
-            Share
+            Chia sẻ
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
 </template>
+
+<style scoped lang="scss">
+.teacher-documents {
+  --docs-blue: #0071f9;
+  --docs-text: #1e293b;
+  --docs-muted: #64748b;
+  --docs-border: #e2e8f0;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: 0 auto;
+  max-width: 1152px;
+  padding-bottom: 24px;
+  width: 100%;
+
+  &__header {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 24px;
+
+    h1 {
+      color: var(--docs-text);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0;
+      line-height: 1.33;
+      margin: 0;
+    }
+
+    p {
+      color: var(--docs-muted);
+      font-size: 14px;
+      font-weight: 500;
+      margin: 4px 0 0;
+    }
+  }
+
+  &__actions {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+  }
+
+  &__create {
+    background: var(--docs-blue) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
+    color: #fff !important;
+    font-size: 14px;
+    font-weight: 800;
+    height: 38px !important;
+    letter-spacing: 0;
+    padding: 0 16px !important;
+  }
+
+  &__filters {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--docs-border);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding: 16px;
+  }
+
+  &__chips {
+    display: flex;
+    gap: 8px;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    button {
+      background: #f8fafc;
+      border: 1px solid var(--docs-border);
+      border-radius: 999px;
+      color: #475569;
+      flex: 0 0 auto;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1;
+      min-height: 30px;
+      padding: 0 16px;
+      transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+
+      &:hover {
+        background: #f1f5f9;
+      }
+
+      &.is-active {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: var(--docs-blue);
+      }
+    }
+  }
+
+  &__search {
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid var(--docs-border);
+    border-radius: 8px;
+    color: #94a3b8;
+    display: flex;
+    flex: 0 0 256px;
+    gap: 8px;
+    height: 38px;
+    padding: 0 12px;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+
+    &:focus-within {
+      border-color: var(--docs-blue);
+      box-shadow: 0 0 0 3px rgb(0 113 249 / 12%);
+    }
+
+    input {
+      color: #334155;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 0;
+      outline: 0;
+      width: 100%;
+
+      &::placeholder {
+        color: #94a3b8;
+      }
+    }
+  }
+
+  &__alert {
+    margin-bottom: 16px;
+  }
+
+  &__grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  &__folder,
+  &__card {
+    border-radius: 12px;
+    min-height: 160px;
+  }
+
+  &__folder {
+    align-items: center;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    color: #94a3b8;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: center;
+    padding: 20px;
+    transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+
+    span {
+      color: #475569;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    &:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      color: #64748b;
+    }
+  }
+
+  &__card {
+    background: #fff;
+    border: 1px solid var(--docs-border);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+
+    &:hover {
+      border-color: #93c5fd;
+      box-shadow: 0 4px 6px -1px rgb(15 23 42 / 10%), 0 2px 4px -2px rgb(15 23 42 / 10%);
+
+      .teacher-documents__menu,
+      footer a {
+        opacity: 1;
+      }
+    }
+
+    h2 {
+      color: var(--docs-text);
+      display: -webkit-box;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0;
+      line-height: 1.3;
+      margin: 0;
+      min-height: 36px;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+  }
+
+  &__card-head {
+    align-items: flex-start;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  &__file-icon {
+    align-items: center;
+    border-radius: 8px;
+    display: inline-flex;
+    height: 44px;
+    justify-content: center;
+    width: 44px;
+  }
+
+  .is-pdf &__file-icon {
+    background: #fef2f2;
+    color: #ef4444;
+  }
+
+  .is-audio &__file-icon {
+    background: #f5f3ff;
+    color: #7c3aed;
+  }
+
+  .is-link &__file-icon {
+    background: #eff6ff;
+    color: #3b82f6;
+  }
+
+  &__menu {
+    border-radius: 6px !important;
+    color: #94a3b8 !important;
+    height: 28px !important;
+    opacity: 0;
+    transition: opacity 180ms ease, background 180ms ease, color 180ms ease;
+    width: 28px !important;
+
+    &:hover {
+      background: #f8fafc !important;
+      color: #334155 !important;
+    }
+  }
+
+  &__card-spacer {
+    flex: 1 1 auto;
+    min-height: 20px;
+  }
+
+  &__category {
+    align-self: flex-start;
+    background: #f1f5f9;
+    border-radius: 4px;
+    color: var(--docs-muted);
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 12px;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 5px 8px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  footer {
+    align-items: center;
+    border-top: 1px solid #f8fafc;
+    color: var(--docs-muted);
+    display: flex;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 10px;
+    justify-content: space-between;
+    padding-top: 12px;
+
+    > span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    a {
+      align-items: center;
+      color: var(--docs-blue);
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 800;
+      gap: 4px;
+      opacity: 0;
+      text-decoration: none;
+      transition: color 180ms ease, opacity 180ms ease;
+
+      &:hover {
+        color: #1e40af;
+      }
+    }
+  }
+
+  &__empty,
+  &__loading {
+    align-items: center;
+    color: var(--docs-muted);
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+    min-height: 280px;
+    text-align: center;
+  }
+
+  &__empty {
+    strong {
+      color: var(--docs-text);
+      font-size: 18px;
+      font-weight: 800;
+    }
+  }
+
+  &__dialog {
+    border-radius: 12px !important;
+  }
+}
+
+@media (max-width: 1120px) {
+  .teacher-documents {
+    &__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: 840px) {
+  .teacher-documents {
+    &__filters {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__search {
+      flex-basis: auto;
+      width: 100%;
+    }
+
+    &__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: 620px) {
+  .teacher-documents {
+    &__header {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__create {
+      width: 100%;
+    }
+
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+</style>

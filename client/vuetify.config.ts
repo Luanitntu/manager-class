@@ -1,6 +1,6 @@
 import { defineVuetifyConfiguration } from 'vuetify-nuxt-module/custom-configuration';
 
-// Spike-inspired clean SaaS theme.
+// Schedule Teacher clean education SaaS theme.
 export default defineVuetifyConfiguration({
   theme: {
     defaultTheme: 'light',
@@ -8,7 +8,7 @@ export default defineVuetifyConfiguration({
       light: {
         dark: false,
         colors: {
-          primary: '#5D87FF',
+          primary: '#0D6EFD',
           secondary: '#49BEFF',
           success: '#13DEB9',
           info: '#539BFF',

@@ -40,11 +40,11 @@ const onSubmit = handleSubmit(async (values) => {
   <v-app>
     <main class="register-shell">
       <section class="register-form-pane">
-        <NuxtLink to="/" class="register-brand" aria-label="PrepTeacher">
+        <NuxtLink to="/" class="register-brand" aria-label="ScheduleTeacher">
           <span class="register-brand__icon">
             <v-icon icon="mdi-calendar-check" size="20" />
           </span>
-          <span>PrepTeacher</span>
+          <span>ScheduleTeacher</span>
         </NuxtLink>
 
         <div class="register-card">
@@ -149,7 +149,7 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
 
           <div class="register-social">
-            <button type="button" class="register-social-button" aria-disabled="true">
+            <button type="button" class="register-social-button" disabled aria-disabled="true">
               <svg class="register-social-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -170,7 +170,7 @@ const onSubmit = handleSubmit(async (values) => {
               </svg>
               <span>Google</span>
             </button>
-            <button type="button" class="register-social-button" aria-disabled="true">
+            <button type="button" class="register-social-button" disabled aria-disabled="true">
               <v-icon icon="mdi-github" size="20" />
               <span>GitHub</span>
             </button>
@@ -268,7 +268,7 @@ $slate-900: #0f172a;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: $brand-blue;
+  color: var(--st-primary);
   font-size: 20px;
   line-height: 1;
   font-weight: 800;
@@ -279,7 +279,7 @@ $slate-900: #0f172a;
     height: 32px;
     flex: 0 0 32px;
     border-radius: 8px;
-    background: $brand-blue;
+    background: var(--st-primary);
     color: #fff;
     @include center-flex;
   }
@@ -305,7 +305,7 @@ $slate-900: #0f172a;
 
   p {
     margin: 0;
-    color: $slate-500;
+    color: $slate-600;
     font-size: 16px;
     line-height: 1.5;
   }
@@ -349,8 +349,8 @@ $slate-900: #0f172a;
 .register-input-wrap input {
   width: 100%;
   min-height: 50px;
-  border: 1px solid $slate-200;
-  border-radius: 12px;
+  border: 1px solid var(--st-border);
+  border-radius: 8px;
   outline: 0;
   background: #fff;
   color: $slate-900;
@@ -364,8 +364,8 @@ $slate-900: #0f172a;
   }
 
   &:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgb(191 219 254 / 85%);
+    border-color: var(--st-primary);
+    box-shadow: var(--st-focus);
   }
 
   &[aria-invalid="true"] {
@@ -382,7 +382,7 @@ $slate-900: #0f172a;
 
 .register-error {
   border: 1px solid #fecaca;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #fef2f2;
   color: #b91c1c;
   padding: 12px 14px;
@@ -411,8 +411,8 @@ $slate-900: #0f172a;
   width: 100%;
   min-height: 52px;
   border: 0;
-  border-radius: 12px;
-  background: $brand-blue;
+  border-radius: 8px;
+  background: var(--st-primary);
   color: #fff;
   padding: 14px 18px;
   display: inline-flex;
@@ -422,7 +422,7 @@ $slate-900: #0f172a;
   font-size: 16px;
   font-weight: 800;
   line-height: 1;
-  box-shadow: 0 10px 22px rgb(191 219 254 / 100%);
+  box-shadow: none;
   cursor: pointer;
   transition: background 160ms ease, transform 160ms ease;
 
@@ -465,8 +465,8 @@ $slate-900: #0f172a;
 
 .register-social-button {
   min-height: 46px;
-  border: 1px solid $slate-200;
-  border-radius: 12px;
+  border: 1px solid var(--st-border);
+  border-radius: 8px;
   background: #fff;
   color: $slate-700;
   display: inline-flex;
@@ -477,11 +477,13 @@ $slate-900: #0f172a;
   font-size: 15px;
   font-weight: 600;
   line-height: 1;
-  cursor: default;
-  transition: background 160ms ease;
+  cursor: not-allowed;
+  opacity: 0.58;
+  transition: background 160ms ease, border-color 160ms ease;
 
-  &:hover {
-    background: $slate-50;
+  &:hover:not(:disabled) {
+    border-color: var(--st-primary);
+    background: var(--st-bg-soft);
   }
 }
 
@@ -537,12 +539,12 @@ $slate-900: #0f172a;
   }
 
   &__tint {
-    background: rgb(30 58 138 / 20%);
+    background: rgb(8 145 178 / 18%);
     mix-blend-mode: multiply;
   }
 
   &__gradient {
-    background: linear-gradient(to top, rgb(15 23 42 / 80%), transparent 58%, transparent);
+    background: linear-gradient(to top, rgb(22 78 99 / 82%), transparent 58%, transparent);
   }
 }
 

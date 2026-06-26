@@ -1,9 +1,14 @@
 import tailwindcss from '@tailwindcss/vite';
+import type { NuxtConfig } from 'nuxt/schema';
+
+const env = (globalThis as typeof globalThis & {
+  process?: { env?: Record<string, string | undefined> };
+}).process?.env;
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
-export default defineNuxtConfig({
+export default {
   compatibilityDate: '2025-01-01',
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   modules: [
     '@pinia/nuxt',
@@ -23,7 +28,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3001/api/v1',
+      apiBase: env?.NUXT_PUBLIC_API_BASE || 'http://localhost:3001/api/v1',
     },
   },
 
@@ -59,7 +64,8 @@ export default defineNuxtConfig({
         '@fullcalendar/timegrid',
         '@fullcalendar/interaction',
         '@fullcalendar/vue3',
+        '@tanstack/vue-query',
       ],
     },
   },
-});
+} satisfies NuxtConfig;
