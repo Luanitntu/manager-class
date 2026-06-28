@@ -330,7 +330,7 @@ function dotColor(index: number) {
 
     h1 {
       font-size: 32px;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: 0;
       line-height: 1.18;
       margin: 20px 0 14px;
@@ -364,7 +364,7 @@ function dotColor(index: number) {
     display: inline-flex;
     flex: 0 0 191px;
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 800;
     height: 42px !important;
     letter-spacing: 0;
     margin-top: 26px;
@@ -486,7 +486,7 @@ function dotColor(index: number) {
     strong {
       color: var(--dash-text);
       font-size: 25px;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: 0;
       line-height: 1.1;
       margin-top: 10px;
@@ -501,7 +501,7 @@ function dotColor(index: number) {
     small {
       color: #009f6b;
       font-size: 13px;
-      font-weight: 900;
+      font-weight: 800;
     }
   }
 
@@ -557,7 +557,7 @@ function dotColor(index: number) {
     h2 {
       color: var(--dash-text);
       font-size: 20px;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: 0;
     }
 
@@ -566,7 +566,7 @@ function dotColor(index: number) {
       color: var(--dash-blue);
       display: inline-flex;
       font-size: 14px;
-      font-weight: 900;
+      font-weight: 800;
       text-decoration: none;
     }
   }
@@ -596,7 +596,7 @@ function dotColor(index: number) {
       color: var(--dash-text);
       display: block;
       font-size: 15px;
-      font-weight: 900;
+      font-weight: 800;
       line-height: 1.1;
     }
 
@@ -636,7 +636,7 @@ function dotColor(index: number) {
     h3 {
       color: var(--dash-text);
       font-size: 16px;
-      font-weight: 900;
+      font-weight: 800;
       line-height: 1.2;
       margin: 0 0 7px;
     }
@@ -645,7 +645,7 @@ function dotColor(index: number) {
       color: var(--dash-blue);
       display: inline-block;
       font-size: 14px;
-      font-weight: 900;
+      font-weight: 800;
       margin-bottom: 14px;
       text-decoration: none;
     }
@@ -690,7 +690,7 @@ function dotColor(index: number) {
     h2 {
       color: var(--dash-text);
       font-size: 20px;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: 0;
     }
   }
@@ -705,7 +705,7 @@ function dotColor(index: number) {
   &__weekdays {
     color: #78889e;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 800;
     margin-bottom: 13px;
   }
 
@@ -770,7 +770,7 @@ function dotColor(index: number) {
     strong {
       color: var(--dash-text);
       font-size: 15px;
-      font-weight: 900;
+      font-weight: 800;
 
       &.is-urgent {
         color: #f1293a;
@@ -797,7 +797,7 @@ function dotColor(index: number) {
     strong {
       color: var(--dash-text);
       font-size: 17px;
-      font-weight: 900;
+      font-weight: 800;
     }
   }
 }

@@ -275,7 +275,7 @@ function addDays(date: Date, amount: number) {
     h1 {
       color: #0f172a;
       font-size: 26px;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: 0;
       line-height: 1.15;
       margin: 0 0 6px;
@@ -297,7 +297,7 @@ function addDays(date: Date, amount: number) {
     strong {
       color: #0f172a;
       font-size: 14px;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: 0;
       min-width: 144px;
       text-align: center;
@@ -356,7 +356,7 @@ function addDays(date: Date, amount: number) {
     span {
       color: #536783;
       font-size: 13px;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: 0.02em;
       line-height: 1.25;
     }
@@ -366,7 +366,7 @@ function addDays(date: Date, amount: number) {
       color: #0f172a;
       display: inline-flex;
       font-size: 20px;
-      font-weight: 900;
+      font-weight: 800;
       height: 34px;
       justify-content: center;
       line-height: 1;
@@ -435,7 +435,7 @@ function addDays(date: Date, amount: number) {
     color: var(--schedule-accent);
     display: inline-flex;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1;
     max-width: 100%;
     overflow: hidden;
@@ -449,7 +449,7 @@ function addDays(date: Date, amount: number) {
     border-radius: 999px;
     color: #ff5d73;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1;
     padding: 8px 12px;
     white-space: nowrap;
@@ -458,7 +458,7 @@ function addDays(date: Date, amount: number) {
   h2 {
     color: #0f172a;
     font-size: 19px;
-    font-weight: 900;
+    font-weight: 800;
     letter-spacing: 0;
     line-height: 1.25;
     margin: 0 0 18px;
@@ -504,7 +504,7 @@ function addDays(date: Date, amount: number) {
     box-shadow: none !important;
     color: #1e3352 !important;
     font-size: 15px;
-    font-weight: 900;
+    font-weight: 800;
     height: 40px !important;
     letter-spacing: 0;
     min-width: 170px !important;

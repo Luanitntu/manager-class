@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 @theme {
@@ -50,7 +50,7 @@
 
 :root {
   --st-content-max: 1400px;
-  --st-font-family: 'Plus Jakarta Sans', 'Roboto', sans-serif;
+  --st-font-family: 'Nunito', Arial, sans-serif;
   --st-primary: #0d6efd;
   --st-primary-dark: #075dee;
   --st-secondary: #49beff;
@@ -61,10 +61,30 @@
   --st-muted: #475569;
   --st-border: #dce5f1;
   --st-focus: 0 0 0 3px rgb(13 110 253 / 16%);
+  --st-radius: 8px;
+  --st-space-page: 32px;
+  --st-space-page-sm: 18px;
+  --st-text-xs: 12px;
+  --st-text-sm: 14px;
+  --st-text-md: 16px;
+  --st-text-lg: 18px;
+  --st-text-xl: 20px;
+  --st-text-page-title: 24px;
+  --st-text-hero: 32px;
+  --st-leading-tight: 1.2;
+  --st-leading-copy: 1.5;
+  --st-weight-regular: 400;
+  --st-weight-medium: 500;
+  --st-weight-semibold: 600;
+  --st-weight-bold: 700;
+  --st-weight-heavy: 800;
 }
 
 html {
   scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html,
@@ -94,6 +114,15 @@ button:disabled {
 
 .v-application {
   font-family: var(--st-font-family), sans-serif;
+}
+
+.v-overlay-container,
+.v-btn,
+.v-card,
+.v-field,
+.v-list,
+.v-table {
+  font-family: var(--st-font-family);
 }
 
 .st-content {

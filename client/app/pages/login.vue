@@ -7,8 +7,8 @@ definePageMeta({ layout: false });
 
 const { login } = useAuth();
 const route = useRoute();
-const error = ref<string | null>(null);
 const loading = ref(false);
+const toast = useToast();
 
 const schema = toTypedSchema(
   z.object({
@@ -26,20 +26,24 @@ const socialButtons = [
   { name: 'GitHub', icon: 'github' },
 ];
 
-const onSubmit = handleSubmit(async (values) => {
-  error.value = null;
-  loading.value = true;
-  try {
-    const res = await login(values.identifier, values.password);
-    const home = res.user.role === 'SUPER_ADMIN' ? '/dashboard' : '/calendar';
-    const redirect = (route.query.redirect as string) || home;
-    await navigateTo(redirect);
-  } catch (e: unknown) {
-    error.value = extractApiError(e) ?? 'Đăng nhập không thành công';
-  } finally {
-    loading.value = false;
-  }
-});
+const onSubmit = handleSubmit(
+  async (values) => {
+    loading.value = true;
+    try {
+      const res = await login(values.identifier, values.password);
+      const home = res.user.role === 'SUPER_ADMIN' ? '/dashboard' : '/calendar';
+      const redirect = (route.query.redirect as string) || home;
+      await navigateTo(redirect);
+    } catch (e: unknown) {
+      toast.error(extractApiError(e) ?? 'Đăng nhập không thành công', 'Đăng nhập thất bại');
+    } finally {
+      loading.value = false;
+    }
+  },
+  () => {
+    toast.warning('Vui lòng nhập đầy đủ email và mật khẩu.', 'Thông tin chưa hợp lệ');
+  },
+);
 </script>
 
 <template>
@@ -68,10 +72,6 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
 
           <form class="login-form" @submit.prevent="onSubmit">
-            <div v-if="error" class="login-error">
-              {{ error }}
-            </div>
-
             <div class="login-fields">
               <div class="login-field">
                 <label for="login-identifier">
@@ -93,8 +93,13 @@ const onSubmit = handleSubmit(async (values) => {
                     aria-describedby="login-identifier-error"
                   >
                 </div>
-                <p v-if="errors.identifier" id="login-identifier-error" class="login-field-error">
-                  {{ errors.identifier }}
+                <p
+                  id="login-identifier-error"
+                  class="login-field-error"
+                  :class="{ 'is-visible': errors.identifier }"
+                  aria-live="polite"
+                >
+                  {{ errors.identifier || '' }}
                 </p>
               </div>
 
@@ -117,8 +122,13 @@ const onSubmit = handleSubmit(async (values) => {
                     aria-describedby="login-password-error"
                   >
                 </div>
-                <p v-if="errors.password" id="login-password-error" class="login-field-error">
-                  {{ errors.password }}
+                <p
+                  id="login-password-error"
+                  class="login-field-error"
+                  :class="{ 'is-visible': errors.password }"
+                  aria-live="polite"
+                >
+                  {{ errors.password || '' }}
                 </p>
               </div>
             </div>
@@ -224,17 +234,24 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
         </div>
       </section>
+
     </main>
   </v-app>
 </template>
 
 <style scoped>
 .login-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
   display: flex;
   background: var(--st-surface);
   color: #0f172a;
   font-family: var(--st-font-family);
+}
+
+.login-shell,
+.login-shell * {
+  box-sizing: border-box;
 }
 
 .login-shell :deep(.v-icon) {
@@ -250,17 +267,18 @@ const onSubmit = handleSubmit(async (values) => {
   position: relative;
   z-index: 1;
   width: 50%;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 96px;
+  overflow-y: auto;
+  padding: clamp(88px, 12vh, 128px) clamp(40px, 6vw, 88px) clamp(32px, 7vh, 72px);
 }
 
 .login-brand {
   position: absolute;
-  top: 32px;
-  left: 40px;
+  top: clamp(22px, 4vh, 32px);
+  left: clamp(24px, 4vw, 40px);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -285,47 +303,37 @@ const onSubmit = handleSubmit(async (values) => {
 
 .login-card {
   width: 100%;
-  max-width: 452px;
+  max-width: clamp(392px, 32vw, 440px);
 }
 
 .login-heading {
-  margin-bottom: 32px;
+  margin-bottom: 22px;
 }
 
 .login-heading h1 {
   margin: 0 0 8px;
   color: #0f172a;
-  font-size: 30px;
-  line-height: 1.2;
-  font-weight: 900;
+  font-size: clamp(26px, 2.6vw, 32px);
+  line-height: 1.16;
+  font-weight: 800;
   letter-spacing: 0;
 }
 
 .login-heading p {
   margin: 0;
   color: #475569;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.55;
 }
 
 .login-form {
   display: grid;
-  gap: 24px;
-}
-
-.login-error {
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  background: #fef2f2;
-  color: #b91c1c;
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 600;
+  gap: 16px;
 }
 
 .login-fields {
   display: grid;
-  gap: 20px;
+  gap: 8px;
 }
 
 .login-field label {
@@ -345,8 +353,8 @@ const onSubmit = handleSubmit(async (values) => {
   position: absolute;
   inset-block: 0;
   left: 0;
-  width: 44px;
-  height: 52px;
+  width: 46px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -356,14 +364,14 @@ const onSubmit = handleSubmit(async (values) => {
 
 .login-input-wrap input {
   width: 100%;
-  height: 52px;
+  height: 50px;
   border: 1px solid var(--st-border);
   border-radius: 8px;
   background: #fff;
   color: #0f172a;
-  padding: 0 16px 0 44px;
+  padding: 0 16px 0 46px;
   font-size: 15px;
-  line-height: 52px;
+  line-height: 50px;
   outline: none;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
@@ -382,14 +390,21 @@ const onSubmit = handleSubmit(async (values) => {
 }
 
 .login-field-error {
-  margin: 6px 0 0;
+  margin: 5px 0 0;
   color: #dc2626;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
+  line-height: 1.35;
+  min-height: 16px;
+  visibility: hidden;
+}
+
+.login-field-error.is-visible {
+  visibility: visible;
 }
 
 .login-options {
-  min-height: 24px;
+  min-height: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -427,7 +442,7 @@ const onSubmit = handleSubmit(async (values) => {
 
 .login-submit {
   width: 100%;
-  height: 54px;
+  height: 50px;
   border: 0;
   border-radius: 8px;
   background: var(--st-primary);
@@ -437,7 +452,7 @@ const onSubmit = handleSubmit(async (values) => {
   justify-content: center;
   gap: 8px;
   line-height: 1;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   box-shadow: none;
   cursor: pointer;
@@ -455,7 +470,7 @@ const onSubmit = handleSubmit(async (values) => {
 
 .login-divider {
   position: relative;
-  margin: 32px 0;
+  margin: 20px 0;
   display: flex;
   justify-content: center;
   color: #64748b;
@@ -483,11 +498,11 @@ const onSubmit = handleSubmit(async (values) => {
 .login-social {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .login-social-button {
-  height: 46px;
+  height: 42px;
   border: 1px solid var(--st-border);
   border-radius: 8px;
   background: #fff;
@@ -497,7 +512,7 @@ const onSubmit = handleSubmit(async (values) => {
   justify-content: center;
   gap: 8px;
   line-height: 1;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   transition: border-color 160ms ease, background 160ms ease;
 }
@@ -519,7 +534,7 @@ const onSubmit = handleSubmit(async (values) => {
 }
 
 .login-register {
-  margin: 32px 0 0;
+  margin: 20px 0 0;
   color: #64748b;
   text-align: center;
   font-size: 14px;
@@ -529,7 +544,7 @@ const onSubmit = handleSubmit(async (values) => {
   position: relative;
   display: block;
   width: 50%;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   background: var(--st-bg-soft);
 }
@@ -568,7 +583,7 @@ const onSubmit = handleSubmit(async (values) => {
 
 .login-quote blockquote {
   margin: 0 0 24px;
-  font-size: 26px;
+  font-size: clamp(20px, 2.2vw, 28px);
   line-height: 1.45;
   font-weight: 700;
 }
@@ -607,15 +622,17 @@ const onSubmit = handleSubmit(async (values) => {
 @media (max-width: 1023px) {
   .login-shell {
     display: block;
+    min-height: 100dvh;
   }
 
   .login-form-pane {
     width: 100%;
-    padding: 96px 32px 48px;
+    min-height: 100dvh;
+    padding: clamp(88px, 12vh, 112px) clamp(24px, 6vw, 40px) 40px;
   }
 
   .login-brand {
-    left: 32px;
+    left: clamp(20px, 6vw, 32px);
   }
 
   .login-visual {
@@ -625,16 +642,102 @@ const onSubmit = handleSubmit(async (values) => {
 
 @media (max-width: 520px) {
   .login-form-pane {
-    padding-inline: 24px;
+    padding-inline: 20px;
+    padding-bottom: 28px;
   }
 
   .login-card {
-    max-width: none;
+    width: calc(100vw - 40px);
+    max-width: 360px;
   }
 
   .login-options {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .login-social {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 740px) {
+  .login-form-pane {
+    padding-top: 74px;
+    padding-bottom: 18px;
+  }
+
+  .login-brand {
+    top: 24px;
+  }
+
+  .login-heading {
+    margin-bottom: 14px;
+  }
+
+  .login-heading h1 {
+    font-size: 24px;
+  }
+
+  .login-heading p {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .login-form {
+    gap: 10px;
+  }
+
+  .login-fields {
+    gap: 4px;
+  }
+
+  .login-field label {
+    margin-bottom: 4px;
+    line-height: 1.35;
+  }
+
+  .login-input-icon,
+  .login-input-wrap input {
+    height: 44px;
+  }
+
+  .login-input-wrap input {
+    line-height: 44px;
+  }
+
+  .login-field-error {
+    margin-top: 4px;
+    min-height: 16px;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .login-options {
+    min-height: 20px;
+    font-size: 13px;
+  }
+
+  .login-submit {
+    height: 46px;
+  }
+
+  .login-divider {
+    margin: 16px 0;
+  }
+
+  .login-social {
+    gap: 12px;
+  }
+
+  .login-social-button {
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .login-register {
+    margin-top: 14px;
+    font-size: 13px;
   }
 }
 </style>

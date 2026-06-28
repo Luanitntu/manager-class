@@ -520,7 +520,6 @@ const studentNavItems = [
   --student-shell-border: #e2e8f0;
 
   color: var(--student-shell-text);
-  font-family: Nunito, Roboto, sans-serif;
 
   &__drawer {
     border-right: 1px solid var(--student-shell-border);
@@ -550,7 +549,7 @@ const studentNavItems = [
     > span {
       color: var(--student-shell-blue);
       font-size: 20px;
-      font-weight: 900;
+      font-weight: var(--st-weight-heavy);
       letter-spacing: 0;
       line-height: 1;
 
@@ -567,7 +566,7 @@ const studentNavItems = [
   &__nav-label {
     color: #94a3b8;
     font-size: 12px;
-    font-weight: 900;
+    font-weight: var(--st-weight-heavy);
     letter-spacing: 0.04em;
     margin: 0 12px 10px;
   }
@@ -580,8 +579,8 @@ const studentNavItems = [
 
   &__nav-item {
     color: #50627d;
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 14px;
+    font-weight: var(--st-weight-bold);
     min-height: 44px;
     padding-inline: 12px;
 
@@ -599,8 +598,8 @@ const studentNavItems = [
     }
 
     :deep(.v-list-item-title) {
-      font-size: 16px;
-      font-weight: 800;
+      font-size: 14px;
+      font-weight: var(--st-weight-bold);
       letter-spacing: 0;
     }
 
@@ -628,7 +627,7 @@ const studentNavItems = [
     h4 {
       color: #0f172a;
       font-size: 14px;
-      font-weight: 900;
+      font-weight: var(--st-weight-heavy);
       letter-spacing: 0;
       margin-bottom: 6px;
     }
@@ -636,7 +635,7 @@ const studentNavItems = [
     p {
       color: #64748b;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: var(--st-weight-medium);
       line-height: 1.45;
       margin: 0 0 13px;
     }
@@ -649,7 +648,7 @@ const studentNavItems = [
       color: var(--student-shell-blue);
       cursor: pointer;
       font-size: 12px;
-      font-weight: 900;
+      font-weight: var(--st-weight-bold);
       height: 33px;
       width: 100%;
     }
@@ -673,7 +672,7 @@ const studentNavItems = [
     color: #8ba0bb;
     display: flex;
     gap: 12px;
-    height: 40px;
+    height: 38px;
     margin-left: 24px;
     max-width: 448px;
     padding: 0 12px;
@@ -709,7 +708,7 @@ const studentNavItems = [
     cursor: pointer;
     display: flex;
     font-size: 14px;
-    font-weight: 900;
+    font-weight: var(--st-weight-heavy);
     gap: 6px;
     height: 34px;
     justify-content: center;
@@ -750,7 +749,7 @@ const studentNavItems = [
     strong {
       color: #0f172a;
       font-size: 14px;
-      font-weight: 900;
+      font-weight: var(--st-weight-heavy);
       max-width: 92px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -772,7 +771,7 @@ const studentNavItems = [
   }
 
   &__content {
-    padding: 32px;
+    padding: var(--st-space-page);
   }
 }
 
@@ -842,7 +841,7 @@ const studentNavItems = [
     }
 
     &__content {
-      padding: 18px;
+      padding: var(--st-space-page-sm);
     }
   }
 
@@ -858,7 +857,7 @@ const studentNavItems = [
     }
 
     &__content {
-      padding: 16px;
+      padding: var(--st-space-page-sm);
     }
   }
 }

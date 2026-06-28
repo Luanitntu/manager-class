@@ -6,8 +6,8 @@ import { z } from 'zod';
 definePageMeta({ layout: false });
 
 const { register } = useAuth();
-const error = ref<string | null>(null);
 const loading = ref(false);
+const toast = useToast();
 
 const schema = toTypedSchema(
   z.object({
@@ -22,18 +22,22 @@ const [fullName, fullNameAttrs] = defineField('fullName');
 const [email, emailAttrs] = defineField('email');
 const [password, passwordAttrs] = defineField('password');
 
-const onSubmit = handleSubmit(async (values) => {
-  error.value = null;
-  loading.value = true;
-  try {
-    await register(values);
-    await navigateTo('/calendar');
-  } catch (e: unknown) {
-    error.value = extractApiError(e) ?? 'Đăng ký không thành công';
-  } finally {
-    loading.value = false;
-  }
-});
+const onSubmit = handleSubmit(
+  async (values) => {
+    loading.value = true;
+    try {
+      await register(values);
+      await navigateTo('/calendar');
+    } catch (e: unknown) {
+      toast.error(extractApiError(e) ?? 'Đăng ký không thành công', 'Đăng ký thất bại');
+    } finally {
+      loading.value = false;
+    }
+  },
+  () => {
+    toast.warning('Vui lòng kiểm tra đầy đủ thông tin đăng ký.', 'Thông tin chưa hợp lệ');
+  },
+);
 </script>
 
 <template>
@@ -54,10 +58,6 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
 
           <form class="register-form" @submit.prevent="onSubmit">
-            <div v-if="error" class="register-error">
-              {{ error }}
-            </div>
-
             <div class="register-fields">
               <div class="register-field">
                 <label for="register-full-name">Họ và tên</label>
@@ -76,8 +76,13 @@ const onSubmit = handleSubmit(async (values) => {
                     aria-describedby="register-full-name-error"
                   >
                 </div>
-                <p v-if="errors.fullName" id="register-full-name-error" class="register-field-error">
-                  {{ errors.fullName }}
+                <p
+                  id="register-full-name-error"
+                  class="register-field-error"
+                  :class="{ 'is-visible': errors.fullName }"
+                  aria-live="polite"
+                >
+                  {{ errors.fullName || '' }}
                 </p>
               </div>
 
@@ -99,8 +104,13 @@ const onSubmit = handleSubmit(async (values) => {
                     aria-describedby="register-email-error"
                   >
                 </div>
-                <p v-if="errors.email" id="register-email-error" class="register-field-error">
-                  {{ errors.email }}
+                <p
+                  id="register-email-error"
+                  class="register-field-error"
+                  :class="{ 'is-visible': errors.email }"
+                  aria-live="polite"
+                >
+                  {{ errors.email || '' }}
                 </p>
               </div>
 
@@ -121,8 +131,13 @@ const onSubmit = handleSubmit(async (values) => {
                     aria-describedby="register-password-error"
                   >
                 </div>
-                <p v-if="errors.password" id="register-password-error" class="register-field-error">
-                  {{ errors.password }}
+                <p
+                  id="register-password-error"
+                  class="register-field-error"
+                  :class="{ 'is-visible': errors.password }"
+                  aria-live="polite"
+                >
+                  {{ errors.password || '' }}
                 </p>
               </div>
             </div>
@@ -232,7 +247,8 @@ $slate-900: #0f172a;
 }
 
 .register-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
   display: flex;
   flex-direction: row-reverse;
   background: #fff;
@@ -249,22 +265,29 @@ $slate-900: #0f172a;
   }
 }
 
+.register-shell,
+.register-shell * {
+  box-sizing: border-box;
+}
+
 .register-form-pane {
   position: relative;
   z-index: 10;
   width: 50%;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 48px 96px;
+  overflow-y: auto;
+  padding: clamp(82px, 10vh, 112px) clamp(40px, 6vw, 88px) clamp(28px, 6vh, 64px);
   background: #fff;
 }
 
 .register-brand {
   position: absolute;
-  top: 32px;
-  right: 48px;
+  top: clamp(22px, 4vh, 32px);
+  right: clamp(24px, 4vw, 48px);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -287,17 +310,17 @@ $slate-900: #0f172a;
 
 .register-card {
   width: 100%;
-  max-width: 448px;
+  max-width: clamp(392px, 32vw, 432px);
   margin: 0 auto;
   display: grid;
-  gap: 32px;
+  gap: 16px;
 }
 
 .register-heading {
   h1 {
     margin: 0 0 8px;
     color: $slate-900;
-    font-size: 30px;
+    font-size: clamp(26px, 2.4vw, 30px);
     line-height: 1.2;
     font-weight: 800;
     letter-spacing: 0;
@@ -306,19 +329,19 @@ $slate-900: #0f172a;
   p {
     margin: 0;
     color: $slate-600;
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.5;
   }
 }
 
 .register-form {
   display: grid;
-  gap: 20px;
+  gap: 12px;
 }
 
 .register-fields {
   display: grid;
-  gap: 16px;
+  gap: 4px;
 }
 
 .register-field {
@@ -327,7 +350,8 @@ $slate-900: #0f172a;
     margin-bottom: 4px;
     color: $slate-700;
     font-size: 14px;
-    font-weight: 600;
+    line-height: 1.35;
+    font-weight: 700;
   }
 }
 
@@ -339,8 +363,8 @@ $slate-900: #0f172a;
   position: absolute;
   inset-block: 0;
   left: 0;
-  width: 40px;
-  height: 50px;
+  width: 42px;
+  height: 44px;
   color: $slate-400;
   pointer-events: none;
   @include center-flex;
@@ -348,15 +372,15 @@ $slate-900: #0f172a;
 
 .register-input-wrap input {
   width: 100%;
-  min-height: 50px;
+  height: 44px;
   border: 1px solid var(--st-border);
   border-radius: 8px;
   outline: 0;
   background: #fff;
   color: $slate-900;
-  padding: 12px 16px 12px 40px;
-  font-size: 16px;
-  line-height: 1.4;
+  padding: 0 14px 0 42px;
+  font-size: 14px;
+  line-height: 44px;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 
   &::placeholder {
@@ -374,31 +398,30 @@ $slate-900: #0f172a;
 }
 
 .register-field-error {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: #dc2626;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  min-height: 16px;
+  visibility: hidden;
 }
 
-.register-error {
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  background: #fef2f2;
-  color: #b91c1c;
-  padding: 12px 14px;
-  font-size: 14px;
-  font-weight: 700;
+.register-field-error.is-visible {
+  visibility: visible;
 }
 
 .register-terms {
   margin: 0;
   color: $slate-500;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 
   a {
     color: $brand-blue;
     font-weight: 700;
+    overflow-wrap: anywhere;
     text-decoration: none;
 
     &:hover {
@@ -409,12 +432,12 @@ $slate-900: #0f172a;
 
 .register-submit {
   width: 100%;
-  min-height: 52px;
+  height: 48px;
   border: 0;
   border-radius: 8px;
   background: var(--st-primary);
   color: #fff;
-  padding: 14px 18px;
+  padding: 0 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -424,10 +447,10 @@ $slate-900: #0f172a;
   line-height: 1;
   box-shadow: none;
   cursor: pointer;
-  transition: background 160ms ease, transform 160ms ease;
+  transition: background 160ms ease, opacity 160ms ease;
 
   &:hover:not(:disabled) {
-    background: $brand-blue-dark;
+    background: var(--st-primary-dark);
   }
 
   &:disabled {
@@ -439,6 +462,7 @@ $slate-900: #0f172a;
 .register-divider {
   position: relative;
   text-align: center;
+  line-height: 1;
 
   &::before {
     content: "";
@@ -460,11 +484,11 @@ $slate-900: #0f172a;
 .register-social {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .register-social-button {
-  min-height: 46px;
+  height: 42px;
   border: 1px solid var(--st-border);
   border-radius: 8px;
   background: #fff;
@@ -473,9 +497,9 @@ $slate-900: #0f172a;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 14px;
-  font-size: 15px;
-  font-weight: 600;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 700;
   line-height: 1;
   cursor: not-allowed;
   opacity: 0.58;
@@ -519,7 +543,7 @@ $slate-900: #0f172a;
   position: relative;
   display: block;
   width: 50%;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   background: $slate-100;
 
@@ -559,7 +583,7 @@ $slate-900: #0f172a;
   h2 {
     max-width: 576px;
     margin: 0 0 16px;
-    font-size: 40px;
+    font-size: clamp(28px, 3.5vw, 44px);
     line-height: 1.16;
     font-weight: 800;
     letter-spacing: 0;
@@ -627,15 +651,18 @@ $slate-900: #0f172a;
 @media (max-width: 1023px) {
   .register-shell {
     display: block;
+    min-height: 100dvh;
   }
 
   .register-form-pane {
     width: 100%;
-    padding: 96px 32px 48px;
+    min-height: 100dvh;
+    padding: clamp(82px, 12vh, 104px) clamp(24px, 6vw, 40px) 32px;
   }
 
   .register-brand {
-    right: 32px;
+    right: auto;
+    left: clamp(20px, 6vw, 32px);
   }
 
   .register-visual {
@@ -645,23 +672,64 @@ $slate-900: #0f172a;
 
 @media (max-width: 639px) {
   .register-form-pane {
-    padding: 88px 24px 40px;
+    padding-inline: 20px;
+    padding-bottom: 24px;
   }
 
   .register-brand {
-    right: 24px;
+    left: 20px;
+    font-size: 18px;
   }
 
   .register-card {
-    gap: 28px;
+    width: calc(100vw - 40px);
+    max-width: 360px;
+    gap: 14px;
   }
 
   .register-heading h1 {
-    font-size: 28px;
+    font-size: 24px;
+  }
+
+  .register-heading p {
+    font-size: 14px;
   }
 
   .register-social {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-height: 740px) {
+  .register-form-pane {
+    padding-top: 74px;
+    padding-bottom: 18px;
+  }
+
+  .register-brand {
+    top: 24px;
+  }
+
+  .register-card {
+    gap: 12px;
+  }
+
+  .register-heading h1 {
+    font-size: 24px;
+  }
+
+  .register-heading p {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .register-form {
+    gap: 10px;
+  }
+
+  .register-social-button {
+    height: 40px;
   }
 }
 </style>

@@ -193,7 +193,7 @@ function descriptionText(item: ClassItem) {
 .student-classroom-eyebrow {
   color: #0071f9;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0.04em;
   margin: 0 0 8px;
   text-transform: uppercase;
@@ -202,7 +202,7 @@ function descriptionText(item: ClassItem) {
 .student-classroom-header h1 {
   color: #17233c;
   font-size: 32px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0;
   line-height: 1.18;
   margin: 0;
@@ -301,7 +301,7 @@ function descriptionText(item: ClassItem) {
 .student-classroom-stats strong {
   color: #0f172a;
   font-size: 28px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
 }
 
@@ -360,7 +360,7 @@ function descriptionText(item: ClassItem) {
   color: #475569;
   display: inline-block;
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0.04em;
   line-height: 1;
   max-width: 160px;
@@ -379,7 +379,7 @@ function descriptionText(item: ClassItem) {
   display: inline-flex;
   flex: 0 0 auto;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
   gap: 5px;
   line-height: 1;
   padding: 7px 10px;
@@ -388,7 +388,7 @@ function descriptionText(item: ClassItem) {
 .student-classroom-card h2 {
   color: #17233c;
   font-size: 21px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0;
   line-height: 1.25;
   margin: 0 0 8px;
@@ -398,7 +398,7 @@ function descriptionText(item: ClassItem) {
   color: #64748b;
   display: -webkit-box;
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.55;
   margin: 0 0 18px;
   min-height: 44px;
@@ -437,7 +437,7 @@ function descriptionText(item: ClassItem) {
 .student-classroom-metrics strong {
   color: #17233c;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.3;
 }
 
@@ -449,7 +449,7 @@ function descriptionText(item: ClassItem) {
   align-items: center;
   display: flex;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
   justify-content: space-between;
   margin-bottom: 8px;
 }
@@ -481,7 +481,7 @@ function descriptionText(item: ClassItem) {
   color: #64748b;
   display: inline-flex;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
   gap: 6px;
 }
 
@@ -490,7 +490,7 @@ function descriptionText(item: ClassItem) {
   color: #0071f9;
   display: inline-flex;
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 800;
   gap: 4px;
   text-decoration: none;
 }
@@ -512,7 +512,7 @@ function descriptionText(item: ClassItem) {
 .student-classroom-empty strong {
   color: #17233c;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .student-classroom-empty span {

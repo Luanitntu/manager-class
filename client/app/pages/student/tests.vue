@@ -231,7 +231,7 @@ function scoreTone(item: Score) {
 .student-tests__eyebrow {
   color: #0071f9;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0.04em;
   margin: 0 0 8px;
   text-transform: uppercase;
@@ -240,7 +240,7 @@ function scoreTone(item: Score) {
 .student-tests__header h1 {
   color: #17233c;
   font-size: 32px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0;
   line-height: 1.18;
   margin: 0;
@@ -344,7 +344,7 @@ function scoreTone(item: Score) {
 .student-tests__summary strong {
   color: #0f172a;
   font-size: 26px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
 }
 
@@ -376,7 +376,7 @@ function scoreTone(item: Score) {
   color: #475569;
   flex: 0 0 auto;
   font-size: 14px;
-  font-weight: 850;
+  font-weight: 800;
   min-height: 34px;
   padding: 0 16px;
 }
@@ -431,7 +431,7 @@ function scoreTone(item: Score) {
   color: #475569;
   display: inline-flex;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
   margin-bottom: 10px;
   padding: 7px 10px;
@@ -440,7 +440,7 @@ function scoreTone(item: Score) {
 .student-tests__card h2 {
   color: #17233c;
   font-size: 20px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0;
   line-height: 1.25;
   margin: 0 0 6px;
@@ -449,7 +449,7 @@ function scoreTone(item: Score) {
 .student-tests__card p {
   color: #64748b;
   font-size: 14px;
-  font-weight: 750;
+  font-weight: 700;
   margin: 0 0 14px;
 }
 
@@ -483,14 +483,14 @@ function scoreTone(item: Score) {
 .student-tests__score strong {
   color: #0f172a;
   font-size: 24px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
 }
 
 .student-tests__score span {
   color: #64748b;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .student-tests__progress {
@@ -526,7 +526,7 @@ function scoreTone(item: Score) {
 .student-tests__empty strong {
   color: #17233c;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .student-tests__empty span {

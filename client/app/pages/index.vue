@@ -410,7 +410,7 @@ $content-max: 1280px;
   gap: 8px;
   color: $brand-blue;
   font-size: 24px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
   letter-spacing: 0;
   text-decoration: none;
@@ -437,15 +437,16 @@ $content-max: 1280px;
   align-items: center;
   gap: 32px;
   color: $slate-700;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
+  line-height: 1.35;
 
   &__link {
     min-height: 40px;
     display: inline-flex;
     align-items: center;
     color: inherit;
-    line-height: 1;
+    line-height: inherit;
     text-decoration: none;
     transition: color 160ms ease;
 
@@ -520,7 +521,7 @@ $content-max: 1280px;
       color: $slate-900;
       font-size: 60px;
       line-height: 1.15;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: 0;
 
       span {
@@ -779,7 +780,7 @@ $content-max: 1280px;
     color: #fff;
     font-size: 48px;
     line-height: 1;
-    font-weight: 900;
+    font-weight: 800;
   }
 
   span {
@@ -807,7 +808,7 @@ $content-max: 1280px;
     margin: 0 0 12px;
     color: $brand-orange;
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 800;
     letter-spacing: 0.08em;
   }
 
@@ -816,7 +817,7 @@ $content-max: 1280px;
     color: $slate-900;
     font-size: 40px;
     line-height: 1.15;
-    font-weight: 900;
+    font-weight: 800;
     letter-spacing: 0;
   }
 
@@ -869,7 +870,7 @@ $content-max: 1280px;
     margin: 0 0 12px;
     color: $slate-900;
     font-size: 20px;
-    font-weight: 900;
+    font-weight: 800;
   }
 
   p {
@@ -922,7 +923,7 @@ $content-max: 1280px;
     color: $slate-900;
     font-size: 40px;
     line-height: 1.15;
-    font-weight: 900;
+    font-weight: 800;
     letter-spacing: 0;
   }
 
@@ -1021,7 +1022,7 @@ $content-max: 1280px;
       color: #fff;
       font-size: 48px;
       line-height: 1.15;
-      font-weight: 900;
+      font-weight: 800;
       letter-spacing: 0;
     }
 
@@ -1043,7 +1044,7 @@ $content-max: 1280px;
       color: #fff;
       padding: 20px 40px;
       font-size: 20px;
-      font-weight: 900;
+      font-weight: 800;
       line-height: 1.2;
       text-align: center;
       text-decoration: none;
@@ -1122,7 +1123,7 @@ $content-max: 1280px;
     margin: 0 0 24px;
     color: #fff;
     font-size: 18px;
-    font-weight: 900;
+    font-weight: 800;
   }
 
   ul {

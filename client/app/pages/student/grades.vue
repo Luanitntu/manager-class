@@ -275,7 +275,7 @@ function achievementText(percent: number) {
 .student-grades__score {
   color: inherit;
   font-size: 30px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.2;
   margin-bottom: 16px;
 }
@@ -411,7 +411,7 @@ function achievementText(percent: number) {
 .student-grades__result-number strong {
   display: block;
   font-size: 24px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
 }
 
