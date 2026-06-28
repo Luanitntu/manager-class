@@ -21,6 +21,7 @@ const error = ref<string | null>(null);
 const form = reactive({ fullName: '', email: '', password: '', phone: '' });
 
 async function create() {
+  if (createStudent.isPending.value) return;
   error.value = null;
   try {
     await createStudent.mutateAsync({ ...form });
@@ -87,7 +88,9 @@ function statusClass(student: Student) {
       </div>
 
       <div class="teacher-students__table-wrap">
-        <table v-if="students.length" class="teacher-students__table">
+        <AppSkeleton v-if="isLoading && !students.length" variant="table" :rows="5" :columns="5" />
+
+        <table v-else-if="students.length" class="teacher-students__table">
           <thead>
             <tr>
               <th>Học viên</th>
@@ -150,12 +153,9 @@ function statusClass(student: Student) {
         </table>
 
         <div v-else class="teacher-students__empty">
-          <v-progress-circular v-if="isLoading" color="primary" indeterminate size="32" />
-          <template v-else>
-            <v-icon size="38">mdi-account-school-outline</v-icon>
-            <strong>Chưa có học viên</strong>
-            <span>Thêm học viên đầu tiên để bắt đầu quản lý lớp học.</span>
-          </template>
+          <v-icon size="38">mdi-account-school-outline</v-icon>
+          <strong>Chưa có học viên</strong>
+          <span>Thêm học viên đầu tiên để bắt đầu quản lý lớp học.</span>
         </div>
       </div>
 

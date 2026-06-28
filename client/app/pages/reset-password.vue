@@ -20,6 +20,7 @@ const { handleSubmit, defineField, errors } = useForm({ validationSchema: schema
 const [password, passwordAttrs] = defineField('password');
 
 const onSubmit = handleSubmit(async (values) => {
+  if (loading.value) return;
   error.value = null;
   if (!token.value) {
     error.value = 'Missing or invalid reset token';
@@ -62,7 +63,7 @@ const onSubmit = handleSubmit(async (values) => {
         prepend-inner-icon="mdi-lock-outline"
         :error-messages="errors.password"
       />
-      <v-btn type="submit" color="primary" block size="large" :loading="loading">
+      <v-btn type="submit" color="primary" block size="large" :loading="loading" :disabled="loading">
         Update password
       </v-btn>
     </v-form>

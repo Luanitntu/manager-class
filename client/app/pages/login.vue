@@ -28,6 +28,7 @@ const socialButtons = [
 
 const onSubmit = handleSubmit(
   async (values) => {
+    if (loading.value) return;
     loading.value = true;
     try {
       const res = await login(values.identifier, values.password);

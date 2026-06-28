@@ -13,7 +13,7 @@ const emit = defineEmits<{
   saved: [];
 }>();
 
-const { data: classesData } = useClasses();
+const { data: classesData, isLoading: isClassesLoading } = useClasses();
 const { create, update, bulkCreate, remove } = useSessionMutations();
 
 const classes = computed(() => classesData.value?.data ?? []);
@@ -90,12 +90,14 @@ watch(
 const saving = computed(
   () => create.isPending.value || update.isPending.value || bulkCreate.isPending.value,
 );
+const deleting = computed(() => remove.isPending.value);
 
 function close() {
   emit('update:modelValue', false);
 }
 
 async function save() {
+  if (saving.value) return;
   error.value = null;
   try {
     if (mode.value === 'recurring' && !isEdit.value) {
@@ -129,6 +131,7 @@ async function save() {
 }
 
 async function deleteSession() {
+  if (deleting.value) return;
   if (!props.session) return;
   error.value = null;
   try {
@@ -166,12 +169,16 @@ async function deleteSession() {
           <v-btn value="recurring" size="small">Recurring</v-btn>
         </v-btn-toggle>
 
+        <AppSkeleton v-if="isClassesLoading && !classes.length" variant="form" :rows="1" class="mb-4" />
+
         <v-select
+          v-else
           v-model="form.classId"
           :items="classes"
           item-title="name"
           item-value="id"
           label="Class"
+          :loading="isClassesLoading"
           prepend-inner-icon="mdi-google-classroom"
         />
 
@@ -216,12 +223,14 @@ async function deleteSession() {
           color="error"
           variant="text"
           prepend-icon="mdi-delete"
+          :loading="deleting"
+          :disabled="deleting || saving"
           @click="deleteSession"
         >
           Delete
         </v-btn>
         <v-spacer />
-        <v-btn variant="text" @click="close">Cancel</v-btn>
+        <v-btn variant="text" :disabled="saving || deleting" @click="close">Cancel</v-btn>
         <v-btn color="primary" :loading="saving" :disabled="!form.classId" @click="save">
           Save
         </v-btn>

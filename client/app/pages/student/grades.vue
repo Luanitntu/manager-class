@@ -122,7 +122,9 @@ function achievementText(percent: number) {
       Không thể tải điểm số. Vui lòng thử lại sau.
     </v-alert>
 
-    <section v-if="summaries.length" class="student-grades__summary" aria-label="Tổng quan điểm số">
+    <AppSkeleton v-if="isLoading && !grades.length" variant="stats" :cards="2" />
+
+    <section v-else-if="summaries.length" class="student-grades__summary" aria-label="Tổng quan điểm số">
       <article
         v-for="summary in summaries"
         :key="summary.course"
@@ -148,7 +150,9 @@ function achievementText(percent: number) {
         <h2>Lịch sử điểm số</h2>
       </div>
 
-      <div v-if="grades.length" class="student-grades__list">
+      <AppSkeleton v-if="isLoading && !grades.length" variant="list" :rows="5" />
+
+      <div v-else-if="grades.length" class="student-grades__list">
         <article
           v-for="item in grades"
           :key="item.id"
@@ -173,12 +177,9 @@ function achievementText(percent: number) {
       </div>
 
       <div v-else class="student-grades__empty">
-        <v-progress-circular v-if="isLoading" color="primary" indeterminate size="34" />
-        <template v-else>
-          <v-icon size="42">mdi-chart-line-variant</v-icon>
-          <strong>Chưa có điểm số</strong>
-          <span>Khi giáo viên nhập điểm, kết quả học tập sẽ xuất hiện tại đây.</span>
-        </template>
+        <v-icon size="42">mdi-chart-line-variant</v-icon>
+        <strong>Chưa có điểm số</strong>
+        <span>Khi giáo viên nhập điểm, kết quả học tập sẽ xuất hiện tại đây.</span>
       </div>
     </section>
   </div>

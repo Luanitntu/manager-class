@@ -11,7 +11,7 @@ const props = defineProps<{ modelValue: boolean; studentId: string | null }>();
 const emit = defineEmits<{ 'update:modelValue': [boolean] }>();
 
 const idRef = computed(() => props.studentId);
-const { data: student } = useStudentDetail(idRef);
+const { data: student, isLoading: isStudentLoading } = useStudentDetail(idRef);
 const { data: scores } = useStudentScores(idRef);
 const { data: comments } = useStudentComments(idRef);
 const { data: classesData } = useClasses();
@@ -41,13 +41,16 @@ watch(student, (s) => {
 
 const scoreForm = reactive({ classId: '', type: 'QUIZ', value: 0, maxValue: 10, label: '' });
 const commentForm = reactive({ category: 'progress', content: '' });
+const deletingScoreId = ref<string | null>(null);
 
 async function saveProfile() {
+  if (updateProfile.isPending.value) return;
   if (!props.studentId) return;
   await updateProfile.mutateAsync({ id: props.studentId, body: { ...profile } });
 }
 
 async function submitScore() {
+  if (addScore.isPending.value) return;
   if (!props.studentId || !scoreForm.classId) return;
   await addScore.mutateAsync({
     id: props.studentId,
@@ -64,12 +67,23 @@ async function submitScore() {
 }
 
 async function submitComment() {
+  if (addComment.isPending.value) return;
   if (!props.studentId || !commentForm.content) return;
   await addComment.mutateAsync({
     id: props.studentId,
     body: { category: commentForm.category, content: commentForm.content },
   });
   commentForm.content = '';
+}
+
+async function removeScore(scoreId: string) {
+  if (deletingScoreId.value) return;
+  deletingScoreId.value = scoreId;
+  try {
+    await deleteScore.mutateAsync(scoreId);
+  } finally {
+    deletingScoreId.value = null;
+  }
 }
 </script>
 
@@ -153,7 +167,13 @@ async function submitComment() {
                 hide-details
                 style="max-width: 80px"
               />
-              <v-btn icon="mdi-plus" color="primary" :disabled="!scoreForm.classId" @click="submitScore" />
+              <v-btn
+                icon="mdi-plus"
+                color="primary"
+                :disabled="!scoreForm.classId || addScore.isPending.value"
+                :loading="addScore.isPending.value"
+                @click="submitScore"
+              />
             </div>
             <v-list>
               <v-list-item v-for="s in scores ?? []" :key="s.id">
@@ -162,7 +182,14 @@ async function submitComment() {
                 </v-list-item-title>
                 <template #append>
                   <span class="font-weight-bold mr-3">{{ s.value }} / {{ s.maxValue }}</span>
-                  <v-btn icon="mdi-delete" size="x-small" variant="text" @click="deleteScore.mutate(s.id)" />
+                  <v-btn
+                    icon="mdi-delete"
+                    size="x-small"
+                    variant="text"
+                    :disabled="!!deletingScoreId"
+                    :loading="deletingScoreId === s.id"
+                    @click="removeScore(s.id)"
+                  />
                 </template>
               </v-list-item>
               <div v-if="!scores?.length" class="text-center text-medium-emphasis pa-4">
@@ -189,7 +216,13 @@ async function submitComment() {
                 hide-details
                 @keyup.enter="submitComment"
               />
-              <v-btn icon="mdi-send" color="primary" :disabled="!commentForm.content" @click="submitComment" />
+              <v-btn
+                icon="mdi-send"
+                color="primary"
+                :disabled="!commentForm.content || addComment.isPending.value"
+                :loading="addComment.isPending.value"
+                @click="submitComment"
+              />
             </div>
             <v-timeline v-if="comments?.length" side="end" density="compact">
               <v-timeline-item v-for="c in comments" :key="c.id" dot-color="primary" size="x-small">
@@ -202,5 +235,6 @@ async function submitComment() {
         </v-window>
       </v-card-text>
     </v-card>
+    <AppSkeleton v-else-if="modelValue && studentId && isStudentLoading" variant="detail" :rows="6" />
   </v-dialog>
 </template>

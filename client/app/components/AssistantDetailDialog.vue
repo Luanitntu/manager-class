@@ -9,8 +9,8 @@ const props = defineProps<{ modelValue: boolean; assistantId: string | null }>()
 const emit = defineEmits<{ 'update:modelValue': [boolean] }>();
 
 const idRef = computed(() => props.assistantId);
-const { data: assistant } = useAssistantDetail(idRef);
-const { data: salary } = useAssistantSalary(idRef);
+const { data: assistant, isLoading: isAssistantLoading } = useAssistantDetail(idRef);
+const { data: salary, isLoading: isSalaryLoading } = useAssistantSalary(idRef);
 const { updateSalary } = useAssistantMutations();
 
 const form = reactive({ salaryMethod: 'PER_SESSION', salaryRate: 0, bio: '' });
@@ -23,6 +23,7 @@ watch(assistant, (a) => {
 });
 
 async function saveSalary() {
+  if (updateSalary.isPending.value) return;
   if (!props.assistantId) return;
   await updateSalary.mutateAsync({
     id: props.assistantId,
@@ -116,6 +117,7 @@ const methodLabel: Record<string, string> = {
             </tbody>
           </v-table>
         </div>
+        <AppSkeleton v-else-if="isSalaryLoading" variant="table" :rows="3" :columns="4" />
 
         <v-divider class="my-4" />
 
@@ -130,5 +132,6 @@ const methodLabel: Record<string, string> = {
         </div>
       </v-card-text>
     </v-card>
+    <AppSkeleton v-else-if="modelValue && assistantId && isAssistantLoading" variant="detail" :rows="5" />
   </v-dialog>
 </template>

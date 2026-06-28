@@ -169,6 +169,8 @@ function dotColor(index: number) {
     :is-loading="isLoading"
   />
 
+  <AppSkeleton v-else-if="isLoading && !data" variant="dashboard" />
+
   <div v-else class="teacher-dashboard">
     <section class="teacher-dashboard__hero">
       <div class="teacher-dashboard__hero-copy">
@@ -245,12 +247,9 @@ function dotColor(index: number) {
         </div>
 
         <div v-else class="teacher-dashboard__empty">
-          <v-progress-circular v-if="isLoading" color="primary" indeterminate size="28" />
-          <template v-else>
-            <v-icon size="34">mdi-calendar-plus-outline</v-icon>
-            <strong>Chưa có lịch dạy sắp tới</strong>
-            <span>Mở Calendar để tạo buổi học đầu tiên.</span>
-          </template>
+          <v-icon size="34">mdi-calendar-plus-outline</v-icon>
+          <strong>Chưa có lịch dạy sắp tới</strong>
+          <span>Mở Calendar để tạo buổi học đầu tiên.</span>
         </div>
       </v-card>
 

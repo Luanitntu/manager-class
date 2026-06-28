@@ -34,7 +34,9 @@ const createOpen = ref(false);
 const mode = ref<'link' | 'file'>('link');
 const error = ref<string | null>(null);
 const pageError = ref<string | null>(null);
+const deletingId = ref<string | null>(null);
 const form = reactive({ title: '', url: '', category: '', file: null as File | null });
+const isSavingDocument = computed(() => createLink.isPending.value || upload.isPending.value);
 
 function openCreate() {
   Object.assign(form, { title: '', url: '', category: '', file: null });
@@ -44,6 +46,7 @@ function openCreate() {
 }
 
 async function submit() {
+  if (isSavingDocument.value) return;
   error.value = null;
   try {
     if (mode.value === 'link') {
@@ -80,6 +83,7 @@ function openAssign(doc: DocumentItem) {
 }
 
 async function submitAssign() {
+  if (assign.isPending.value) return;
   if (!assignDoc.value) return;
   assignError.value = null;
   const body =
@@ -95,12 +99,16 @@ async function submitAssign() {
 }
 
 async function deleteDocument(doc: DocumentItem) {
+  if (deletingId.value) return;
   if (!confirm(`Xóa tài liệu "${doc.title}"?`)) return;
   pageError.value = null;
+  deletingId.value = doc.id;
   try {
     await remove.mutateAsync(doc.id);
   } catch (e) {
     pageError.value = extractApiError(e) ?? 'Không thể xóa tài liệu';
+  } finally {
+    deletingId.value = null;
   }
 }
 
@@ -175,7 +183,9 @@ function categoryLabel(doc: DocumentItem) {
       {{ pageError }}
     </v-alert>
 
-    <section class="teacher-documents__grid">
+    <AppSkeleton v-if="isLoading && !filteredDocuments.length" variant="grid" :cards="8" />
+
+    <section v-else class="teacher-documents__grid">
       <button v-if="canManage" class="teacher-documents__folder" type="button" @click="openCreate">
         <v-icon size="32">mdi-folder-plus-outline</v-icon>
         <span>Tạo thư mục mới</span>
@@ -226,7 +236,8 @@ function categoryLabel(doc: DocumentItem) {
               <v-list-item
                 v-if="canManage"
                 prepend-icon="mdi-delete-outline"
-                title="Xóa"
+                :disabled="!!deletingId"
+                :title="deletingId === doc.id ? 'Đang xóa...' : 'Xóa'"
                 @click="deleteDocument(doc)"
               />
             </v-list>
@@ -264,10 +275,6 @@ function categoryLabel(doc: DocumentItem) {
       <span>Tải lên tài liệu hoặc thêm link học tập để chia sẻ cho lớp.</span>
     </div>
 
-    <div v-if="isLoading" class="teacher-documents__loading">
-      <v-progress-circular color="primary" indeterminate size="32" />
-    </div>
-
     <!-- Create / upload -->
     <v-dialog v-model="createOpen" max-width="480">
       <v-card class="teacher-documents__dialog">
@@ -295,7 +302,7 @@ function categoryLabel(doc: DocumentItem) {
           <v-btn variant="text" @click="createOpen = false">Hủy</v-btn>
           <v-btn
             color="primary"
-            :loading="createLink.isPending.value || upload.isPending.value"
+            :loading="isSavingDocument"
             :disabled="!form.title || (mode === 'link' ? !form.url : !form.file)"
             @click="submit"
           >

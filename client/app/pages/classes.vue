@@ -12,6 +12,7 @@ const dialog = ref(false);
 const editing = ref<ClassItem | null>(null);
 const error = ref<string | null>(null);
 const pageError = ref<string | null>(null);
+const deletingId = ref<string | null>(null);
 const form = reactive({ name: '', level: '', color: '#0071F9', description: '' });
 
 const isSaving = computed(() => create.isPending.value || update.isPending.value);
@@ -36,6 +37,7 @@ function openEdit(item: ClassItem) {
 }
 
 async function save() {
+  if (isSaving.value) return;
   error.value = null;
   try {
     const body = {
@@ -56,12 +58,16 @@ async function save() {
 }
 
 async function destroy(item: ClassItem) {
+  if (deletingId.value) return;
   if (!confirm(`Xóa lớp "${item.name}"?`)) return;
   pageError.value = null;
+  deletingId.value = item.id;
   try {
     await remove.mutateAsync(item.id);
   } catch (e) {
     pageError.value = extractApiError(e) ?? 'Không thể xóa lớp học';
+  } finally {
+    deletingId.value = null;
   }
 }
 
@@ -121,7 +127,9 @@ function extraStudentCount(item: ClassItem) {
       {{ pageError }}
     </v-alert>
 
-    <div v-if="classes.length" class="teacher-classes__grid">
+    <AppSkeleton v-if="isLoading && !classes.length" variant="grid" :cards="6" />
+
+    <div v-else-if="classes.length" class="teacher-classes__grid">
       <article
         v-for="(item, index) in classes"
         :key="item.id"
@@ -149,7 +157,12 @@ function extraStudentCount(item: ClassItem) {
               </template>
               <v-list density="compact">
                 <v-list-item prepend-icon="mdi-pencil" title="Chỉnh sửa" @click="openEdit(item)" />
-                <v-list-item prepend-icon="mdi-delete-outline" title="Xóa lớp" @click="destroy(item)" />
+                <v-list-item
+                  prepend-icon="mdi-delete-outline"
+                  :disabled="!!deletingId"
+                  :title="deletingId === item.id ? 'Đang xóa...' : 'Xóa lớp'"
+                  @click="destroy(item)"
+                />
               </v-list>
             </v-menu>
           </div>
@@ -197,16 +210,13 @@ function extraStudentCount(item: ClassItem) {
     </div>
 
     <div v-else class="teacher-classes__empty">
-      <v-progress-circular v-if="isLoading" color="primary" indeterminate size="32" />
-      <template v-else>
-        <v-icon size="38">mdi-google-classroom</v-icon>
-        <strong>Chưa có lớp học</strong>
-        <span>Tạo lớp đầu tiên để bắt đầu sắp lịch và quản lý học viên.</span>
-        <v-btn color="primary" @click="openCreate">
-          <v-icon start size="18">mdi-plus</v-icon>
-          Tạo lớp mới
-        </v-btn>
-      </template>
+      <v-icon size="38">mdi-google-classroom</v-icon>
+      <strong>Chưa có lớp học</strong>
+      <span>Tạo lớp đầu tiên để bắt đầu sắp lịch và quản lý học viên.</span>
+      <v-btn color="primary" @click="openCreate">
+        <v-icon start size="18">mdi-plus</v-icon>
+        Tạo lớp mới
+      </v-btn>
     </div>
 
     <v-dialog v-model="dialog" max-width="500">

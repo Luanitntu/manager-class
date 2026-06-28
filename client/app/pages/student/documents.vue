@@ -91,7 +91,9 @@ function actionLabel(doc: DocumentItem) {
       Không thể tải tài liệu. Vui lòng thử lại sau.
     </v-alert>
 
-    <section v-if="filteredDocuments.length" class="student-documents__grid">
+    <AppSkeleton v-if="isLoading && !filteredDocuments.length" variant="grid" :cards="8" />
+
+    <section v-else-if="filteredDocuments.length" class="student-documents__grid">
       <article
         v-for="doc in filteredDocuments"
         :key="doc.id"
@@ -163,9 +165,6 @@ function actionLabel(doc: DocumentItem) {
       <span>Khi giáo viên chia sẻ tài liệu cho bạn hoặc lớp học của bạn, tài liệu sẽ xuất hiện tại đây.</span>
     </div>
 
-    <div v-if="isLoading" class="student-documents__loading">
-      <v-progress-circular color="primary" indeterminate size="32" />
-    </div>
   </div>
 </template>
 

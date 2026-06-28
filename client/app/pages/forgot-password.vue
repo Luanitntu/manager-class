@@ -17,6 +17,7 @@ const { handleSubmit, defineField, errors } = useForm({ validationSchema: schema
 const [email, emailAttrs] = defineField('email');
 
 const onSubmit = handleSubmit(async (values) => {
+  if (loading.value) return;
   error.value = null;
   loading.value = true;
   try {
@@ -56,7 +57,7 @@ const onSubmit = handleSubmit(async (values) => {
         prepend-inner-icon="mdi-email-outline"
         :error-messages="errors.email"
       />
-      <v-btn type="submit" color="primary" block size="large" :loading="loading">
+      <v-btn type="submit" color="primary" block size="large" :loading="loading" :disabled="loading">
         Send reset link
       </v-btn>
     </v-form>

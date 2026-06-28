@@ -102,7 +102,9 @@ function descriptionText(item: ClassItem) {
       Không thể tải danh sách lớp học. Vui lòng thử lại sau.
     </v-alert>
 
-    <section v-if="classes.length" class="student-classroom-grid" aria-label="Danh sách lớp học">
+    <AppSkeleton v-if="isLoading && !classes.length" variant="grid" :cards="6" />
+
+    <section v-else-if="classes.length" class="student-classroom-grid" aria-label="Danh sách lớp học">
       <article
         v-for="(item, index) in classes"
         :key="item.id"
@@ -163,12 +165,9 @@ function descriptionText(item: ClassItem) {
     </section>
 
     <section v-else class="student-classroom-empty">
-      <v-progress-circular v-if="isLoading" color="primary" indeterminate size="34" />
-      <template v-else>
-        <v-icon size="42">mdi-google-classroom</v-icon>
-        <strong>Chưa tham gia lớp học nào</strong>
-        <span>Khi giáo viên thêm bạn vào lớp, lớp học sẽ xuất hiện tại đây.</span>
-      </template>
+      <v-icon size="42">mdi-google-classroom</v-icon>
+      <strong>Chưa tham gia lớp học nào</strong>
+      <span>Khi giáo viên thêm bạn vào lớp, lớp học sẽ xuất hiện tại đây.</span>
     </section>
   </div>
 </template>

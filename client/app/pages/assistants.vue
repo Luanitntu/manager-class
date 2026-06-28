@@ -18,6 +18,7 @@ const error = ref<string | null>(null);
 const form = reactive({ fullName: '', email: '', password: '', phone: '' });
 
 async function create() {
+  if (createAssistant.isPending.value) return;
   error.value = null;
   try {
     await createAssistant.mutateAsync({ ...form });
@@ -52,7 +53,9 @@ async function create() {
     />
 
     <v-card>
-      <v-list v-if="assistants.length">
+      <AppSkeleton v-if="isLoading && !assistants.length" variant="list" :rows="5" />
+
+      <v-list v-else-if="assistants.length">
         <template v-for="(a, i) in assistants" :key="a.id">
           <v-list-item @click="openDetail(a.id)">
             <template #prepend>

@@ -24,6 +24,7 @@ const [password, passwordAttrs] = defineField('password');
 
 const onSubmit = handleSubmit(
   async (values) => {
+    if (loading.value) return;
     loading.value = true;
     try {
       await register(values);

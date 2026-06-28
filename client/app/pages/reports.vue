@@ -2,12 +2,13 @@
 import { useClasses } from '~/composables/useClasses';
 import { useReports } from '~/composables/useReports';
 
-const { data: classesData } = useClasses();
+const { data: classesData, isLoading: isClassesLoading } = useClasses();
 const { downloadReport } = useReports();
 
 const scoreClassId = ref('all');
 const tuitionMonth = ref('Tháng 6, 2026');
 const error = ref<string | null>(null);
+const downloading = ref<'tuition' | 'scores' | 'attendance' | null>(null);
 
 const classes = computed(() => classesData.value?.data ?? []);
 const classOptions = computed(() => [
@@ -22,24 +23,32 @@ const monthOptions = [
 ];
 
 async function exportTuition() {
+  if (downloading.value) return;
   await runDownload('/reports/tuition.xlsx', 'Tuition_Report.xlsx');
 }
 
 async function exportScores() {
+  if (downloading.value) return;
   const query = scoreClassId.value !== 'all' ? `?classId=${scoreClassId.value}` : '';
   await runDownload(`/reports/scores.xlsx${query}`, 'Scores_Report.xlsx');
 }
 
 async function exportAttendance() {
+  if (downloading.value) return;
   await runDownload('/reports/attendance.pdf', 'Attendance.pdf');
 }
 
 async function runDownload(path: string, filename: string) {
   error.value = null;
+  if (path.includes('tuition')) downloading.value = 'tuition';
+  else if (path.includes('scores')) downloading.value = 'scores';
+  else downloading.value = 'attendance';
   try {
     await downloadReport(path, filename);
   } catch (e) {
     error.value = extractApiError(e) ?? 'Không thể tạo báo cáo. Vui lòng thử lại.';
+  } finally {
+    downloading.value = null;
   }
 }
 </script>
@@ -79,7 +88,14 @@ async function runDownload(path: string, filename: string) {
           />
         </div>
 
-        <v-btn class="teacher-reports__export" variant="flat" block @click="exportTuition">
+        <v-btn
+          class="teacher-reports__export"
+          variant="flat"
+          block
+          :disabled="!!downloading"
+          :loading="downloading === 'tuition'"
+          @click="exportTuition"
+        >
           <v-icon start size="18" class="is-excel">mdi-file-excel-outline</v-icon>
           Xuất Excel (Tuition_Report.xlsx)
         </v-btn>
@@ -106,11 +122,19 @@ async function runDownload(path: string, filename: string) {
             item-value="id"
             density="compact"
             hide-details
+            :loading="isClassesLoading"
             variant="outlined"
           />
         </div>
 
-        <v-btn class="teacher-reports__export" variant="flat" block @click="exportScores">
+        <v-btn
+          class="teacher-reports__export"
+          variant="flat"
+          block
+          :disabled="!!downloading"
+          :loading="downloading === 'scores'"
+          @click="exportScores"
+        >
           <v-icon start size="18" class="is-blue">mdi-file-excel-outline</v-icon>
           Xuất Excel (Scores_Report.xlsx)
         </v-btn>
@@ -126,7 +150,14 @@ async function runDownload(path: string, filename: string) {
           Tổng hợp tỉ lệ chuyên cần, số buổi vắng mặt và đi trễ của học viên trong khoá học.
         </p>
 
-        <v-btn class="teacher-reports__export teacher-reports__export--attendance" variant="flat" block @click="exportAttendance">
+        <v-btn
+          class="teacher-reports__export teacher-reports__export--attendance"
+          variant="flat"
+          block
+          :disabled="!!downloading"
+          :loading="downloading === 'attendance'"
+          @click="exportAttendance"
+        >
           <v-icon start size="18" class="is-orange">mdi-download-outline</v-icon>
           Tải xuống PDF (Attendance.pdf)
         </v-btn>

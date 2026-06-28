@@ -26,7 +26,9 @@ function fmt(iso: string) {
     <h1 class="text-h5 font-weight-bold mb-1">Audit Logs</h1>
     <p class="text-medium-emphasis mb-6">Important actions performed in your tenant.</p>
 
-    <v-card>
+    <AppSkeleton v-if="isLoading && !logs.length" variant="table" :rows="6" :columns="4" />
+
+    <v-card v-else>
       <v-table>
         <thead>
           <tr>

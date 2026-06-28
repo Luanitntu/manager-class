@@ -190,10 +190,7 @@ function addDays(date: Date, amount: number) {
     </header>
 
     <section class="student-schedule__timeline" aria-label="Lịch học trong tuần">
-      <div v-if="isLoading && !scheduleItems.length" class="student-schedule__empty">
-        <v-progress-circular color="#0071f9" indeterminate size="28" />
-        <span>Đang tải lịch học...</span>
-      </div>
+      <AppSkeleton v-if="isLoading && !scheduleItems.length" variant="list" :rows="4" />
 
       <div v-else-if="!scheduleItems.length" class="student-schedule__empty">
         <v-icon icon="mdi-calendar-blank-outline" size="30" />

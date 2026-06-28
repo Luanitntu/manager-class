@@ -181,6 +181,7 @@ function onDragEnd() {
 
 async function onCellDrop(date: Date) {
   if (!canEdit.value || !draggingSession.value) return;
+  if (update.isPending.value) return;
 
   const session = draggingSession.value;
   const originalStart = new Date(session.startTime);
@@ -334,7 +335,12 @@ function colorForId(id: string) {
       </div>
     </header>
 
-    <section v-if="!isStudentSchedule" class="calendar-board" aria-label="Lịch dạy theo tháng">
+    <AppSkeleton
+      v-if="!isStudentSchedule && isLoading && !sessions.length"
+      variant="calendar"
+    />
+
+    <section v-else-if="!isStudentSchedule" class="calendar-board" aria-label="Lịch dạy theo tháng">
       <div class="calendar-board__toolbar">
         <div class="calendar-board__nav">
           <v-btn class="calendar-board__today" variant="flat" @click="goToday">

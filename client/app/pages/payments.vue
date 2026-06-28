@@ -15,6 +15,7 @@ const search = ref('');
 const { data, isLoading } = useTuitions();
 const { createTuition, recordPayment, sendReminder } = usePaymentMutations();
 const reminderSent = ref(false);
+const remindingTuitionId = ref<string | null>(null);
 const { data: classesData } = useClasses();
 const { data: studentsData } = useStudents();
 
@@ -43,10 +44,16 @@ const totalPaid = computed(() =>
 const totalRemaining = computed(() => Math.max(0, totalExpected.value - totalPaid.value));
 
 async function remind(id = selectedId.value) {
+  if (sendReminder.isPending.value || remindingTuitionId.value) return;
   if (!id) return;
-  await sendReminder.mutateAsync(id);
-  reminderSent.value = true;
-  setTimeout(() => (reminderSent.value = false), 3000);
+  remindingTuitionId.value = id;
+  try {
+    await sendReminder.mutateAsync(id);
+    reminderSent.value = true;
+    setTimeout(() => (reminderSent.value = false), 3000);
+  } finally {
+    remindingTuitionId.value = null;
+  }
 }
 
 function numericAmount(value: string | number) {
@@ -94,6 +101,7 @@ const error = ref<string | null>(null);
 const form = reactive({ studentId: '', classId: '', totalAmount: 0, dueDate: '', notes: '' });
 
 async function create() {
+  if (createTuition.isPending.value) return;
   error.value = null;
   try {
     await createTuition.mutateAsync({
@@ -126,6 +134,7 @@ function openDetail(tuition: Tuition) {
 }
 
 async function pay() {
+  if (recordPayment.isPending.value) return;
   if (!selectedId.value) return;
   payError.value = null;
   try {
@@ -161,7 +170,9 @@ async function pay() {
       </div>
     </header>
 
-    <section class="teacher-payments__stats" aria-label="Tổng quan học phí">
+    <AppSkeleton v-if="isLoading && !tuitions.length" variant="stats" :cards="3" />
+
+    <section v-else class="teacher-payments__stats" aria-label="Tổng quan học phí">
       <article class="teacher-payments__stat is-total">
         <span><v-icon size="24">mdi-cash-multiple</v-icon></span>
         <div>
@@ -202,7 +213,9 @@ async function pay() {
       </div>
 
       <div class="teacher-payments__table-wrap">
-        <table v-if="filteredTuitions.length" class="teacher-payments__table">
+        <AppSkeleton v-if="isLoading && !filteredTuitions.length" variant="table" :rows="5" :columns="6" />
+
+        <table v-else-if="filteredTuitions.length" class="teacher-payments__table">
           <thead>
             <tr>
               <th>Học viên & Lớp</th>
@@ -234,7 +247,8 @@ async function pay() {
                 <div class="teacher-payments__row-actions">
                   <v-btn
                     v-if="canManage && remainingAmount(tuition) > 0"
-                    :loading="sendReminder.isPending.value && selectedId === tuition.id"
+                    :disabled="!!remindingTuitionId"
+                    :loading="remindingTuitionId === tuition.id"
                     class="teacher-payments__remind"
                     icon="mdi-email-fast-outline"
                     size="x-small"
@@ -255,12 +269,9 @@ async function pay() {
         </table>
 
         <div v-else class="teacher-payments__empty">
-          <v-progress-circular v-if="isLoading" color="primary" indeterminate size="32" />
-          <template v-else>
-            <v-icon size="38">mdi-cash-register</v-icon>
-            <strong>Chưa có hóa đơn học phí</strong>
-            <span>Tạo hóa đơn đầu tiên để theo dõi thanh toán của học viên.</span>
-          </template>
+          <v-icon size="38">mdi-cash-register</v-icon>
+          <strong>Chưa có hóa đơn học phí</strong>
+          <span>Tạo hóa đơn đầu tiên để theo dõi thanh toán của học viên.</span>
         </div>
       </div>
     </section>
@@ -368,7 +379,8 @@ async function pay() {
             variant="text"
             color="warning"
             prepend-icon="mdi-email-fast"
-            :loading="sendReminder.isPending.value"
+            :disabled="!!remindingTuitionId"
+            :loading="remindingTuitionId === selectedId"
             @click="remind()"
           >
             {{ reminderSent ? 'Đã gửi nhắc nhở' : 'Gửi nhắc nhở' }}
@@ -377,6 +389,7 @@ async function pay() {
           <v-btn variant="text" @click="detailOpen = false">Đóng</v-btn>
         </v-card-actions>
       </v-card>
+      <AppSkeleton v-else-if="selectedId" variant="detail" :rows="5" />
     </v-dialog>
   </div>
 </template>

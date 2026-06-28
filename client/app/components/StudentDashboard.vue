@@ -159,7 +159,9 @@ function startOfDay(date: Date) {
 </script>
 
 <template>
-  <div class="student-dashboard">
+  <AppSkeleton v-if="isLoading && !stats" variant="dashboard" />
+
+  <div v-else class="student-dashboard">
     <section class="student-dashboard__hero">
       <div class="student-dashboard__hero-copy">
         <span class="student-dashboard__pill student-dashboard__pill--light">

@@ -165,7 +165,9 @@ function scoreTone(item: Score) {
       Không thể tải danh sách bài kiểm tra. Vui lòng thử lại sau.
     </v-alert>
 
-    <section v-if="filteredTests.length" class="student-tests__list" aria-label="Danh sách bài kiểm tra">
+    <AppSkeleton v-if="isLoading && !filteredTests.length" variant="list" :rows="5" />
+
+    <section v-else-if="filteredTests.length" class="student-tests__list" aria-label="Danh sách bài kiểm tra">
       <article
         v-for="item in filteredTests"
         :key="item.id"
@@ -201,12 +203,9 @@ function scoreTone(item: Score) {
     </section>
 
     <section v-else class="student-tests__empty">
-      <v-progress-circular v-if="isLoading" color="primary" indeterminate size="34" />
-      <template v-else>
-        <v-icon size="42">mdi-clipboard-text-off-outline</v-icon>
-        <strong>Chưa có bài kiểm tra</strong>
-        <span>Khi giáo viên nhập điểm, kết quả sẽ xuất hiện tại đây.</span>
-      </template>
+      <v-icon size="42">mdi-clipboard-text-off-outline</v-icon>
+      <strong>Chưa có bài kiểm tra</strong>
+      <span>Khi giáo viên nhập điểm, kết quả sẽ xuất hiện tại đây.</span>
     </section>
   </div>
 </template>
