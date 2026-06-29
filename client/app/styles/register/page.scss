@@ -1,0 +1,32 @@
+@use '../auth-shared' as *;
+
+.register-shell {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: row-reverse;
+  background: #fff;
+  color: $slate-900;
+  font-family: var(--st-font-family);
+
+  :deep(.v-icon) {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
+  }
+}
+
+.register-shell,
+.register-shell * {
+  box-sizing: border-box;
+}
+
+@media (max-width: 1023px) {
+  .register-shell {
+    display: block;
+    min-height: 100dvh;
+  }
+}
