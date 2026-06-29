@@ -4,22 +4,11 @@
 
 Schedule Teacher is a teacher-first learning management and class operations app for language teachers. Teachers manage classes, students, schedules, learning materials, payments, reports, and assistant teachers; students use the app to follow their classes, schedules, materials, scores, feedback, and payment status.
 
-The current product already has a broad MVP feature set. The v1 focus is to turn that implementation into a polished, reliable release by refreshing the teacher/student UI and fixing bugs where data exists but pages do not show it.
+The current product already has a broad MVP feature set. The v1 focus is to turn that implementation into a polished, reliable release by redesigning the teacher/student UI and fixing the current small bugs that prevent data from showing or workflows from feeling dependable.
 
 ## Core Value
 
 Teachers and students can reliably see and act on the right class data through a clean, calendar-first interface.
-
-## Current Milestone: v1 Polish Release
-
-**Goal:** Make the existing teacher and student product feel coherent, reliable, and ready for real validation without expanding into center workflows.
-
-**Target features:**
-- Audit teacher/student data flow and navigation failures before redesign work.
-- Refresh the shared app shell and core UI patterns with an original education SaaS feel inspired by PREP, not copied from it.
-- Fix teacher workflow data-display issues across dashboard, calendar, classes, students, documents, payments, reports, and profile.
-- Fix student portal data-display issues across dashboard, classes, schedule, documents, scores/comments, payments, and profile.
-- Add practical verification so UI refresh and bug fixes do not regress core teacher/student flows.
 
 ## Business Context
 
@@ -38,18 +27,18 @@ Teachers and students can reliably see and act on the right class data through a
 
 ### Active
 
-- [ ] Refresh teacher/student UI with a modern, approachable SaaS style inspired by `app.prepedu.vn`, without copying PREP branding, assets, or protected UI.
-- [ ] Audit and fix pages where backend data exists but the frontend shows empty, stale, or misleading states.
+- [ ] Refresh the teacher and student UI with a modern, approachable SaaS style inspired by `app.prepedu.vn`, without copying PREP branding, assets, or protected UI.
+- [ ] Audit and fix current data-display bugs where pages have backend data but the frontend does not show it.
 - [ ] Stabilize teacher workflows: dashboard, calendar, classes, students, documents, payments, reports, and profile.
 - [ ] Stabilize student workflows: dashboard, enrolled classes, schedule, assigned documents, scores/comments, payments, and profile.
-- [ ] Add targeted automated or documented manual verification for core teacher/student flows.
+- [ ] Add targeted verification so bug fixes and UI refresh do not regress core teacher/student flows.
 
 ### Out of Scope
 
 - Center role and center-level workflows - deferred until teacher/student product is mostly complete.
 - New large product modules - v1 is polish/stability, not feature expansion.
 - Subscription plans and billing - future SaaS monetization work.
-- Native mobile app - responsive web may be improved, but native mobile is out of scope.
+- Mobile app - responsive web may be improved, but native mobile is out of scope.
 - Copying PREP assets, exact brand, private screens, or proprietary UI - use it only as visual/product inspiration.
 
 ## Context
@@ -60,8 +49,7 @@ Teachers and students can reliably see and act on the right class data through a
 - Prior docs under `.claude/docs/` describe the original MVP: teacher-centric, calendar-first, multi-tenant LMS.
 - User specifically wants teacher and student experiences first; center role will become a separate later role.
 - User likes the broad feel of `app.prepedu.vn`: clean education SaaS, approachable visual rhythm, dashboard/cards, clear navigation.
-- Known current bug class: some pages fail to show data even when backend/API data exists.
-- Previous Phase 1 plan artifacts were archived on 2026-06-29 for a clean v1 replan.
+- Known current bug class: some pages fail to show data even when data exists.
 
 ## Constraints
 
@@ -79,26 +67,16 @@ Teachers and students can reliably see and act on the right class data through a
 |----------|-----------|---------|
 | v1 focuses on teacher and student roles | These are the core learning loop; center workflows can wait | Pending |
 | v1 is polish/stability, not feature expansion | Existing MVP is broad but needs reliability and UI quality | Pending |
-| Start with audit before UI redesign | Data-display bugs should be understood before visual work hides failure modes | Pending |
 | Use PREP-like education SaaS feel as reference | User likes that interface direction | Pending |
 | Center role deferred to v2 | Prevents scope creep while teacher/student flows are still being refined | Pending |
 
 ## Evolution
 
-This document evolves at phase transitions and milestone boundaries.
-
-**After each phase transition**:
-1. Requirements invalidated? Move to Out of Scope with reason.
-2. Requirements validated? Move to Validated with phase reference.
-3. New requirements emerged? Add to Active.
-4. Decisions to log? Add to Key Decisions.
-5. "What This Is" still accurate? Update if drifted.
-
-**After each milestone**:
-1. Full review of all sections.
-2. Core Value check - still the right priority?
-3. Audit Out of Scope - reasons still valid?
-4. Update Context with current state.
+After each phase:
+1. Move verified fixes from Active to Validated.
+2. Add newly discovered bugs to Active or Requirements if they affect v1.
+3. Keep center-role work out of scope unless explicitly reprioritized.
+4. Re-check whether the app still feels teacher/student first.
 
 ---
-*Last updated: 2026-06-29 after v1 replan/reset*
+*Last updated: 2026-06-21 after project initialization*
