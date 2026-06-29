@@ -12,8 +12,9 @@
 - [ ] **STYLE-03**: Remaining app styling is expressed through Tailwind CSS, design tokens in CSS variables where needed, and Vue component classes.
 - [ ] **STYLE-04**: Material Design Icons or icon usage continues to work without depending on Vuetify components.
 
-### Shared UI Components
+### Tailwind Design System and Shared UI Kit
 
+- [ ] **UIKIT-00**: Tailwind design tokens, component naming conventions, variants, and usage rules are documented for the codebase.
 - [ ] **UIKIT-01**: Shared layout primitives exist for page headers, toolbar rows, sections, cards, and responsive content containers.
 - [ ] **UIKIT-02**: Shared form/control components exist for buttons, inputs, selects, textareas, filters, and action groups.
 - [ ] **UIKIT-03**: Shared data display components exist for tables/lists, pagination, badges/chips, avatars, metric cards, and status indicators.
@@ -74,6 +75,7 @@
 | STYLE-02 | Phase 1 | Pending |
 | STYLE-03 | Phase 1 | Pending |
 | STYLE-04 | Phase 1 | Pending |
+| UIKIT-00 | Phase 2 | Pending |
 | UIKIT-01 | Phase 2 | Pending |
 | UIKIT-02 | Phase 2 | Pending |
 | UIKIT-03 | Phase 2 | Pending |
@@ -95,8 +97,8 @@
 | VER-05 | Phase 5 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 23 total
-- Mapped to phases: 23
+- v1.1 requirements: 24 total
+- Mapped to phases: 24
 - Unmapped: 0
 
 ## User Stories
@@ -109,7 +111,7 @@
 ## Acceptance Criteria
 
 - Vuetify and SCSS are removed from the frontend build/runtime surface.
-- Shared Tailwind UI components cover common app patterns.
+- Tailwind design system tokens, conventions, and shared UI components cover common app patterns.
 - `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` are redesigned and behavior-preserving.
 - Frontend lint, typecheck, and build pass.
 

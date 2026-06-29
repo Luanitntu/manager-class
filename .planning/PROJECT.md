@@ -4,7 +4,7 @@
 
 Schedule Teacher is a teacher-first learning management and class operations app for language teachers. Teachers manage classes, students, schedules, learning materials, payments, reports, and assistant teachers; students use the app to follow their classes, schedules, materials, scores, feedback, and payment status.
 
-The current product already has a broad MVP feature set and a partially refreshed frontend. The v1.1 focus is to finish the UI technology migration: remove Vuetify and SCSS, standardize on Tailwind CSS, create reusable shared UI components, and redesign remaining old UI pages so the whole app feels consistent.
+The current product already has a broad MVP feature set and a partially refreshed frontend. The v1.1 focus is to finish the UI technology migration: remove Vuetify and SCSS, standardize on a Tailwind-first design system, create reusable shared UI components, and redesign remaining old UI pages so the whole app feels consistent.
 
 ## Core Value
 
@@ -17,7 +17,7 @@ Teachers and students can reliably see and act on the right class data through a
 **Target features:**
 - Remove Vuetify and SCSS from the frontend build and runtime surface.
 - Keep Tailwind CSS as the app styling foundation.
-- Create shared reusable UI components to reduce repeated page-level markup.
+- Define a lightweight Tailwind design system with tokens, component conventions, and reusable UI components.
 - Redesign old UI pages across the app, with priority on `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.
 - Verify the whole app still builds, typechecks, and preserves teacher/student workflows after the UI migration.
 
@@ -41,7 +41,7 @@ Teachers and students can reliably see and act on the right class data through a
 
 - [ ] Remove Vuetify module usage, Vuetify component dependencies, Vuetify settings, and SCSS imports from the frontend.
 - [ ] Preserve or replace needed UI primitives with Tailwind-based shared components.
-- [ ] Create reusable shared UI components for common layout, controls, data display, feedback states, and modals.
+- [ ] Create a lightweight Tailwind design system covering tokens, component variants, and common layout/control/data-display/feedback patterns.
 - [ ] Redesign `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` to match the newer Tailwind UI direction.
 - [ ] Sweep the full app for remaining old UI patterns and migrate or explicitly document deferred areas.
 - [ ] Run frontend lint, typecheck, and build after migration; run backend checks only if backend code is touched.
@@ -79,7 +79,7 @@ Teachers and students can reliably see and act on the right class data through a
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | v1.1 removes Vuetify and SCSS | The user wants Tailwind as the single styling foundation | Pending |
-| Shared UI components come before page redesign | Reuse prevents repeating one-off Tailwind markup across pages | Pending |
+| Tailwind design system comes before page redesign | Tokens and component conventions prevent one-off Tailwind markup across pages | Pending |
 | `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` are priority pages | User identified these as old UI pages needing redesign | Pending |
 | Center role remains deferred | Prevents scope creep during UI platform migration | Pending |
 

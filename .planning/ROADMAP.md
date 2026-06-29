@@ -5,7 +5,7 @@
 
 ## Overview
 
-This roadmap resets planning for a frontend UI platform milestone. The work removes Vuetify and SCSS, standardizes on Tailwind CSS, creates shared reusable UI components, migrates the app shell/shared surfaces, then redesigns the old priority pages `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.
+This roadmap resets planning for a frontend UI platform milestone. The work removes Vuetify and SCSS, standardizes on a Tailwind-first design system, creates shared reusable UI components, migrates the app shell/shared surfaces, then redesigns the old priority pages `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.
 
 ## Phases
 
@@ -24,20 +24,21 @@ This roadmap resets planning for a frontend UI platform milestone. The work remo
 3. Vuetify package/dependency surface is removed where safe for the phase.
 4. A migration inventory identifies remaining `<v-*>` usage to eliminate in later phases.
 
-### Phase 2: Shared Tailwind UI Component Kit
-**Goal:** Build reusable Tailwind components for common app layout, controls, data display, feedback, and modal patterns.
+### Phase 2: Tailwind Design System & Shared UI Kit
+**Goal:** Define the Tailwind design system and build reusable components for common app layout, controls, data display, feedback, and modal patterns.
 **Mode:** mvp
-**Requirements:** UIKIT-01, UIKIT-02, UIKIT-03, UIKIT-04, UIKIT-05
+**Requirements:** UIKIT-00, UIKIT-01, UIKIT-02, UIKIT-03, UIKIT-04, UIKIT-05
 **Status:** Pending
 **Cross-cutting constraints:**
 - Components should be small, composable, and easy for pages to adopt.
 - Avoid card-in-card layouts and old Vuetify density/spacing assumptions.
 - Keep controls accessible with labels, focus styles, disabled states, and keyboard-safe modals.
 **Success Criteria:**
-1. Shared components cover page headers, sections, cards, forms, filters, buttons, tables/lists, pagination, badges, avatars, alerts, skeletons, empty states, and dialogs.
-2. Repeated UI patterns are migrated to shared components where practical.
-3. Components use Tailwind classes and project design tokens, not SCSS or Vuetify.
-4. Component APIs are simple enough for priority pages to reuse.
+1. Tailwind design tokens, component naming conventions, variants, and usage rules are documented.
+2. Shared components cover page headers, sections, cards, forms, filters, buttons, tables/lists, pagination, badges, avatars, alerts, skeletons, empty states, and dialogs.
+3. Repeated UI patterns are migrated to shared components where practical.
+4. Components use Tailwind classes and project design tokens, not SCSS or Vuetify.
+5. Component APIs are simple enough for priority pages to reuse.
 
 ### Phase 3: App Shell & Shared Surface Migration
 **Goal:** Replace Vuetify-dependent shell/shared surfaces with Tailwind implementations while preserving navigation and teacher calendar access.
@@ -94,6 +95,7 @@ This roadmap resets planning for a frontend UI platform milestone. The work remo
 | STYLE-02 | Phase 1 |
 | STYLE-03 | Phase 1 |
 | STYLE-04 | Phase 1 |
+| UIKIT-00 | Phase 2 |
 | UIKIT-01 | Phase 2 |
 | UIKIT-02 | Phase 2 |
 | UIKIT-03 | Phase 2 |
@@ -117,7 +119,7 @@ This roadmap resets planning for a frontend UI platform milestone. The work remo
 ## Notes
 
 - Start with Phase 1. Removing Vuetify/SCSS before page redesign makes migration blockers explicit.
-- Phase 2 should create the shared component vocabulary before priority pages are rewritten.
+- Phase 2 should create the Tailwind design system and shared component vocabulary before priority pages are rewritten.
 - Priority old UI pages are `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.
 - Old v1 phase plan artifacts were archived under `.planning/archive/v1-polish-phase-plans-2026-06-30/`.
 

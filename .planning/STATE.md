@@ -32,7 +32,7 @@ Last activity: 2026-06-30 - Milestone v1.1 started
 See: `.planning/PROJECT.md` (updated 2026-06-30)
 
 **Core value:** Teachers and students can reliably see and act on the right class data through a clean, calendar-first interface.
-**Current focus:** Remove Vuetify/SCSS, standardize on Tailwind CSS, create shared UI components, and redesign old UI pages.
+**Current focus:** Remove Vuetify/SCSS, standardize on a Tailwind design system, create shared UI components, and redesign old UI pages.
 
 ## Active Roadmap
 
@@ -41,7 +41,7 @@ See: `.planning/ROADMAP.md`
 | Phase | Status | Focus |
 |-------|--------|-------|
 | 1 | Planned | Styling platform cutover from Vuetify/SCSS to Tailwind |
-| 2 | Pending | Shared Tailwind UI component kit |
+| 2 | Pending | Tailwind design system and shared UI kit |
 | 3 | Pending | App shell and shared surface migration |
 | 4 | Pending | Priority old page redesign |
 | 5 | Pending | Verification and cleanup |
@@ -49,7 +49,7 @@ See: `.planning/ROADMAP.md`
 ## Key Constraints
 
 - Remove Vuetify and SCSS from the frontend.
-- Use Tailwind CSS and shared Vue components for UI.
+- Use Tailwind CSS, design tokens, and shared Vue components for UI.
 - Preserve existing composables/data flows.
 - Preserve teacher/student workflows and calendar-first teacher navigation.
 - Prioritize `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.
