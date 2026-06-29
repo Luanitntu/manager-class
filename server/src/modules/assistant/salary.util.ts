@@ -74,3 +74,79 @@ export function calculateSalary(
 
   return { method, rate, totalSessions, totalHours, totalClasses, totalAmount, byClass };
 }
+
+export interface RatePeriod {
+  method: SalaryMethod;
+  rate: number;
+  effectiveFrom: Date;
+}
+
+/**
+ * History-aware salary: each session is paid at the rate effective on its date, so
+ * changing the rate never rewrites the past. Method is taken from the latest period
+ * (method changes are rare); rate is per-session-historical. Returns per-class
+ * subtotals + grand total. The `rate` field is the current (latest) rate.
+ */
+export function calculateSalaryWithRates(
+  sessions: SalarySessionInput[],
+  periods: RatePeriod[],
+): SalaryResult {
+  const sorted = [...periods].sort((a, b) => a.effectiveFrom.getTime() - b.effectiveFrom.getTime());
+  const current = sorted[sorted.length - 1] ?? {
+    method: SalaryMethod.PER_SESSION,
+    rate: 0,
+    effectiveFrom: new Date(0),
+  };
+  const method = current.method;
+
+  const rateAt = (t: Date): number => {
+    let r = sorted[0]?.rate ?? 0;
+    for (const p of sorted) {
+      if (p.effectiveFrom <= t) r = p.rate;
+      else break;
+    }
+    return r;
+  };
+
+  const groups = new Map<string, SalaryClassBreakdown & { earliest: Date }>();
+  for (const s of sessions) {
+    const entry = groups.get(s.classId) ?? {
+      classId: s.classId,
+      className: s.className,
+      sessionCount: 0,
+      hours: 0,
+      amount: 0,
+      earliest: s.startTime,
+    };
+    const h = hoursBetween(s.startTime, s.endTime);
+    entry.sessionCount += 1;
+    entry.hours += h;
+    if (s.startTime < entry.earliest) entry.earliest = s.startTime;
+    if (method === SalaryMethod.PER_SESSION) entry.amount += rateAt(s.startTime);
+    else if (method === SalaryMethod.PER_HOUR) entry.amount += rateAt(s.startTime) * h;
+    groups.set(s.classId, entry);
+  }
+
+  const byClass: SalaryClassBreakdown[] = [...groups.values()].map((g) => ({
+    classId: g.classId,
+    className: g.className,
+    sessionCount: g.sessionCount,
+    hours: round2(g.hours),
+    // PER_CLASS: one charge per class, at the rate effective on its first session.
+    amount: round2(method === SalaryMethod.PER_CLASS ? rateAt(g.earliest) : g.amount),
+  }));
+
+  const totalSessions = byClass.reduce((a, c) => a + c.sessionCount, 0);
+  const totalHours = round2(byClass.reduce((a, c) => a + c.hours, 0));
+  const totalAmount = round2(byClass.reduce((a, c) => a + c.amount, 0));
+
+  return {
+    method,
+    rate: current.rate,
+    totalSessions,
+    totalHours,
+    totalClasses: byClass.length,
+    totalAmount,
+    byClass,
+  };
+}

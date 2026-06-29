@@ -1,4 +1,16 @@
 <script setup lang="ts">
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import luxonPlugin from '@fullcalendar/luxon3';
+import type {
+  CalendarOptions,
+  DateSelectArg,
+  EventClickArg,
+  EventDropArg,
+  DatesSetArg,
+} from '@fullcalendar/core';
+import type { EventResizeDoneArg } from '@fullcalendar/interaction';
 import { fetchSessionRange, type TeachingSession } from '~/composables/useSessions';
 
 type CalendarViewMode = 'month' | 'week';
@@ -11,6 +23,7 @@ interface CalendarCell {
 
 const auth = useAuthStore();
 const { update } = useSessionMutations();
+const userTz = useUserTimezone();
 const canEdit = computed(() => auth.role === 'TEACHER');
 const isStudentSchedule = computed(() => auth.role === 'STUDENT');
 
@@ -102,9 +115,32 @@ function notify(text: string, color = 'error') {
   snackbar.show = true;
 }
 
-async function loadRange(start: Date, end: Date) {
-  const from = startOfDay(start).toISOString();
-  const to = endOfDay(end).toISOString();
+function locationSuffix(s: TeachingSession) {
+  if (s.class.locationType === 'ONLINE') {
+    const map: Record<string, string> = { GOOGLE_MEET: 'Meet', ZOOM: 'Zoom', OTHER: 'Online' };
+    return ` · 💻 ${map[s.class.meetingProvider ?? 'OTHER'] ?? 'Online'}`;
+  }
+  return s.class.room ? ` · 📍 ${s.class.room}` : '';
+}
+
+function toEvent(s: TeachingSession) {
+  const color = s.class.color || '#5D87FF';
+  // Past + still SCHEDULED = needs confirmation (mark done / reschedule / cancel).
+  const overdue = s.status === 'SCHEDULED' && new Date(s.endTime).getTime() < Date.now();
+  const completed = s.status === 'COMPLETED';
+  return {
+    id: s.id,
+    title: `${overdue ? '⚠ ' : ''}${completed ? '✓ ' : ''}${s.class.name}${s.lessonTopic ? ' — ' + s.lessonTopic : ''}${locationSuffix(s)}`,
+    start: s.startTime,
+    end: s.endTime,
+    backgroundColor: s.status === 'CANCELLED' ? '#bdbdbd' : color,
+    borderColor: s.status === 'CANCELLED' ? '#bdbdbd' : overdue ? '#FA5252' : color,
+    classNames: overdue ? ['st-overdue-event'] : [],
+    extendedProps: { session: s },
+  };
+}
+
+async function loadRange(from: string, to: string) {
   currentRange = { from, to };
   isLoading.value = true;
 
@@ -294,6 +330,31 @@ function colorForId(id: string) {
   const total = [...id].reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return colors[total % colors.length];
 }
+const calendarOptions = computed<CalendarOptions>(() => ({
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, luxonPlugin],
+  initialView: 'dayGridMonth',
+  timeZone: userTz.value, // render every viewer's calendar in their own timezone
+  headerToolbar: {
+    left: 'prev,next today',
+    center: 'title',
+    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+  },
+  height: 'auto',
+  nowIndicator: true,
+  selectable: canEdit.value,
+  selectMirror: true,
+  editable: canEdit.value,
+  eventStartEditable: canEdit.value,
+  eventDurationEditable: canEdit.value,
+  slotMinTime: '06:00:00',
+  slotMaxTime: '23:00:00',
+  events: events.value,
+  datesSet: onDatesSet,
+  select: onSelect,
+  eventClick: onEventClick,
+  eventDrop: reschedule,
+  eventResize: reschedule,
+}));
 </script>
 
 <template>

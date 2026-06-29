@@ -1,21 +1,30 @@
 <script setup lang="ts">
 import { useClasses } from '~/composables/useClasses';
-import { type DocumentItem, useDocumentMutations, useDocuments } from '~/composables/useDocuments';
+import {
+  type DocumentItem,
+  useDocumentCategories,
+  useDocumentDownload,
+  useDocumentMutations,
+  useDocuments,
+} from '~/composables/useDocuments';
 import { useStudents } from '~/composables/useStudents';
 
-type CategoryFilter = 'Tất cả' | 'IELTS' | 'TOEIC' | 'Giao tiếp' | 'Ngữ pháp';
-
-const selectedCategory = ref<CategoryFilter>('Tất cả');
+const selectedCategory = ref('Tất cả');
 const search = ref('');
+const page = ref(1);
+const limit = ref(12);
+watch([selectedCategory, search, limit], () => (page.value = 1));
 const apiCategory = computed(() => (selectedCategory.value === 'Tất cả' ? undefined : selectedCategory.value));
-const { data, isLoading } = useDocuments(apiCategory);
+const { data, isLoading } = useDocuments({ category: apiCategory, search, page }, limit);
+const { data: categoriesData } = useDocumentCategories();
 const { createLink, upload, assign, remove } = useDocumentMutations();
-const { data: classesData } = useClasses();
-const { data: studentsData } = useStudents();
+const download = useDocumentDownload();
+const { data: classesData } = useClasses(undefined, undefined, 100);
+const { data: studentsData } = useStudents(undefined, undefined, undefined, 100);
 const auth = useAuthStore();
-const config = useRuntimeConfig();
 
 const documents = computed(() => data.value?.data ?? []);
+const meta = computed(() => data.value?.meta);
 const filteredDocuments = computed(() => {
   const keyword = search.value.trim().toLowerCase();
   if (!keyword) return documents.value;
@@ -25,8 +34,9 @@ const filteredDocuments = computed(() => {
 });
 const classes = computed(() => classesData.value?.data ?? []);
 const students = computed(() => studentsData.value?.data ?? []);
-const categories: CategoryFilter[] = ['Tất cả', 'IELTS', 'TOEIC', 'Giao tiếp', 'Ngữ pháp'];
-const formCategories: string[] = ['IELTS', 'TOEIC', 'Giao tiếp', 'Ngữ pháp'];
+const fallbackCategories = ['IELTS', 'TOEIC', 'Giao tiếp', 'Ngữ pháp'];
+const categories = computed(() => ['Tất cả', ...(categoriesData.value?.length ? categoriesData.value : fallbackCategories)]);
+const formCategories = computed(() => categories.value.filter((category) => category !== 'Tất cả'));
 const canManage = computed(() => auth.role === 'TEACHER' || auth.role === 'ASSISTANT');
 
 // --- Create / upload dialog ---
@@ -73,7 +83,11 @@ async function submit() {
 const assignOpen = ref(false);
 const assignDoc = ref<DocumentItem | null>(null);
 const assignError = ref<string | null>(null);
-const assignForm = reactive({ targetType: 'CLASS', classId: '', studentId: '' });
+const assignForm = reactive<{
+  targetType: 'CLASS' | 'STUDENT';
+  classId: string;
+  studentId: string;
+}>({ targetType: 'CLASS', classId: '', studentId: '' });
 
 function openAssign(doc: DocumentItem) {
   assignDoc.value = doc;
@@ -112,8 +126,13 @@ async function deleteDocument(doc: DocumentItem) {
   }
 }
 
-function downloadUrl(doc: DocumentItem) {
-  return `${config.public.apiBase}/documents/${doc.id}/download`;
+async function openDocument(doc: DocumentItem) {
+  pageError.value = null;
+  try {
+    await download(doc);
+  } catch (e) {
+    pageError.value = extractApiError(e) ?? 'Không thể tải tài liệu';
+  }
 }
 
 function iconFor(doc: DocumentItem) {
@@ -215,17 +234,15 @@ function categoryLabel(doc: DocumentItem) {
             <v-list density="compact">
               <v-list-item
                 v-if="doc.type === 'LINK'"
-                :href="doc.url ?? undefined"
                 prepend-icon="mdi-open-in-new"
-                target="_blank"
                 title="Mở link"
+                @click="openDocument(doc)"
               />
               <v-list-item
                 v-else
-                :href="downloadUrl(doc)"
                 prepend-icon="mdi-download"
-                target="_blank"
                 title="Tải xuống"
+                @click="openDocument(doc)"
               />
               <v-list-item
                 v-if="canManage"
@@ -254,14 +271,14 @@ function categoryLabel(doc: DocumentItem) {
           <span>{{ metaLine(doc) }}</span>
           <a
             v-if="doc.type === 'LINK'"
-            :href="doc.url ?? undefined"
+            href="#"
             rel="noopener"
-            target="_blank"
+            @click.prevent="openDocument(doc)"
           >
             <v-icon size="14">mdi-link-variant</v-icon>
             Mở link
           </a>
-          <a v-else :href="downloadUrl(doc)" rel="noopener" target="_blank">
+          <a v-else href="#" rel="noopener" @click.prevent="openDocument(doc)">
             <v-icon size="14">mdi-download</v-icon>
             Tải xuống
           </a>
@@ -274,6 +291,8 @@ function categoryLabel(doc: DocumentItem) {
       <strong>Chưa có tài liệu</strong>
       <span>Tải lên tài liệu hoặc thêm link học tập để chia sẻ cho lớp.</span>
     </div>
+
+    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
 
     <!-- Create / upload -->
     <v-dialog v-model="createOpen" max-width="480">

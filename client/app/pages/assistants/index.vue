@@ -2,9 +2,14 @@
 import { useAssistants, useAssistantMutations } from '~/composables/useAssistants';
 
 const search = ref('');
-const { data, isLoading } = useAssistants(search);
+const page = ref(1);
+const limit = ref(10);
+watch([search, limit], () => (page.value = 1));
+const { data, isLoading } = useAssistants(search, page, limit);
 const { createAssistant } = useAssistantMutations();
+const avatar = useAvatar();
 const assistants = computed(() => data.value?.data ?? []);
+const meta = computed(() => data.value?.meta);
 
 const detailOpen = ref(false);
 const selectedId = ref<string | null>(null);
@@ -16,6 +21,12 @@ function openDetail(id: string) {
 const createOpen = ref(false);
 const error = ref<string | null>(null);
 const form = reactive({ fullName: '', email: '', password: '', phone: '' });
+
+const salaryLabel: Record<string, string> = {
+  PER_SESSION: 'Per session',
+  PER_HOUR: 'Per hour',
+  PER_CLASS: 'Per class',
+};
 
 async function create() {
   if (createAssistant.isPending.value) return;
@@ -60,15 +71,25 @@ async function create() {
           <v-list-item @click="openDetail(a.id)">
             <template #prepend>
               <v-avatar color="primary" size="36">
-                <span class="text-white">{{ a.fullName[0] }}</span>
+                <v-img v-if="avatar(a)" :src="avatar(a)!" />
+                <span v-else class="text-white">{{ a.fullName[0] }}</span>
               </v-avatar>
             </template>
             <v-list-item-title>{{ a.fullName }}</v-list-item-title>
-            <v-list-item-subtitle>{{ a.email }}</v-list-item-subtitle>
+            <v-list-item-subtitle>
+              {{ a.email }}
+              <template v-if="a.phone"> - {{ a.phone }}</template>
+            </v-list-item-subtitle>
             <template #append>
-              <v-chip size="small" variant="tonal">
-                {{ a._count?.classAssignments ?? 0 }} classes
-              </v-chip>
+              <div class="d-flex align-center ga-2">
+                <v-chip v-if="a.assistantProfile" size="small" variant="tonal">
+                  {{ salaryLabel[a.assistantProfile.salaryMethod] }} -
+                  {{ Number(a.assistantProfile.salaryRate).toLocaleString() }}
+                </v-chip>
+                <v-chip size="small" variant="tonal">
+                  {{ a._count?.classAssignments ?? 0 }} classes
+                </v-chip>
+              </div>
             </template>
           </v-list-item>
           <v-divider v-if="i < assistants.length - 1" />
@@ -78,6 +99,8 @@ async function create() {
         No assistants yet.
       </div>
     </v-card>
+
+    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
 
     <AssistantDetailDialog v-model="detailOpen" :assistant-id="selectedId" />
 

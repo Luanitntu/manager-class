@@ -35,6 +35,12 @@ export class RegisterDto {
   @IsNotEmpty()
   @MaxLength(120)
   fullName!: string;
+
+  @ApiPropertyOptional({ example: 'Asia/Ho_Chi_Minh', description: 'IANA timezone' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  timezone?: string;
 }
 
 export class LoginDto {

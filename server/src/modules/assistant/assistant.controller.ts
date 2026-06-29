@@ -50,4 +50,14 @@ export class AssistantController {
   ) {
     return this.assistants.getSalary(actor, id, query);
   }
+
+  @Get(':id/salary-summary')
+  salarySummary(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.assistants.getSalarySummary(actor, id);
+  }
+
+  @Get(':id/sessions')
+  listSessions(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.assistants.listSessions(actor, id);
+  }
 }

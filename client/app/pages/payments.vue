@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useClasses } from '~/composables/useClasses';
 import {
+  PAYMENT_METHODS,
   type Tuition,
   usePaymentMutations,
   useTuitionDetail,
@@ -12,12 +13,16 @@ const auth = useAuthStore();
 const canManage = computed(() => auth.role === 'TEACHER');
 
 const search = ref('');
-const { data, isLoading } = useTuitions();
+const page = ref(1);
+const limit = ref(10);
+watch([search, limit], () => (page.value = 1));
+const { data, isLoading } = useTuitions({ page }, limit);
+const meta = computed(() => data.value?.meta);
 const { createTuition, recordPayment, sendReminder } = usePaymentMutations();
 const reminderSent = ref(false);
 const remindingTuitionId = ref<string | null>(null);
-const { data: classesData } = useClasses();
-const { data: studentsData } = useStudents();
+const { data: classesData } = useClasses(undefined, undefined, 100);
+const { data: studentsData } = useStudents(undefined, undefined, undefined, 100);
 
 const tuitions = computed(() => data.value?.data ?? []);
 const filteredTuitions = computed(() => {
@@ -122,7 +127,11 @@ async function create() {
 const detailOpen = ref(false);
 const selectedId = ref<string | null>(null);
 const { data: detail } = useTuitionDetail(selectedId);
-const payForm = reactive({ amount: 0, method: 'cash', note: '' });
+const payForm = reactive<{
+  amount: number;
+  method: (typeof PAYMENT_METHODS)[number];
+  note: string;
+}>({ amount: 0, method: 'cash', note: '' });
 const payError = ref<string | null>(null);
 
 function openDetail(tuition: Tuition) {
@@ -276,6 +285,8 @@ async function pay() {
       </div>
     </section>
 
+    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
+
     <!-- Create tuition -->
     <v-dialog v-model="createOpen" max-width="480">
       <v-card class="teacher-payments__dialog">
@@ -338,7 +349,7 @@ async function pay() {
               <v-text-field v-model="payForm.amount" type="number" label="Số tiền" density="compact" hide-details />
               <v-select
                 v-model="payForm.method"
-                :items="['cash', 'transfer', 'card']"
+                :items="PAYMENT_METHODS"
                 label="Phương thức"
                 density="compact"
                 hide-details

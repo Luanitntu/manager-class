@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { computed } from 'vue';
-import type { Ref } from 'vue';
+import type { MaybeRefOrGetter, Ref } from 'vue';
 
 export interface Tuition {
   id: string;
@@ -26,11 +26,27 @@ export interface TuitionDetail extends Tuition {
   payments: PaymentRecord[];
 }
 
-export function useTuitions() {
+interface TuitionFilters {
+  page?: MaybeRefOrGetter<number>;
+  status?: MaybeRefOrGetter<string | undefined>;
+  classId?: MaybeRefOrGetter<string | undefined>;
+}
+
+export function useTuitions(f: TuitionFilters = {}, limit: MaybeRefOrGetter<number> = 10) {
   const { requestPaged } = useApi();
   return useQuery({
-    queryKey: ['tuitions'],
-    queryFn: () => requestPaged<Tuition[]>('/payments/tuitions?limit=100'),
+    queryKey: ['tuitions', f.page, f.status, f.classId, limit],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        limit: String(toValue(limit) ?? 10),
+        page: String(toValue(f.page) ?? 1),
+      });
+      const status = toValue(f.status);
+      const classId = toValue(f.classId);
+      if (status) params.set('status', status);
+      if (classId) params.set('classId', classId);
+      return requestPaged<Tuition[]>(`/payments/tuitions?${params.toString()}`);
+    },
   });
 }
 
@@ -49,11 +65,23 @@ export function usePaymentMutations() {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['tuitions'] });
     qc.invalidateQueries({ queryKey: ['tuition'] });
+    // Student detail (Payments tab, debt badge, Activity) is derived from tuitions.
+    qc.invalidateQueries({ queryKey: ['student-payments'] });
+    qc.invalidateQueries({ queryKey: ['student-activity'] });
+    qc.invalidateQueries({ queryKey: ['students'] });
+    qc.invalidateQueries({ queryKey: ['class-students'] });
+    qc.invalidateQueries({ queryKey: ['dashboard'] });
   };
 
   const createTuition = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
       request<Tuition>('/payments/tuitions', { method: 'POST', body }),
+    onSuccess: invalidate,
+  });
+
+  const updateTuition = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
+      request<Tuition>(`/payments/tuitions/${id}`, { method: 'PATCH', body }),
     onSuccess: invalidate,
   });
 
@@ -63,12 +91,23 @@ export function usePaymentMutations() {
     onSuccess: invalidate,
   });
 
+  const deletePayment = useMutation({
+    mutationFn: ({ tuitionId, paymentId }: { tuitionId: string; paymentId: string }) =>
+      request(`/payments/tuitions/${tuitionId}/payments/${paymentId}`, { method: 'DELETE' }),
+    onSuccess: invalidate,
+  });
+
+  const deleteTuition = useMutation({
+    mutationFn: (id: string) => request(`/payments/tuitions/${id}`, { method: 'DELETE' }),
+    onSuccess: invalidate,
+  });
+
   const sendReminder = useMutation({
     mutationFn: (id: string) =>
       request(`/payments/tuitions/${id}/remind`, { method: 'POST' }),
   });
 
-  return { createTuition, recordPayment, sendReminder };
+  return { createTuition, updateTuition, recordPayment, deletePayment, deleteTuition, sendReminder };
 }
 
 export const statusColor: Record<string, string> = {
@@ -77,3 +116,7 @@ export const statusColor: Record<string, string> = {
   PENDING: 'warning',
   OVERDUE: 'error',
 };
+
+// Fixed payment-method options — shared everywhere a payment is recorded so
+// reports/exports can aggregate by method reliably.
+export const PAYMENT_METHODS = ['cash', 'transfer', 'card'] as const;

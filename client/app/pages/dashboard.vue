@@ -1,9 +1,18 @@
 <script setup lang="ts">
+import { DateTime } from 'luxon';
 import { useDashboard, type DashboardStats, type UpcomingSession } from '~/composables/useDashboard';
+import type { TeachingSession } from '~/composables/useSessions';
 
 const { data, isLoading } = useDashboard();
 const auth = useAuthStore();
-const isStudentDashboard = computed(() => auth.role === 'STUDENT' || data.value?.role === 'STUDENT');
+const { t, locale } = useI18n();
+const userTz = useUserTimezone();
+const { request } = useApi();
+
+const dashboardRole = computed(() => data.value?.role ?? auth.role);
+const isStudentDashboard = computed(() => dashboardRole.value === 'STUDENT');
+const isTeacherDashboard = computed(() => dashboardRole.value === 'TEACHER');
+const isAdmin = computed(() => dashboardRole.value === 'SUPER_ADMIN');
 
 interface StatCard {
   label: string;
@@ -19,43 +28,79 @@ interface ActionItem {
   urgent?: boolean;
 }
 
-const today = new Date();
+interface SummaryCard {
+  label: string;
+  value: string | number;
+  icon: string;
+  color: string;
+}
+
+const expectedRevenue = computed(
+  () => (data.value?.tuitionCollected ?? 0) + (data.value?.outstandingTuition ?? 0),
+);
+
+const cursor = ref(DateTime.now().setZone(userTz.value).startOf('month'));
+const today = computed(() => DateTime.now().setZone(userTz.value));
 const monthLabel = computed(() =>
-  today.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' }),
+  locale.value === 'vi'
+    ? `Tháng ${cursor.value.month}, ${cursor.value.year}`
+    : cursor.value.setLocale('en').toFormat('LLLL yyyy'),
 );
 
 const stats = computed<StatCard[]>(() => {
   const s = data.value as DashboardStats | undefined;
   return [
     {
-      label: 'Tổng số lớp',
+      label: t('dashboard.totalClasses'),
       value: formatNumber(s?.totalClasses),
       delta: '+2 tháng này',
       icon: 'mdi-book-open-page-variant-outline',
       tone: 'blue',
     },
     {
-      label: 'Học viên',
+      label: t('dashboard.totalStudents'),
       value: formatNumber(s?.totalStudents),
       delta: '+15 tháng này',
       icon: 'mdi-account-group-outline',
       tone: 'violet',
     },
     {
-      label: 'Doanh thu dự kiến',
-      value: formatMoneyShort(s?.tuitionCollected),
+      label: t('dashboard.expectedRevenue'),
+      value: formatMoneyShort(expectedRevenue.value),
       delta: '+12% so với tháng trước',
       icon: 'mdi-wallet-outline',
       tone: 'green',
     },
     {
-      label: 'Học phí tồn đọng',
+      label: t('dashboard.outstandingTuition'),
       value: formatMoneyShort(s?.outstandingTuition),
       delta: outstandingText(s?.outstandingTuition),
       icon: 'mdi-trending-up',
       tone: 'orange',
     },
   ];
+});
+
+const roleCards = computed<SummaryCard[]>(() => {
+  const s = data.value as DashboardStats | undefined;
+  if (!s) return [];
+
+  switch (dashboardRole.value) {
+    case 'ASSISTANT':
+      return [
+        { label: t('dashboard.assignedClasses'), value: s.assignedClasses ?? 0, icon: 'mdi-google-classroom', color: 'primary' },
+        { label: t('dashboard.totalSessions'), value: s.totalSessions ?? 0, icon: 'mdi-calendar', color: 'secondary' },
+      ];
+    case 'SUPER_ADMIN':
+      return [
+        { label: t('dashboard.totalTeachers'), value: s.totalTeachers ?? 0, icon: 'mdi-account-tie', color: 'primary' },
+        { label: t('dashboard.totalStudents'), value: s.totalStudents ?? 0, icon: 'mdi-account-school', color: 'secondary' },
+        { label: t('dashboard.totalClasses'), value: s.totalClasses ?? 0, icon: 'mdi-google-classroom', color: 'info' },
+        { label: t('dashboard.totalUsers'), value: s.totalUsers ?? 0, icon: 'mdi-account-group', color: 'success' },
+      ];
+    default:
+      return [];
+  }
 });
 
 const upcoming = computed<UpcomingSession[]>(() => data.value?.upcomingSessions ?? []);
@@ -93,26 +138,104 @@ const actionItems = computed<ActionItem[]>(() => {
   return items.slice(0, 3);
 });
 
+const sessionDays = ref<Set<number>>(new Set());
+
+async function loadMonth() {
+  const start = cursor.value.startOf('month');
+  const end = cursor.value.endOf('month');
+
+  try {
+    const sessions = await request<TeachingSession[]>(
+      `/sessions?from=${encodeURIComponent(start.toUTC().toISO()!)}&to=${encodeURIComponent(end.toUTC().toISO()!)}`,
+    );
+    sessionDays.value = new Set(
+      sessions
+        .map((session) => DateTime.fromISO(session.startTime, { zone: 'utc' }).setZone(userTz.value))
+        .filter((date) => date.month === cursor.value.month && date.year === cursor.value.year)
+        .map((date) => date.day),
+    );
+  } catch {
+    sessionDays.value = new Set(
+      upcoming.value
+        .map((session) => DateTime.fromISO(session.startTime, { zone: 'utc' }).setZone(userTz.value))
+        .filter((date) => date.month === cursor.value.month && date.year === cursor.value.year)
+        .map((date) => date.day),
+    );
+  }
+}
+
+watch([cursor, userTz], loadMonth, { immediate: true });
+
 const calendarDays = computed(() => {
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const count = new Date(year, month + 1, 0).getDate();
-  const firstDay = new Date(year, month, 1).getDay();
-  const leadingEmptyDays = firstDay === 0 ? 6 : firstDay - 1;
+  const count = cursor.value.daysInMonth ?? 30;
+  const leadingEmptyDays = cursor.value.startOf('month').weekday - 1;
   const days = [
     ...Array.from({ length: leadingEmptyDays }, (_, index) => 0 - index).reverse(),
     ...Array.from({ length: count }, (_, index) => index + 1),
   ];
-  const markers = new Set(upcoming.value.map((session) => new Date(session.startTime).getDate()));
+
   return days.map((day) => ({
     day,
-    active: day > 0 && day === today.getDate(),
-    marked: day > 0 && markers.has(day),
+    active:
+      day > 0 &&
+      day === today.value.day &&
+      cursor.value.month === today.value.month &&
+      cursor.value.year === today.value.year,
+    marked: day > 0 && sessionDays.value.has(day),
   }));
 });
 
+const planList = computed(() => {
+  const p = data.value?.plans;
+  return [
+    { key: 'trial', label: 'Trial', value: p?.trial ?? 0, color: 'grey' },
+    { key: 'personal', label: 'Personal', value: p?.personal ?? 0, color: 'info' },
+    { key: 'pro', label: 'Pro', value: p?.pro ?? 0, color: 'primary' },
+    { key: 'business', label: 'Business', value: p?.business ?? 0, color: 'success' },
+  ];
+});
+const revenueByTeacher = computed(() => data.value?.revenueByTeacher ?? []);
+
+const subRev = computed(() => data.value?.subscriptionRevenue);
+const subChartSeries = computed(() => {
+  const r = subRev.value;
+  if (!r) return [];
+  return [
+    { name: 'Personal', data: r.byPlan.personal },
+    { name: 'Pro', data: r.byPlan.pro },
+    { name: 'Business', data: r.byPlan.business },
+  ];
+});
+const subChartOptions = computed(() => ({
+  chart: { type: 'bar', stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
+  plotOptions: { bar: { borderRadius: 4, columnWidth: '45%' } },
+  colors: ['#49BEFF', '#5D87FF', '#13DEB9'],
+  xaxis: { categories: subRev.value?.months ?? [] },
+  legend: { position: 'top' },
+  dataLabels: { enabled: false },
+  grid: { borderColor: '#eee' },
+}));
+
+const signups = computed(() => data.value?.signups);
+const signupSeries = computed(() => [
+  { name: 'Người dùng mới', data: signups.value?.counts ?? [] },
+]);
+const signupOptions = computed(() => ({
+  chart: { type: 'area', toolbar: { show: false }, fontFamily: 'inherit' },
+  colors: ['#5D87FF'],
+  stroke: { curve: 'smooth', width: 2 },
+  fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 } },
+  dataLabels: { enabled: false },
+  xaxis: { categories: signups.value?.months ?? [] },
+  grid: { borderColor: '#eee' },
+}));
+
+function money(value?: number) {
+  return (value ?? 0).toLocaleString(locale.value === 'vi' ? 'vi-VN' : 'en-US');
+}
+
 function formatNumber(value?: number) {
-  return (value ?? 0).toLocaleString('en-US');
+  return (value ?? 0).toLocaleString(locale.value === 'vi' ? 'vi-VN' : 'en-US');
 }
 
 function formatMoneyShort(value?: number) {
@@ -123,7 +246,7 @@ function formatMoneyShort(value?: number) {
   if (amount >= 1_000) {
     return `${trimDecimal(amount / 1_000)}K`;
   }
-  return amount.toLocaleString('en-US');
+  return amount.toLocaleString(locale.value === 'vi' ? 'vi-VN' : 'en-US');
 }
 
 function trimDecimal(value: number) {
@@ -135,26 +258,21 @@ function outstandingText(value?: number) {
 }
 
 function sessionTime(session: UpcomingSession) {
-  const start = new Date(session.startTime);
-  const end = new Date(session.endTime);
-  return `${timeOnly(start)} - ${timeOnly(end)}`;
+  const start = DateTime.fromISO(session.startTime, { zone: 'utc' }).setZone(userTz.value);
+  const end = DateTime.fromISO(session.endTime, { zone: 'utc' }).setZone(userTz.value);
+  return `${start.toFormat('HH:mm')} - ${end.toFormat('HH:mm')}`;
 }
 
 function sessionDay(session: UpcomingSession) {
-  const date = new Date(session.startTime);
-  const diff = startOfDay(date).getTime() - startOfDay(today).getTime();
-  const dayDiff = Math.round(diff / 86_400_000);
-  if (dayDiff === 0) return 'Hôm nay';
-  if (dayDiff === 1) return 'Ngày mai';
-  return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+  const date = DateTime.fromISO(session.startTime, { zone: 'utc' }).setZone(userTz.value).startOf('day');
+  const dayDiff = Math.round(date.diff(today.value.startOf('day'), 'days').days);
+  if (dayDiff === 0) return t('dashboard.today');
+  if (dayDiff === 1) return t('dashboard.tomorrow');
+  return date.setLocale(locale.value).toFormat('dd/LL');
 }
 
-function timeOnly(date: Date) {
-  return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-}
-
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+function fmt(iso: string) {
+  return formatInZone(iso, userTz.value, locale.value);
 }
 
 function dotColor(index: number) {
@@ -171,7 +289,7 @@ function dotColor(index: number) {
 
   <AppSkeleton v-else-if="isLoading && !data" variant="dashboard" />
 
-  <div v-else class="teacher-dashboard">
+  <div v-else-if="isTeacherDashboard" class="teacher-dashboard">
     <section class="teacher-dashboard__hero">
       <div class="teacher-dashboard__hero-copy">
         <div class="teacher-dashboard__eyebrow">
@@ -296,6 +414,179 @@ function dotColor(index: number) {
         </v-card>
       </aside>
     </section>
+  </div>
+
+  <div v-else>
+    <h1 class="text-h5 font-weight-bold mb-1">{{ t('dashboard.title') }}</h1>
+    <p class="text-medium-emphasis mb-6">{{ t('dashboard.subtitle') }}</p>
+
+    <v-row>
+      <v-col v-for="card in roleCards" :key="card.label" cols="12" sm="6" md="3">
+        <v-card class="pa-4">
+          <div class="d-flex align-center ga-3">
+            <v-avatar :color="card.color" rounded="lg" size="44">
+              <v-icon color="white">{{ card.icon }}</v-icon>
+            </v-avatar>
+            <div>
+              <div class="text-h6 font-weight-bold">{{ card.value }}</div>
+              <div class="text-caption text-medium-emphasis">{{ card.label }}</div>
+            </div>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <template v-if="isAdmin">
+      <v-row class="mt-1">
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="pa-4">
+            <div class="text-caption text-medium-emphasis">{{ t('dashboard.tuitionCollected') }}</div>
+            <div class="text-h6 font-weight-bold text-success">{{ money(data?.revenueCollected) }}</div>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="pa-4">
+            <div class="text-caption text-medium-emphasis">{{ t('dashboard.outstanding') }}</div>
+            <div class="text-h6 font-weight-bold text-warning">{{ money(data?.revenueOutstanding) }}</div>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="pa-4">
+            <div class="text-caption text-medium-emphasis">Assistants</div>
+            <div class="text-h6 font-weight-bold">{{ data?.totalAssistants ?? 0 }}</div>
+          </v-card>
+        </v-col>
+      </v-row>
+
+      <v-row class="mt-1">
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="pa-4">
+            <div class="d-flex align-center ga-3">
+              <v-avatar color="info" rounded="lg" size="44">
+                <v-icon color="white">mdi-file-document-multiple</v-icon>
+              </v-avatar>
+              <div>
+                <div class="text-h6 font-weight-bold">{{ data?.totalDocuments ?? 0 }}</div>
+                <div class="text-caption text-medium-emphasis">{{ t('nav.documents') }}</div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="pa-4">
+            <div class="d-flex align-center ga-3">
+              <v-avatar color="primary" rounded="lg" size="44">
+                <v-icon color="white">mdi-calendar-multiple</v-icon>
+              </v-avatar>
+              <div>
+                <div class="text-h6 font-weight-bold">{{ data?.totalSessions ?? 0 }}</div>
+                <div class="text-caption text-medium-emphasis">{{ t('dashboard.totalSessions') }}</div>
+              </div>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+
+      <v-card class="pa-5 mt-1 mb-1">
+        <h3 class="text-subtitle-1 font-weight-bold mb-2">Người dùng mới (6 tháng)</h3>
+        <client-only>
+          <apexchart
+            v-if="signupSeries[0]?.data.length"
+            type="area"
+            height="280"
+            :options="signupOptions"
+            :series="signupSeries"
+          />
+        </client-only>
+      </v-card>
+
+      <v-card class="pa-5 mt-1 mb-1">
+        <div class="d-flex align-center justify-space-between mb-2">
+          <h3 class="text-subtitle-1 font-weight-bold">Doanh thu gói đăng ký (6 tháng)</h3>
+          <v-chip size="x-small" variant="tonal">V2 · placeholder</v-chip>
+        </div>
+        <client-only>
+          <apexchart
+            v-if="subChartSeries.length"
+            type="bar"
+            height="300"
+            :options="subChartOptions"
+            :series="subChartSeries"
+          />
+        </client-only>
+      </v-card>
+
+      <v-row class="mt-1">
+        <v-col cols="12" md="5">
+          <v-card class="pa-5">
+            <div class="d-flex align-center justify-space-between mb-3">
+              <h3 class="text-subtitle-1 font-weight-bold">Gói đăng ký</h3>
+              <v-chip size="x-small" variant="tonal">V2</v-chip>
+            </div>
+            <div class="d-flex flex-column ga-2">
+              <div
+                v-for="plan in planList"
+                :key="plan.key"
+                class="d-flex align-center justify-space-between"
+              >
+                <v-chip :color="plan.color" size="small" variant="tonal">{{ plan.label }}</v-chip>
+                <span class="font-weight-bold">{{ plan.value }}</span>
+              </div>
+            </div>
+            <p class="text-caption text-medium-emphasis mt-3 mb-0">
+              Tính năng gói cước và thanh toán sẽ áp dụng ở V2. Hiện mọi giáo viên tính là Trial.
+            </p>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="7">
+          <v-card class="pa-5">
+            <h3 class="text-subtitle-1 font-weight-bold mb-3">Doanh thu theo giáo viên</h3>
+            <v-table density="comfortable">
+              <thead>
+                <tr>
+                  <th>Giáo viên</th>
+                  <th class="text-right">Đã thu</th>
+                  <th class="text-right">Tổng học phí</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in revenueByTeacher" :key="row.teacherId">
+                  <td>{{ row.teacherName }}</td>
+                  <td class="text-right text-success">{{ money(row.collected) }}</td>
+                  <td class="text-right">{{ money(row.total) }}</td>
+                </tr>
+                <tr v-if="!revenueByTeacher.length">
+                  <td colspan="3" class="text-center text-medium-emphasis pa-4">Chưa có dữ liệu học phí.</td>
+                </tr>
+              </tbody>
+            </v-table>
+          </v-card>
+        </v-col>
+      </v-row>
+    </template>
+
+    <template v-else>
+      <v-card v-if="upcoming.length" class="mt-6">
+        <v-card-title class="text-subtitle-1 font-weight-bold">{{ t('dashboard.upcomingSessions') }}</v-card-title>
+        <v-list>
+          <v-list-item v-for="session in upcoming" :key="session.id" to="/calendar">
+            <template #prepend>
+              <v-avatar :color="session.class.color || 'primary'" size="10" />
+            </template>
+            <v-list-item-title>{{ session.class.name }}</v-list-item-title>
+            <v-list-item-subtitle>{{ session.lessonTopic || 'No topic' }}</v-list-item-subtitle>
+            <template #append>
+              <span class="text-caption text-medium-emphasis">{{ fmt(session.startTime) }}</span>
+            </template>
+          </v-list-item>
+        </v-list>
+      </v-card>
+
+      <v-card v-else-if="!isLoading" class="mt-6 pa-8 text-center text-medium-emphasis">
+        {{ t('dashboard.noUpcoming') }}
+      </v-card>
+    </template>
   </div>
 </template>
 

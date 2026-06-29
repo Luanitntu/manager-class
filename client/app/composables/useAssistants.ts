@@ -5,6 +5,9 @@ import type { MaybeRefOrGetter, Ref } from 'vue';
 export interface AssistantProfile {
   salaryMethod: 'PER_SESSION' | 'PER_HOUR' | 'PER_CLASS';
   salaryRate: string;
+  salaryEffectiveFrom?: string | null;
+  level?: string | null;
+  hometown?: string | null;
   bio?: string | null;
 }
 
@@ -13,6 +16,7 @@ export interface Assistant {
   email: string;
   fullName: string;
   phone?: string | null;
+  avatarKey?: string | null;
   assistantProfile?: AssistantProfile | null;
   _count?: { classAssignments: number };
   classAssignments?: { class: { id: string; name: string; level?: string | null } }[];
@@ -36,14 +40,22 @@ export interface SalaryResult {
   byClass: SalaryClassBreakdown[];
 }
 
-export function useAssistants(search?: MaybeRefOrGetter<string | undefined>) {
+export function useAssistants(
+  search?: MaybeRefOrGetter<string | undefined>,
+  page?: MaybeRefOrGetter<number>,
+  limit: MaybeRefOrGetter<number> = 10,
+) {
   const { requestPaged } = useApi();
   return useQuery({
-    queryKey: ['assistants', search],
+    queryKey: ['assistants', search, page, limit],
     queryFn: () => {
+      const params = new URLSearchParams({
+        limit: String(toValue(limit) ?? 10),
+        page: String(toValue(page) ?? 1),
+      });
       const term = toValue(search);
-      const qs = term ? `?search=${encodeURIComponent(term)}&limit=100` : '?limit=100';
-      return requestPaged<Assistant[]>(`/assistants${qs}`);
+      if (term) params.set('search', term);
+      return requestPaged<Assistant[]>(`/assistants?${params.toString()}`);
     },
   });
 }
@@ -66,6 +78,45 @@ export function useAssistantSalary(id: Ref<string | null>) {
   });
 }
 
+export interface SalarySummary {
+  method: string;
+  rate: number;
+  effectiveFrom?: string | null;
+  total: { totalAmount: number; totalSessions: number; totalHours: number; totalClasses: number };
+  byClass: SalaryClassBreakdown[];
+  thisMonth: { totalAmount: number; totalSessions: number; totalHours: number };
+  nextPayroll: string;
+  history: { month: string; amount: number; sessions: number; hours: number }[];
+  rates: { method: string; rate: number; effectiveFrom: string }[];
+}
+
+export function useAssistantSalarySummary(id: Ref<string | null>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['assistant-salary-summary', id],
+    enabled: computed(() => !!id.value),
+    queryFn: () => request<SalarySummary>(`/assistants/${id.value}/salary-summary`),
+  });
+}
+
+export interface AssistantSession {
+  id: string;
+  startTime: string;
+  endTime: string;
+  lessonTopic?: string | null;
+  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+  class: { id: string; name: string; level?: string | null; color?: string | null };
+}
+
+export function useAssistantSessions(id: Ref<string | null>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['assistant-sessions', id],
+    enabled: computed(() => !!id.value),
+    queryFn: () => request<AssistantSession[]>(`/assistants/${id.value}/sessions`),
+  });
+}
+
 export function useAssistantMutations() {
   const { request } = useApi();
   const qc = useQueryClient();
@@ -82,6 +133,7 @@ export function useAssistantMutations() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['assistant'] });
       qc.invalidateQueries({ queryKey: ['assistant-salary'] });
+      qc.invalidateQueries({ queryKey: ['assistant-salary-summary'] });
     },
   });
 

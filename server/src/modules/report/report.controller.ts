@@ -1,11 +1,12 @@
-import { Controller, Get, Header, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
+import { Response } from 'express';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SkipTransform } from '../../common/decorators/skip-transform.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/types/authenticated-user';
-import { ReportService } from './report.service';
+import { ReportService, ReportQuery, ReportType, Lang } from './report.service';
 
 const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
@@ -17,20 +18,28 @@ const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.s
 export class ReportController {
   constructor(private readonly reports: ReportService) {}
 
-  @Get('tuition.xlsx')
-  @Header('Content-Type', XLSX_MIME)
-  @Header('Content-Disposition', 'attachment; filename="tuition-report.xlsx"')
-  async tuition(@CurrentUser() actor: AuthenticatedUser): Promise<Buffer> {
-    return this.reports.tuitionReport(actor.tenantId ?? actor.id);
-  }
-
-  @Get('scores.xlsx')
-  @Header('Content-Type', XLSX_MIME)
-  @Header('Content-Disposition', 'attachment; filename="scores-report.xlsx"')
-  async scores(
+  // type = tuition | scores | students | classes; format = xlsx (default) | pdf
+  @Get(':type')
+  async report(
     @CurrentUser() actor: AuthenticatedUser,
-    @Query('classId') classId: string | undefined,
-  ): Promise<Buffer> {
-    return this.reports.scoresReport(actor.tenantId ?? actor.id, classId);
+    @Param('type') type: string,
+    @Query() q: ReportQuery & { format?: string; lang?: string },
+    @Res() res: Response,
+  ): Promise<void> {
+    const teacherId = actor.tenantId ?? actor.id;
+    const format = q.format === 'pdf' ? 'pdf' : 'xlsx';
+    const lang: Lang = q.lang === 'en' ? 'en' : 'vi';
+    const table = await this.reports.build(teacherId, type as ReportType, q, lang);
+    let buf: Buffer;
+    if (format === 'pdf') {
+      const branding = await this.reports.getBranding(teacherId);
+      buf = await this.reports.toPdf(table, branding);
+    } else {
+      buf = await this.reports.toExcel(table);
+    }
+
+    res.setHeader('Content-Type', format === 'pdf' ? 'application/pdf' : XLSX_MIME);
+    res.setHeader('Content-Disposition', `attachment; filename="${type}-report.${format}"`);
+    res.end(buf);
   }
 }

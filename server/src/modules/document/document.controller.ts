@@ -60,6 +60,12 @@ export class DocumentController {
     return this.documents.list(actor, query);
   }
 
+  @Roles(Role.TEACHER, Role.ASSISTANT)
+  @Get('categories')
+  categories(@CurrentUser() actor: AuthenticatedUser) {
+    return this.documents.getCategories(actor);
+  }
+
   @Get(':id')
   findOne(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.documents.findOne(actor, id);

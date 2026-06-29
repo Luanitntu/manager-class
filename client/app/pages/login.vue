@@ -8,6 +8,7 @@ definePageMeta({ layout: false });
 const { login } = useAuth();
 const route = useRoute();
 const loading = ref(false);
+const rememberMe = ref(true);
 const toast = useToast();
 
 const schema = toTypedSchema(
@@ -31,8 +32,8 @@ const onSubmit = handleSubmit(
     if (loading.value) return;
     loading.value = true;
     try {
-      const res = await login(values.identifier, values.password);
-      const home = res.user.role === 'SUPER_ADMIN' ? '/dashboard' : '/calendar';
+      const res = await login(values.identifier, values.password, rememberMe.value);
+      const home = roleHome(res.user.role);
       const redirect = (route.query.redirect as string) || home;
       await navigateTo(redirect);
     } catch (e: unknown) {
@@ -137,6 +138,7 @@ const onSubmit = handleSubmit(
             <div class="login-options">
               <label class="login-remember">
                 <input
+                  v-model="rememberMe"
                   type="checkbox"
                 >
                 <span>Ghi nhớ đăng nhập</span>

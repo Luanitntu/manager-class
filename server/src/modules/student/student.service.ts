@@ -2,12 +2,12 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { Role } from '@prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { PaginatedResult } from '../../common/dto/paginated-result';
-import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { StudentRepository } from './student.repository';
 import {
   CreateCommentDto,
   CreateScoreDto,
+  ListStudentsQueryDto,
   UpdateScoreDto,
   UpdateStudentProfileDto,
 } from './dto/student.dto';
@@ -26,11 +26,12 @@ export class StudentService {
     return actor.tenantId;
   }
 
-  async list(actor: AuthenticatedUser, query: PaginationQueryDto) {
+  async list(actor: AuthenticatedUser, query: ListStudentsQueryDto) {
     const teacherId = this.teacherScope(actor);
     const [items, total] = await this.repo.listByTeacher(
       teacherId,
       query.search,
+      query.status,
       query.skip,
       query.limit,
     );
@@ -51,6 +52,7 @@ export class StudentService {
     await this.assertCanEditStudent(actor, studentId);
     const { fullName, phone, ...profile } = dto;
     const profileData = {
+      ...(profile.studyStatus !== undefined ? { studyStatus: profile.studyStatus } : {}),
       ...(profile.address !== undefined ? { address: profile.address } : {}),
       ...(profile.dateOfBirth ? { dateOfBirth: new Date(profile.dateOfBirth) } : {}),
       ...(profile.occupation !== undefined ? { occupation: profile.occupation } : {}),
@@ -67,6 +69,121 @@ export class StudentService {
     );
   }
 
+  // ----- Payments (tuition summary + history) -----
+  async getPayments(actor: AuthenticatedUser, studentId: string) {
+    await this.assertCanAccessStudent(actor, studentId);
+    const teacherId = this.teacherScope(actor);
+    const tuitions = await this.repo.listTuitions(studentId, teacherId);
+
+    let totalAmount = 0;
+    let paidAmount = 0;
+    const records: Array<{
+      id: string;
+      amount: number;
+      paidAt: Date;
+      method: string | null;
+      note: string | null;
+      receiptNumber: string;
+      className: string;
+    }> = [];
+
+    for (const t of tuitions) {
+      totalAmount += Number(t.totalAmount);
+      paidAmount += Number(t.paidAmount);
+      for (const p of t.payments) {
+        records.push({
+          id: p.id,
+          amount: Number(p.amount),
+          paidAt: p.paidAt,
+          method: p.method,
+          note: p.note,
+          receiptNumber: p.receiptNumber,
+          className: t.class.name,
+        });
+      }
+    }
+    records.sort((a, b) => b.paidAt.getTime() - a.paidAt.getTime());
+
+    return {
+      totalAmount,
+      paidAmount,
+      outstanding: totalAmount - paidAmount,
+      tuitions: tuitions.map((t) => ({
+        id: t.id,
+        classId: t.classId,
+        className: t.class.name,
+        totalAmount: Number(t.totalAmount),
+        paidAmount: Number(t.paidAmount),
+        status: t.status,
+        dueDate: t.dueDate,
+        payments: t.payments.map((p) => ({
+          id: p.id,
+          amount: Number(p.amount),
+          paidAt: p.paidAt,
+          method: p.method,
+          note: p.note,
+          receiptNumber: p.receiptNumber,
+        })),
+      })),
+      records,
+    };
+  }
+
+  // ----- Activity timeline (synthesized from real records) -----
+  async getActivity(actor: AuthenticatedUser, studentId: string) {
+    await this.assertCanAccessStudent(actor, studentId);
+    const teacherId = this.teacherScope(actor);
+
+    const [enrollments, scores, comments, tuitions] = await Promise.all([
+      this.repo.listEnrollmentsWithDate(studentId, teacherId),
+      this.repo.listScores(studentId, teacherId),
+      this.repo.listComments(studentId, teacherId),
+      this.repo.listTuitions(studentId, teacherId),
+    ]);
+
+    type Item = { type: string; title: string; detail: string; date: Date };
+    const items: Item[] = [];
+
+    for (const e of enrollments) {
+      items.push({
+        type: 'JOINED_CLASS',
+        title: 'Joined Class',
+        detail: e.class.name,
+        date: e.enrolledAt,
+      });
+    }
+    for (const s of scores) {
+      items.push({
+        type: 'SCORE_ADDED',
+        title: 'Score Added',
+        detail:
+          `${s.type}: ${Number(s.value)}/${Number(s.maxValue)} · ${s.class?.name ?? ''}`.trim(),
+        date: s.createdAt,
+      });
+    }
+    for (const c of comments) {
+      items.push({
+        type: 'COMMENT_ADDED',
+        title: 'Comment Added',
+        detail: c.category ? `${c.category}: ${c.content}` : c.content,
+        date: c.createdAt,
+      });
+    }
+    for (const t of tuitions) {
+      for (const p of t.payments) {
+        items.push({
+          type: 'PAYMENT_RECORDED',
+          title: 'Payment Recorded',
+          detail: `${Number(p.amount).toLocaleString('vi-VN')} · ${t.class.name}`,
+          date: p.paidAt,
+        });
+      }
+    }
+
+    items.sort((a, b) => b.date.getTime() - a.date.getTime());
+    return items.slice(0, 50);
+  }
+
   // ----- Scores (teacher-managed, student read) -----
   async addScore(actor: AuthenticatedUser, studentId: string, dto: CreateScoreDto) {
     const teacherId = this.teacherScope(actor);
@@ -80,6 +197,7 @@ export class StudentService {
       label: dto.label,
       value: dto.value,
       maxValue: dto.maxValue ?? 10,
+      scoredAt: dto.date ? new Date(dto.date) : undefined,
       createdBy: actor.id,
     });
   }
@@ -97,6 +215,7 @@ export class StudentService {
       ...(dto.label !== undefined ? { label: dto.label } : {}),
       ...(dto.value !== undefined ? { value: dto.value } : {}),
       ...(dto.maxValue !== undefined ? { maxValue: dto.maxValue } : {}),
+      ...(dto.date ? { scoredAt: new Date(dto.date) } : {}),
     });
     if (result.count === 0) {
       throw new NotFoundException('Score not found');

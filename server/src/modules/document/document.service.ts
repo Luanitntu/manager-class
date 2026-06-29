@@ -56,7 +56,7 @@ export class DocumentService {
   async upload(
     actor: AuthenticatedUser,
     dto: UploadDocumentDto,
-    file: { buffer: Buffer; originalname: string; mimetype: string },
+    file: { buffer: Buffer; originalname: string; mimetype: string; size?: number },
   ) {
     if (!file) {
       throw new BadRequestException('File is required');
@@ -71,9 +71,15 @@ export class DocumentService {
       type,
       category: dto.category,
       fileKey: stored.key,
+      fileSize: file.size ?? file.buffer.length,
       createdBy: actor.id,
       updatedBy: actor.id,
     });
+  }
+
+  // ----- Categories (distinct, for filter chips) -----
+  getCategories(actor: AuthenticatedUser) {
+    return this.repo.distinctCategories(this.tenantId(actor));
   }
 
   // ----- List (role-scoped) -----
@@ -81,7 +87,17 @@ export class DocumentService {
     const filter: Prisma.DocumentWhereInput = {
       ...(query.type ? { type: query.type } : {}),
       ...(query.category ? { category: query.category } : {}),
+      ...(query.search ? { title: { contains: query.search, mode: 'insensitive' } } : {}),
     };
+
+    // Library scope (teacher view): shared = no class assignment; class = assigned.
+    if (query.classId) {
+      filter.assignments = { some: { classId: query.classId } };
+    } else if (query.scope === 'CLASS') {
+      filter.assignments = { some: { targetType: DocumentTargetType.CLASS } };
+    } else if (query.scope === 'SHARED') {
+      filter.assignments = { none: { targetType: DocumentTargetType.CLASS } };
+    }
 
     let result: [unknown[], number];
     if (actor.role === Role.STUDENT) {

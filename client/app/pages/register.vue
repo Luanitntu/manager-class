@@ -27,8 +27,8 @@ const onSubmit = handleSubmit(
     if (loading.value) return;
     loading.value = true;
     try {
-      await register(values);
-      await navigateTo('/calendar');
+      const res = await register(values);
+      await navigateTo(roleHome(res.user.role));
     } catch (e: unknown) {
       toast.error(extractApiError(e) ?? 'Đăng ký không thành công', 'Đăng ký thất bại');
     } finally {

@@ -9,15 +9,32 @@ const profileLoading = ref(true);
 const form = reactive({
   fullName: auth.user?.fullName ?? '',
   phone: '',
+  timezone: auth.user?.timezone ?? detectBrowserTimezone(),
 });
+
+const timezones = (() => {
+  try {
+    const fn = (Intl as unknown as { supportedValuesOf?: (key: string) => string[] })
+      .supportedValuesOf;
+    if (fn) return fn('timeZone');
+  } catch {
+    // keep fallback
+  }
+  return ['UTC', 'Asia/Ho_Chi_Minh', 'Asia/Bangkok', 'Asia/Tokyo', 'Europe/London'];
+})();
 
 onMounted(async () => {
   try {
-    const profile = await request<{ fullName: string; phone?: string | null }>(
-      '/users/me/profile',
-    );
+    const profile = await request<{
+      fullName: string;
+      phone?: string | null;
+      timezone?: string | null;
+      avatarKey?: string | null;
+    }>('/users/me/profile');
     form.fullName = profile.fullName;
     form.phone = profile.phone ?? '';
+    form.timezone = profile.timezone ?? detectBrowserTimezone();
+    if (auth.user) auth.user.avatarKey = profile.avatarKey ?? null;
   } catch {
     // keep store defaults
   } finally {
@@ -33,9 +50,16 @@ async function save() {
   try {
     await request('/users/me/profile', {
       method: 'PATCH',
-      body: { fullName: form.fullName, phone: form.phone || undefined },
+      body: {
+        fullName: form.fullName,
+        phone: form.phone || undefined,
+        timezone: form.timezone || undefined,
+      },
     });
-    if (auth.user) auth.user.fullName = form.fullName;
+    if (auth.user) {
+      auth.user.fullName = form.fullName;
+      auth.user.timezone = form.timezone;
+    }
     saved.value = true;
   } catch (e) {
     error.value = extractApiError(e) ?? 'Could not save profile';
@@ -63,6 +87,7 @@ async function save() {
       <v-text-field :model-value="auth.user?.email" label="Email" disabled />
       <v-text-field v-model="form.fullName" label="Full name" />
       <v-text-field v-model="form.phone" label="Phone" />
+      <v-autocomplete v-model="form.timezone" :items="timezones" label="Timezone" />
       <v-chip size="small" class="mb-4">{{ auth.role }}</v-chip>
 
       <div class="d-flex justify-end">

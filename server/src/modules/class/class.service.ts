@@ -1,11 +1,12 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { LocationType, Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { PaginatedResult } from '../../common/dto/paginated-result';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { ClassRepository } from './class.repository';
 import { AuditService } from '../audit/audit.service';
+import { computePaymentStatus } from '../payment/payment-status.util';
 import { CreateClassDto, UpdateClassDto } from './dto/class.dto';
 
 @Injectable()
@@ -23,6 +24,28 @@ export class ClassService {
     return actor.tenantId;
   }
 
+  // Keep location fields consistent: an online class has no room; an offline one
+  // has no meeting link. Returns {} when locationType isn't being changed.
+  private locationData(dto: CreateClassDto | UpdateClassDto) {
+    if (dto.locationType === LocationType.ONLINE) {
+      return {
+        locationType: LocationType.ONLINE,
+        room: null,
+        meetingProvider: dto.meetingProvider ?? null,
+        meetingUrl: dto.meetingUrl ?? null,
+      };
+    }
+    if (dto.locationType === LocationType.OFFLINE) {
+      return {
+        locationType: LocationType.OFFLINE,
+        room: dto.room ?? null,
+        meetingProvider: null,
+        meetingUrl: null,
+      };
+    }
+    return {};
+  }
+
   async create(actor: AuthenticatedUser, dto: CreateClassDto) {
     const teacherId = this.tenantId(actor);
     const klass = await this.repo.create({
@@ -31,6 +54,9 @@ export class ClassService {
       description: dto.description,
       level: dto.level,
       color: dto.color,
+      totalSessions: dto.totalSessions,
+      tuitionFee: dto.tuitionFee,
+      ...this.locationData(dto),
       createdBy: actor.id,
       updatedBy: actor.id,
     });
@@ -91,6 +117,8 @@ export class ClassService {
     const teacherId = this.tenantId(actor);
     const result = await this.repo.update(id, teacherId, {
       ...dto,
+      // Override raw location fields with a normalized set (clears the unused side).
+      ...this.locationData(dto),
       updatedBy: actor.id,
     });
     if (result.count === 0) {
@@ -105,7 +133,30 @@ export class ClassService {
   }
 
   async remove(actor: AuthenticatedUser, id: string) {
-    const result = await this.repo.softDelete(id, this.tenantId(actor));
+    const teacherId = this.tenantId(actor);
+    const klass = await this.repo.findActivityCounts(id, teacherId);
+    if (!klass) {
+      throw new NotFoundException('Class not found');
+    }
+
+    const c = klass._count;
+    const dependentRows =
+      c.enrollments + c.sessions + c.tuitions + c.scores + c.assistants + c.documentAssignments;
+
+    // Empty class (nothing ever generated) → permanent delete, nothing to lose.
+    if (dependentRows === 0) {
+      await this.repo.hardDelete(id, teacherId);
+      await this.audit.log(actor, {
+        action: 'CLASS_DELETED',
+        entityType: 'Class',
+        entityId: id,
+        newValue: { hard: true },
+      });
+      return { deleted: true, hard: true };
+    }
+
+    // Has students / sessions / tuition / scores → soft delete to keep history.
+    const result = await this.repo.softDelete(id, teacherId);
     if (result.count === 0) {
       throw new NotFoundException('Class not found');
     }
@@ -113,16 +164,56 @@ export class ClassService {
       action: 'CLASS_DELETED',
       entityType: 'Class',
       entityId: id,
+      newValue: { hard: false },
     });
-    return { deleted: true };
+    return { deleted: true, hard: false };
   }
 
   // ----- Enrollment -----
-  async enrollStudent(actor: AuthenticatedUser, classId: string, studentId: string) {
+  async enrollStudent(actor: AuthenticatedUser, classId: string, studentId: string, note?: string) {
     const teacherId = this.tenantId(actor);
-    await this.assertClassOwned(classId, teacherId);
+    const klass = await this.repo.findOneForTenant(classId, teacherId);
+    if (!klass) {
+      throw new NotFoundException('Class not found');
+    }
     await this.assertMemberInTenant(studentId, teacherId, Role.STUDENT);
-    return this.repo.enrollStudent(classId, studentId);
+    const enrollment = await this.repo.enrollStudent(classId, studentId);
+
+    // Auto-create the student's tuition from the class default (one fee per
+    // enrollment) when the class has a fee set and none exists yet.
+    const fee = klass.tuitionFee != null ? Number(klass.tuitionFee) : 0;
+    if (fee > 0) {
+      const existing = await this.prisma.tuition.findFirst({ where: { classId, studentId } });
+      if (!existing) {
+        await this.prisma.tuition.create({
+          data: {
+            teacherId,
+            studentId,
+            classId,
+            totalAmount: fee,
+            paidAmount: 0,
+            status: computePaymentStatus(fee, 0, null, new Date()),
+            createdBy: actor.id,
+            updatedBy: actor.id,
+          },
+        });
+      }
+    }
+
+    // Optional note about the student — stored as a StudentComment so it shows
+    // up in the student's profile (Students menu) as well.
+    if (note && note.trim()) {
+      await this.prisma.studentComment.create({
+        data: {
+          teacherId,
+          studentId,
+          authorId: actor.id,
+          category: 'note',
+          content: note.trim(),
+        },
+      });
+    }
+    return enrollment;
   }
 
   async unenrollStudent(actor: AuthenticatedUser, classId: string, studentId: string) {
@@ -132,8 +223,32 @@ export class ClassService {
   }
 
   async listEnrollments(actor: AuthenticatedUser, classId: string) {
+    const klass = await this.findOne(actor, classId);
+    const [enrollments, tuitions] = await Promise.all([
+      this.repo.listEnrollments(classId),
+      this.repo.listTuitionsForClass(classId, klass.teacherId),
+    ]);
+    const byStudent = new Map(tuitions.map((t) => [t.studentId, t]));
+    return enrollments.map((e) => {
+      const t = byStudent.get(e.student.id);
+      return {
+        ...e,
+        tuition: t
+          ? {
+              id: t.id,
+              totalAmount: Number(t.totalAmount),
+              paidAmount: Number(t.paidAmount),
+              status: t.status,
+              dueDate: t.dueDate,
+            }
+          : null,
+      };
+    });
+  }
+
+  async listSessions(actor: AuthenticatedUser, classId: string) {
     await this.findOne(actor, classId);
-    return this.repo.listEnrollments(classId);
+    return this.repo.listSessions(classId, this.tenantId(actor));
   }
 
   // ----- Assistant assignment -----

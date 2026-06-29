@@ -23,7 +23,12 @@ import { ReportModule } from './modules/report/report.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import { HealthModule } from './modules/health/health.module';
+
+// Background queue (email reminders) needs Redis. Disable it in dev with
+// QUEUE_ENABLED=false to run with no Redis at all (notifications become no-ops).
+const queueEnabled = process.env.QUEUE_ENABLED !== 'false';
 
 @Module({
   imports: [
@@ -34,19 +39,29 @@ import { HealthModule } from './modules/health/health.module';
       validate: validateEnv,
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
-    BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const redis = config.getOrThrow<RedisConfig>('redis');
-        return {
-          connection: {
-            host: redis.host,
-            port: redis.port,
-            password: redis.password || undefined,
-          },
-        };
-      },
-    }),
+    ...(queueEnabled
+      ? [
+          BullModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => {
+              const redis = config.getOrThrow<RedisConfig>('redis');
+              return {
+                connection: {
+                  host: redis.host,
+                  port: redis.port,
+                  password: redis.password || undefined,
+                  // BullMQ requirements + resilience for managed Redis.
+                  maxRetriesPerRequest: null,
+                  enableReadyCheck: false,
+                  connectTimeout: 10_000,
+                  retryStrategy: (times: number) => Math.min(times * 500, 5_000),
+                  ...(process.env.REDIS_TLS === 'true' ? { tls: {} } : {}),
+                },
+              };
+            },
+          }),
+        ]
+      : []),
     PrismaModule,
     StorageModule,
     MailModule,
@@ -60,8 +75,9 @@ import { HealthModule } from './modules/health/health.module';
     DocumentModule,
     PaymentModule,
     ReportModule,
-    NotificationModule,
+    NotificationModule.register(),
     DashboardModule,
+    SettingsModule,
     HealthModule,
   ],
   providers: [

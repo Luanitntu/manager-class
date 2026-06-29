@@ -14,8 +14,24 @@ export default {
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
     'vuetify-nuxt-module',
+    '@nuxtjs/i18n',
     '@nuxt/eslint',
   ],
+
+  i18n: {
+    locales: [
+      { code: 'vi', name: 'Tiếng Việt', file: 'vi.json' },
+      { code: 'en', name: 'English', file: 'en.json' },
+    ],
+    defaultLocale: 'vi',
+    strategy: 'no_prefix', // keep URLs unchanged; switch via cookie
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'st_lang',
+      redirectOn: 'root',
+      fallbackLocale: 'vi',
+    },
+  },
 
   css: ['@mdi/font/css/materialdesignicons.min.css', '~/assets/css/main.css'],
 

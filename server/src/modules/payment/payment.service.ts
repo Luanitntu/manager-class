@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../../infra/prisma/prisma.service';
@@ -36,6 +41,15 @@ export class PaymentService {
     const teacherId = this.tenantId(actor);
     await this.assertStudentInTenant(dto.studentId, teacherId);
     await this.assertClassInTenant(dto.classId, teacherId);
+
+    // One tuition per enrollment (student + class).
+    const existing = await this.prisma.tuition.findFirst({
+      where: { teacherId, studentId: dto.studentId, classId: dto.classId },
+      select: { id: true },
+    });
+    if (existing) {
+      throw new ConflictException('A tuition for this student in this class already exists');
+    }
 
     const status = computePaymentStatus(
       dto.totalAmount,
@@ -150,6 +164,55 @@ export class PaymentService {
       newValue: { amount: dto.amount, receiptNumber, status },
     });
     return result;
+  }
+
+  async deletePayment(actor: AuthenticatedUser, tuitionId: string, paymentId: string) {
+    const teacherId = this.tenantId(actor);
+    const tuition = await this.repo.findForTenant(tuitionId, teacherId);
+    if (!tuition) {
+      throw new NotFoundException('Tuition not found');
+    }
+    const payment = await this.repo.findPaymentRecord(paymentId, tuitionId);
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    const newPaid = Math.max(0, Number(tuition.paidAmount) - Number(payment.amount));
+    const status = computePaymentStatus(
+      Number(tuition.totalAmount),
+      newPaid,
+      tuition.dueDate,
+      new Date(),
+    );
+    const result = await this.repo.deletePaymentRecord(paymentId, tuitionId, newPaid, status);
+    await this.audit.log(actor, {
+      action: 'PAYMENT_DELETED',
+      entityType: 'Tuition',
+      entityId: tuitionId,
+      newValue: { amount: Number(payment.amount), status },
+    });
+    return result;
+  }
+
+  async deleteTuition(actor: AuthenticatedUser, id: string) {
+    const teacherId = this.tenantId(actor);
+    const tuition = await this.repo.findForTenant(id, teacherId);
+    if (!tuition) {
+      throw new NotFoundException('Tuition not found');
+    }
+    const paymentCount = await this.repo.countPayments(id);
+    if (paymentCount > 0) {
+      throw new ConflictException(
+        'This tuition has payment records — delete those first before removing it',
+      );
+    }
+    await this.repo.deleteTuition(id);
+    await this.audit.log(actor, {
+      action: 'TUITION_DELETED',
+      entityType: 'Tuition',
+      entityId: id,
+    });
+    return { deleted: true };
   }
 
   async sendReminder(actor: AuthenticatedUser, tuitionId: string) {

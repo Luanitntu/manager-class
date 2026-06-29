@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import {
   NOTIFICATION_QUEUE,
@@ -17,7 +17,26 @@ import {
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
 
-  constructor(@InjectQueue(NOTIFICATION_QUEUE) private readonly queue: Queue) {}
+  // Optional: when the queue is disabled (no Redis), this is undefined and
+  // enqueue calls become safe no-ops.
+  constructor(@Optional() @InjectQueue(NOTIFICATION_QUEUE) private readonly queue?: Queue) {}
+
+  /** Queue health for the admin console. */
+  async getStats(): Promise<{ enabled: boolean; counts?: Record<string, number> }> {
+    if (!this.queue) return { enabled: false };
+    try {
+      const counts = await this.queue.getJobCounts(
+        'waiting',
+        'active',
+        'completed',
+        'failed',
+        'delayed',
+      );
+      return { enabled: true, counts };
+    } catch {
+      return { enabled: false };
+    }
+  }
 
   async notifySessionChanged(sessionId: string, changeType: SessionChangeType): Promise<void> {
     await this.safeAdd(NotificationJob.SessionChanged, { sessionId, changeType });
@@ -30,7 +49,7 @@ export class NotificationService {
     await this.safeAdd(
       NotificationJob.SessionReminder,
       { sessionId },
-      { delay, jobId: `reminder:${sessionId}` },
+      { delay, jobId: `reminder-${sessionId}` },
     );
   }
 
@@ -43,6 +62,7 @@ export class NotificationService {
     data: Record<string, unknown>,
     opts?: { delay?: number; jobId?: string },
   ): Promise<void> {
+    if (!this.queue) return; // queue disabled (no Redis)
     try {
       await this.queue.add(name, data, {
         removeOnComplete: true,

@@ -3,6 +3,7 @@ import { DocumentTargetType, DocumentType } from '@prisma/client';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import {
   IsEnum,
+  IsIn,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -90,4 +91,15 @@ export class ListDocumentsQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsString()
   category?: string;
+
+  // SHARED = not assigned to any class (library); CLASS = assigned to a class.
+  @ApiPropertyOptional({ enum: ['SHARED', 'CLASS'] })
+  @IsOptional()
+  @IsIn(['SHARED', 'CLASS'])
+  scope?: 'SHARED' | 'CLASS';
+
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  classId?: string;
 }

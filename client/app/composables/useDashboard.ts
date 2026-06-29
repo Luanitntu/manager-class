@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/vue-query';
+import type { ClassLocationInfo } from './useClasses';
 
 export interface UpcomingSession {
   id: string;
   startTime: string;
   endTime: string;
   lessonTopic?: string | null;
-  class: { name: string; color?: string | null };
+  class: { name: string; color?: string | null } & ClassLocationInfo;
 }
 
 export interface DashboardStats {
@@ -24,7 +25,20 @@ export interface DashboardStats {
   totalScores?: number;
   // super admin
   totalTeachers?: number;
+  totalAssistants?: number;
   totalUsers?: number;
+  totalDocuments?: number;
+  signups?: { months: string[]; counts: number[] };
+  revenueCollected?: number;
+  revenueOutstanding?: number;
+  revenueByTeacher?: { teacherId: string; teacherName: string; collected: number; total: number }[];
+  plans?: { trial: number; personal: number; pro: number; business: number };
+  subscriptionRevenue?: {
+    months: string[];
+    byPlan: { personal: number[]; pro: number[]; business: number[] };
+    total: number[];
+    grandTotal: number;
+  };
   upcomingSessions?: UpcomingSession[];
 }
 

@@ -2,13 +2,14 @@
 import { useClasses } from '~/composables/useClasses';
 import { useReports } from '~/composables/useReports';
 
-const { data: classesData, isLoading: isClassesLoading } = useClasses();
+const { data: classesData, isLoading: isClassesLoading } = useClasses(undefined, undefined, 100);
 const { downloadReport } = useReports();
+const { locale } = useI18n();
 
 const scoreClassId = ref('all');
 const tuitionMonth = ref('Tháng 6, 2026');
 const error = ref<string | null>(null);
-const downloading = ref<'tuition' | 'scores' | 'attendance' | null>(null);
+const downloading = ref<'tuition' | 'scores' | 'classes' | null>(null);
 
 const classes = computed(() => classesData.value?.data ?? []);
 const classOptions = computed(() => [
@@ -22,29 +23,43 @@ const monthOptions = [
   'Tháng 4, 2026',
 ];
 
+const monthRanges: Record<string, { from: string; to: string }> = {
+  'Tháng 6, 2026': { from: '2026-06-01', to: '2026-06-30' },
+  'Tháng 5, 2026': { from: '2026-05-01', to: '2026-05-31' },
+  'Tháng 4, 2026': { from: '2026-04-01', to: '2026-04-30' },
+};
+
 async function exportTuition() {
   if (downloading.value) return;
-  await runDownload('/reports/tuition.xlsx', 'Tuition_Report.xlsx');
+  await runDownload('tuition', 'xlsx', 'tuition-report.xlsx', monthRanges[tuitionMonth.value]);
 }
 
 async function exportScores() {
   if (downloading.value) return;
-  const query = scoreClassId.value !== 'all' ? `?classId=${scoreClassId.value}` : '';
-  await runDownload(`/reports/scores.xlsx${query}`, 'Scores_Report.xlsx');
+  await runDownload('scores', 'xlsx', 'scores-report.xlsx', {
+    classId: scoreClassId.value !== 'all' ? scoreClassId.value : undefined,
+  });
 }
 
-async function exportAttendance() {
+async function exportClasses() {
   if (downloading.value) return;
-  await runDownload('/reports/attendance.pdf', 'Attendance.pdf');
+  await runDownload('classes', 'pdf', 'classes-report.pdf');
 }
 
-async function runDownload(path: string, filename: string) {
+async function runDownload(
+  type: 'tuition' | 'scores' | 'classes',
+  format: 'xlsx' | 'pdf',
+  filename: string,
+  params: Record<string, string | undefined> = {},
+) {
   error.value = null;
-  if (path.includes('tuition')) downloading.value = 'tuition';
-  else if (path.includes('scores')) downloading.value = 'scores';
-  else downloading.value = 'attendance';
+  downloading.value = type;
+  const search = new URLSearchParams({ format, lang: locale.value });
+  for (const [key, value] of Object.entries(params)) {
+    if (value) search.set(key, value);
+  }
   try {
-    await downloadReport(path, filename);
+    await downloadReport(`/reports/${type}?${search.toString()}`, filename);
   } catch (e) {
     error.value = extractApiError(e) ?? 'Không thể tạo báo cáo. Vui lòng thử lại.';
   } finally {
@@ -142,12 +157,12 @@ async function runDownload(path: string, filename: string) {
 
       <article class="teacher-reports__card teacher-reports__card--attendance">
         <div class="teacher-reports__icon is-attendance">
-          <v-icon size="25">mdi-account-group-outline</v-icon>
+          <v-icon size="25">mdi-google-classroom</v-icon>
         </div>
 
-        <h2>Báo cáo điểm danh</h2>
+        <h2>Báo cáo lớp học</h2>
         <p>
-          Tổng hợp tỉ lệ chuyên cần, số buổi vắng mặt và đi trễ của học viên trong khoá học.
+          Tổng hợp giáo viên, sĩ số, tổng số buổi, số buổi đã học và tiến độ còn lại của từng lớp.
         </p>
 
         <v-btn
@@ -155,11 +170,11 @@ async function runDownload(path: string, filename: string) {
           variant="flat"
           block
           :disabled="!!downloading"
-          :loading="downloading === 'attendance'"
-          @click="exportAttendance"
+          :loading="downloading === 'classes'"
+          @click="exportClasses"
         >
           <v-icon start size="18" class="is-orange">mdi-download-outline</v-icon>
-          Tải xuống PDF (Attendance.pdf)
+          Tải xuống PDF (classes-report.pdf)
         </v-btn>
       </article>
     </section>

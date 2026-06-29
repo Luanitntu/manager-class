@@ -48,10 +48,8 @@ export class SessionService {
     };
 
     if (actor.role === Role.ASSISTANT) {
-      return this.repo.findInRange({
-        ...base,
-        assistants: { some: { assistantId: actor.id } },
-      });
+      // Assistants see the sessions they are assigned to teach.
+      return this.repo.findInRange({ ...base, instructorId: actor.id });
     }
     if (actor.role === Role.STUDENT) {
       return this.repo.findInRange({
@@ -74,25 +72,22 @@ export class SessionService {
   async create(actor: AuthenticatedUser, dto: CreateSessionDto) {
     const teacherId = this.tenantId(actor);
     await this.assertClassOwned(dto.classId, teacherId);
-    const assistantIds = dto.assistantIds ?? [];
-    await this.assertAssistantsInTenant(assistantIds, teacherId);
+    const instructorId = await this.resolveInstructor(dto.instructorId, teacherId);
 
     const start = new Date(dto.startTime);
     const end = new Date(dto.endTime);
-    await this.conflicts.assertNoConflicts({ teacherId, start, end, assistantIds });
+    await this.conflicts.assertNoConflicts({ instructorId, start, end });
 
-    const session = await this.repo.createWithAssistants(
-      {
-        teacherId,
-        classId: dto.classId,
-        startTime: start,
-        endTime: end,
-        lessonTopic: dto.lessonTopic,
-        createdBy: actor.id,
-        updatedBy: actor.id,
-      },
-      assistantIds,
-    );
+    const session = await this.repo.create({
+      teacherId,
+      instructorId,
+      classId: dto.classId,
+      startTime: start,
+      endTime: end,
+      lessonTopic: dto.lessonTopic,
+      createdBy: actor.id,
+      updatedBy: actor.id,
+    });
 
     await this.notifications.scheduleSessionReminder(session.id, session.startTime);
     await this.audit.log(actor, {
@@ -107,8 +102,7 @@ export class SessionService {
   async bulkCreate(actor: AuthenticatedUser, dto: BulkCreateSessionDto) {
     const teacherId = this.tenantId(actor);
     await this.assertClassOwned(dto.classId, teacherId);
-    const assistantIds = dto.assistantIds ?? [];
-    await this.assertAssistantsInTenant(assistantIds, teacherId);
+    const instructorId = await this.resolveInstructor(dto.instructorId, teacherId);
 
     let slots;
     try {
@@ -118,6 +112,8 @@ export class SessionService {
         daysOfWeek: dto.daysOfWeek,
         startTime: dto.startTime,
         endTime: dto.endTime,
+        timeZone: dto.timeZone,
+        tzOffsetMinutes: dto.tzOffset,
       });
     } catch (e) {
       throw new BadRequestException((e as Error).message);
@@ -127,11 +123,12 @@ export class SessionService {
       throw new BadRequestException('No sessions match the given recurrence');
     }
 
-    await this.conflicts.assertNoConflictsBatch(teacherId, slots, assistantIds);
+    await this.conflicts.assertNoConflictsBatch(instructorId, slots);
 
     const recurrenceGroupId = randomUUID();
     const rows = slots.map((slot) => ({
       teacherId,
+      instructorId,
       classId: dto.classId,
       startTime: slot.start,
       endTime: slot.end,
@@ -141,7 +138,7 @@ export class SessionService {
       updatedBy: actor.id,
     }));
 
-    const created = await this.repo.createManyWithAssistants(rows, assistantIds);
+    const created = await this.repo.createMany(rows);
     await Promise.all(
       created.map((s) => this.notifications.scheduleSessionReminder(s.id, s.startTime)),
     );
@@ -160,39 +157,33 @@ export class SessionService {
       await this.assertClassOwned(dto.classId, teacherId);
     }
 
-    const assistantIds = dto.assistantIds;
-    if (assistantIds) {
-      await this.assertAssistantsInTenant(assistantIds, teacherId);
-    }
+    const instructorId =
+      dto.instructorId !== undefined
+        ? await this.resolveInstructor(dto.instructorId, teacherId)
+        : existing.instructorId;
 
     const start = dto.startTime ? new Date(dto.startTime) : existing.startTime;
     const end = dto.endTime ? new Date(dto.endTime) : existing.endTime;
 
-    // Re-check conflicts when timing or assistants change.
+    // Re-check conflicts when timing or instructor changes.
     const timingChanged = !!dto.startTime || !!dto.endTime;
-    if (timingChanged || assistantIds) {
-      const effectiveAssistants = assistantIds ?? existing.assistants.map((a) => a.assistantId);
-      await this.conflicts.assertNoConflicts({
-        teacherId,
-        start,
-        end,
-        assistantIds: effectiveAssistants,
-        excludeId: id,
-      });
+    const instructorChanged = instructorId !== existing.instructorId;
+    if (timingChanged || instructorChanged) {
+      await this.conflicts.assertNoConflicts({ instructorId, start, end, excludeId: id });
     }
 
     const data: Prisma.TeachingSessionUpdateInput = {
       ...(dto.startTime ? { startTime: start } : {}),
       ...(dto.endTime ? { endTime: end } : {}),
       ...(dto.classId ? { class: { connect: { id: dto.classId } } } : {}),
+      ...(instructorChanged ? { instructor: { connect: { id: instructorId } } } : {}),
       ...(dto.lessonTopic !== undefined ? { lessonTopic: dto.lessonTopic } : {}),
       ...(dto.status ? { status: dto.status } : {}),
       updatedBy: actor.id,
     };
 
-    const updated = await this.repo.updateWithAssistants(id, data, assistantIds);
+    const updated = await this.repo.update(id, data);
 
-    // Notify recipients of the change; reschedule the reminder if timing moved.
     await this.notifications.notifySessionChanged(id, 'updated');
     if (timingChanged) {
       await this.notifications.scheduleSessionReminder(id, updated.startTime);
@@ -233,18 +224,24 @@ export class SessionService {
     }
   }
 
-  private async assertAssistantsInTenant(assistantIds: string[], teacherId: string): Promise<void> {
-    if (assistantIds.length === 0) return;
-    const count = await this.prisma.user.count({
-      where: {
-        id: { in: assistantIds },
-        teacherId,
-        role: Role.ASSISTANT,
-        deletedAt: null,
-      },
-    });
-    if (count !== assistantIds.length) {
-      throw new NotFoundException('One or more assistants not found in your tenant');
+  /**
+   * The instructor must be the owning teacher or one of their assistants.
+   * Defaults to the teacher when not specified.
+   */
+  private async resolveInstructor(
+    instructorId: string | undefined,
+    teacherId: string,
+  ): Promise<string> {
+    if (!instructorId || instructorId === teacherId) {
+      return teacherId;
     }
+    const assistant = await this.prisma.user.findFirst({
+      where: { id: instructorId, teacherId, role: Role.ASSISTANT, deletedAt: null },
+      select: { id: true },
+    });
+    if (!assistant) {
+      throw new NotFoundException('Instructor must be you or one of your assistants');
+    }
+    return instructorId;
   }
 }

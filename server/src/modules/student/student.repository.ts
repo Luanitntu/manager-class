@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma, Role, StudyStatus } from '@prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
 const STUDENT_SELECT = {
@@ -8,9 +8,27 @@ const STUDENT_SELECT = {
   fullName: true,
   phone: true,
   avatarUrl: true,
+  avatarKey: true,
   status: true,
   createdAt: true,
   studentProfile: true,
+  // Classes the student is currently enrolled in (for the "Lớp học" column).
+  enrollments: {
+    where: { class: { deletedAt: null } },
+    select: {
+      class: {
+        select: {
+          id: true,
+          name: true,
+          locationType: true,
+          room: true,
+          meetingProvider: true,
+          meetingUrl: true,
+        },
+      },
+    },
+    orderBy: { enrolledAt: 'asc' },
+  },
   _count: { select: { enrollments: true } },
 } satisfies Prisma.UserSelect;
 
@@ -18,16 +36,24 @@ const STUDENT_SELECT = {
 export class StudentRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  listByTeacher(teacherId: string, search: string | undefined, skip: number, take: number) {
+  listByTeacher(
+    teacherId: string,
+    search: string | undefined,
+    status: StudyStatus | undefined,
+    skip: number,
+    take: number,
+  ) {
     const where: Prisma.UserWhereInput = {
       teacherId,
       role: Role.STUDENT,
       deletedAt: null,
+      ...(status ? { studentProfile: { studyStatus: status } } : {}),
       ...(search
         ? {
             OR: [
               { fullName: { contains: search, mode: 'insensitive' } },
               { email: { contains: search, mode: 'insensitive' } },
+              { phone: { contains: search, mode: 'insensitive' } },
             ],
           }
         : {}),
@@ -49,10 +75,47 @@ export class StudentRepository {
       where: { id: studentId, teacherId, role: Role.STUDENT, deletedAt: null },
       select: {
         ...STUDENT_SELECT,
+        teacher: { select: { id: true, fullName: true } },
         enrollments: {
-          include: { class: { select: { id: true, name: true, level: true } } },
+          // Keep enrollments to archived (soft-deleted) classes too; the UI shows
+          // them struck-through. isActive=false marks an archived class.
+          include: {
+            class: {
+              select: {
+                id: true,
+                name: true,
+                level: true,
+                isActive: true,
+                locationType: true,
+                room: true,
+                meetingProvider: true,
+                meetingUrl: true,
+              },
+            },
+          },
         },
       },
+    });
+  }
+
+  // ----- Payments (tuition + records) -----
+  listTuitions(studentId: string, teacherId: string) {
+    return this.prisma.tuition.findMany({
+      where: { studentId, teacherId },
+      include: {
+        class: { select: { id: true, name: true } },
+        payments: { orderBy: { paidAt: 'desc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // ----- Enrollments with join date (for the activity timeline) -----
+  listEnrollmentsWithDate(studentId: string, teacherId: string) {
+    return this.prisma.classEnrollment.findMany({
+      where: { studentId, class: { teacherId, deletedAt: null } },
+      include: { class: { select: { id: true, name: true } } },
+      orderBy: { enrolledAt: 'desc' },
     });
   }
 
@@ -83,7 +146,7 @@ export class StudentRepository {
     return this.prisma.score.findMany({
       where: { studentId, teacherId },
       include: { class: { select: { id: true, name: true } } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { scoredAt: 'desc' },
     });
   }
 

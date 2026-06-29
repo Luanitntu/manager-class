@@ -14,11 +14,11 @@ import { Role } from '@prisma/client';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/types/authenticated-user';
-import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { StudentService } from './student.service';
 import {
   CreateCommentDto,
   CreateScoreDto,
+  ListStudentsQueryDto,
   UpdateScoreDto,
   UpdateStudentProfileDto,
 } from './dto/student.dto';
@@ -31,7 +31,7 @@ export class StudentController {
 
   @Roles(Role.TEACHER)
   @Get()
-  list(@CurrentUser() actor: AuthenticatedUser, @Query() query: PaginationQueryDto) {
+  list(@CurrentUser() actor: AuthenticatedUser, @Query() query: ListStudentsQueryDto) {
     return this.students.list(actor, query);
   }
 
@@ -49,6 +49,17 @@ export class StudentController {
     @Body() dto: UpdateStudentProfileDto,
   ) {
     return this.students.updateProfile(actor, id, dto);
+  }
+
+  // ----- Payments + Activity -----
+  @Get(':id/payments')
+  getPayments(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.students.getPayments(actor, id);
+  }
+
+  @Get(':id/activity')
+  getActivity(@CurrentUser() actor: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.students.getActivity(actor, id);
   }
 
   // ----- Scores -----

@@ -5,46 +5,86 @@ const { mdAndUp } = useDisplay();
 const drawer = ref(true);
 const auth = useAuthStore();
 const { logout } = useAuth();
+const { t } = useI18n();
+const config = useRuntimeConfig();
+const { data: publicSettings } = usePublicSettings();
 const isStudentShell = computed(() => auth.role === 'STUDENT');
+
+const avatarSrc = computed(() => {
+  if (auth.user?.avatarKey) return `${config.public.apiBase}/users/${auth.user.id}/avatar`;
+  return auth.user?.avatarUrl ?? null;
+});
+
+const announcement = computed(() =>
+  publicSettings.value?.announcementActive && publicSettings.value?.announcement
+    ? publicSettings.value.announcement
+    : null,
+);
 
 watch(mdAndUp, (isDesktop) => {
   drawer.value = isDesktop;
 }, { immediate: true });
 
-const navGroups = [
-  {
-    label: 'HẰNG NGÀY',
-    items: [
-      { title: 'Tổng quan', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
-      { title: 'Lịch dạy', icon: 'mdi-calendar-month-outline', to: '/calendar' },
-    ],
-  },
-  {
-    label: 'GIẢNG DẠY',
-    items: [
-      { title: 'Lớp học', icon: 'mdi-book-open-page-variant-outline', to: '/classes' },
-      { title: 'Học viên', icon: 'mdi-account-group-outline', to: '/students' },
-      { title: 'Tài liệu', icon: 'mdi-file-document-outline', to: '/documents' },
-    ],
-  },
-  {
-    label: 'QUẢN LÝ',
-    items: [
-      { title: 'Học phí', icon: 'mdi-credit-card-outline', to: '/payments' },
-      { title: 'Báo cáo', icon: 'mdi-chart-bar', to: '/reports' },
-    ],
-  },
-];
+const NAV = {
+  dashboard: { key: 'nav.dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' },
+  calendar: { key: 'nav.calendar', icon: 'mdi-calendar-month-outline', to: '/calendar' },
+  classes: { key: 'nav.classes', icon: 'mdi-book-open-page-variant-outline', to: '/classes' },
+  students: { key: 'nav.students', icon: 'mdi-account-group-outline', to: '/students' },
+  assistants: { key: 'nav.assistants', icon: 'mdi-account-tie-outline', to: '/assistants' },
+  documents: { key: 'nav.documents', icon: 'mdi-file-document-outline', to: '/documents' },
+  payments: { key: 'nav.payments', icon: 'mdi-credit-card-outline', to: '/payments' },
+  reports: { key: 'nav.reports', icon: 'mdi-chart-bar', to: '/reports' },
+  auditLogs: { key: 'nav.auditLogs', icon: 'mdi-history', to: '/audit-logs' },
+  users: { key: 'nav.users', icon: 'mdi-account-group-outline', to: '/admin/users' },
+  health: { key: 'nav.health', icon: 'mdi-heart-pulse', to: '/admin/health' },
+  adminSettings: { key: 'nav.settings', icon: 'mdi-cog-outline', to: '/admin/settings' },
+  studentClasses: { key: 'nav.classes', icon: 'mdi-book-open-variant-outline', to: '/student/classes' },
+  studentDocuments: { key: 'nav.documents', icon: 'mdi-file-document-outline', to: '/student/documents' },
+  assignments: { key: 'nav.assignments', icon: 'mdi-clipboard-text-outline', to: '/student/assignments' },
+  grades: { key: 'nav.grades', icon: 'mdi-chart-line', to: '/student/grades' },
+  tests: { key: 'nav.tests', icon: 'mdi-clipboard-check-outline', to: '/student/tests' },
+} as const;
 
-const studentNavItems = [
-  { title: 'Tổng quan', icon: 'mdi-view-dashboard-outline', to: '/dashboard', exact: true },
-  { title: 'Lịch học', icon: 'mdi-calendar-month-outline', to: '/calendar' },
-  { title: 'Lớp học', icon: 'mdi-book-open-variant-outline', to: '/student/classes' },
-  { title: 'Tài liệu', icon: 'mdi-file-document-outline', to: '/student/documents' },
-  { title: 'Bài tập', icon: 'mdi-clipboard-text-outline', to: '/student/assignments' },
-  { title: 'Điểm số', icon: 'mdi-chart-line', to: '/student/grades' },
-  { title: 'Bài kiểm tra', icon: 'mdi-clipboard-check-outline', to: '/student/tests' },
-];
+type NavItem = { key: string; icon: string; to: string; exact?: boolean };
+type NavGroup = { title: string; items: NavItem[] };
+
+const navGroups = computed<NavGroup[]>(() => {
+  switch (auth.role) {
+    case 'SUPER_ADMIN':
+      return [
+        { title: 'nav.sectionDaily', items: [NAV.dashboard] },
+        { title: 'nav.sectionManage', items: [NAV.users, NAV.auditLogs, NAV.health] },
+        { title: 'nav.sectionSystem', items: [NAV.adminSettings] },
+      ];
+    case 'ASSISTANT':
+      return [
+        { title: 'nav.sectionDaily', items: [NAV.dashboard, NAV.calendar] },
+        { title: 'nav.sectionTeaching', items: [NAV.documents] },
+      ];
+    default:
+      return [
+        { title: 'nav.sectionDaily', items: [NAV.dashboard, NAV.calendar] },
+        { title: 'nav.sectionTeaching', items: [NAV.classes, NAV.students, NAV.assistants, NAV.documents] },
+        { title: 'nav.sectionManage', items: [NAV.payments, NAV.reports, NAV.auditLogs] },
+      ];
+  }
+});
+
+const studentNavItems = computed<NavItem[]>(() => [
+  { ...NAV.dashboard, exact: true },
+  { ...NAV.calendar, key: 'nav.studentCalendar' },
+  NAV.studentClasses,
+  NAV.studentDocuments,
+  NAV.assignments,
+  NAV.grades,
+  NAV.tests,
+]);
+
+const bottomItem = computed(() =>
+  auth.role === 'SUPER_ADMIN'
+    ? { key: 'nav.profile', icon: 'mdi-account-circle-outline', to: '/profile' }
+    : { key: 'nav.settings', icon: 'mdi-cog-outline', to: '/profile' },
+);
 </script>
 
 <template>
@@ -65,7 +105,7 @@ const studentNavItems = [
         </div>
 
         <nav class="student-shell__nav">
-          <div class="student-shell__nav-label">KHÔNG GIAN HỌC TẬP</div>
+          <div class="student-shell__nav-label">{{ t('nav.sectionStudySpace') }}</div>
           <v-list class="student-shell__nav-list" density="compact" nav>
             <v-list-item
               v-for="item in studentNavItems"
@@ -74,7 +114,7 @@ const studentNavItems = [
               :exact="item.exact"
               :prepend-icon="item.icon"
               rounded="xl"
-              :title="item.title"
+              :title="t(item.key)"
               :to="item.to"
             />
           </v-list>
@@ -82,9 +122,9 @@ const studentNavItems = [
 
         <template #append>
           <div class="student-shell__help">
-            <h4>Cần hỗ trợ?</h4>
-            <p>Đội ngũ giáo vụ luôn sẵn sàng giúp đỡ bạn.</p>
-            <button type="button">Chat với giáo vụ</button>
+            <h4>{{ t('nav.helpTitle') }}</h4>
+            <p>{{ t('nav.helpText') }}</p>
+            <button type="button">{{ t('nav.helpAction') }}</button>
           </div>
         </template>
       </v-navigation-drawer>
@@ -94,15 +134,16 @@ const studentNavItems = [
 
         <label class="student-shell__search" for="student-shell-search">
           <v-icon size="20">mdi-magnify</v-icon>
-          <input id="student-shell-search" placeholder="Tìm kiếm lớp học, tài liệu..." type="search">
+          <input id="student-shell-search" :placeholder="t('nav.studentSearch')" type="search">
         </label>
 
         <v-spacer />
 
         <div class="student-shell__actions">
+          <LanguageSwitcher class="mr-1" />
           <button class="student-shell__streak" type="button">
             <v-icon size="16">mdi-fire</v-icon>
-            14 Ngày
+            {{ t('nav.streakDays', { n: 14 }) }}
           </button>
           <v-btn class="student-shell__icon-btn" icon variant="text">
             <v-badge color="error" dot floating>
@@ -116,19 +157,19 @@ const studentNavItems = [
                 <v-avatar class="student-shell__avatar" size="36">
                   <v-img
                     :alt="auth.user?.fullName ?? 'Student avatar'"
-                    :src="auth.user?.avatarUrl || 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWV0bmFtZXNlJTIwc3R1ZGVudCUyMGJveXxlbnwwfHx8fDE3ODIxMDU5MTN8MA&ixlib=rb-4.1.0&q=80&w=1080'"
+                    :src="avatarSrc || 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWV0bmFtZXNlJTIwc3R1ZGVudCUyMGJveXxlbnwwfHx8fDE3ODIxMDU5MTN8MA&ixlib=rb-4.1.0&q=80&w=1080'"
                   />
                 </v-avatar>
                 <span class="student-shell__profile-text">
-                  <strong>{{ auth.user?.fullName ?? 'Tuấn Anh' }}</strong>
-                  <small>Học viên</small>
+                  <strong>{{ auth.user?.fullName ?? 'Guest' }}</strong>
+                  <small>{{ t('nav.roleStudent') }}</small>
                 </span>
               </button>
             </template>
             <v-list>
-              <v-list-item prepend-icon="mdi-account-outline" title="Hồ sơ cá nhân" to="/profile" />
-              <v-list-item prepend-icon="mdi-cog-outline" title="Cài đặt" to="/profile" />
-              <v-list-item prepend-icon="mdi-logout" title="Đăng xuất" @click="logout()" />
+              <v-list-item prepend-icon="mdi-account-outline" :title="t('nav.profile')" to="/profile" />
+              <v-list-item prepend-icon="mdi-cog-outline" :title="t('nav.settings')" to="/profile" />
+              <v-list-item prepend-icon="mdi-logout" :title="t('nav.logout')" @click="logout()" />
             </v-list>
           </v-menu>
         </div>
@@ -136,6 +177,17 @@ const studentNavItems = [
 
       <v-main class="student-shell__main">
         <div class="student-shell__content">
+          <v-alert
+            v-if="announcement"
+            type="info"
+            variant="tonal"
+            density="comfortable"
+            icon="mdi-bullhorn"
+            class="mb-6"
+            border="start"
+          >
+            {{ announcement }}
+          </v-alert>
           <slot />
         </div>
       </v-main>
@@ -157,8 +209,8 @@ const studentNavItems = [
       </div>
 
       <div class="teacher-shell__nav">
-        <section v-for="group in navGroups" :key="group.label" class="teacher-shell__nav-group">
-          <div class="teacher-shell__nav-label">{{ group.label }}</div>
+        <section v-for="group in navGroups" :key="group.title" class="teacher-shell__nav-group">
+          <div class="teacher-shell__nav-label">{{ t(group.title) }}</div>
           <v-list class="teacher-shell__nav-list" density="compact" nav>
             <v-list-item
               v-for="item in group.items"
@@ -166,7 +218,7 @@ const studentNavItems = [
               class="teacher-shell__nav-item"
               :prepend-icon="item.icon"
               rounded="lg"
-              :title="item.title"
+              :title="t(item.key)"
               :to="item.to"
             />
           </v-list>
@@ -177,10 +229,10 @@ const studentNavItems = [
         <v-list class="teacher-shell__settings" density="compact" nav>
           <v-list-item
             class="teacher-shell__nav-item"
-            prepend-icon="mdi-cog-outline"
+            :prepend-icon="bottomItem.icon"
             rounded="lg"
-            title="Cài đặt"
-            to="/profile"
+            :title="t(bottomItem.key)"
+            :to="bottomItem.to"
           />
         </v-list>
       </template>
@@ -191,15 +243,16 @@ const studentNavItems = [
 
       <div class="teacher-shell__search">
         <v-icon size="20">mdi-magnify</v-icon>
-        <input aria-label="Search" placeholder="Tìm kiếm lớp học, học viên..." type="search">
+        <input :aria-label="t('common.search')" :placeholder="t('nav.teacherSearch')" type="search">
       </div>
 
       <v-spacer />
 
       <div class="teacher-shell__actions">
+        <LanguageSwitcher class="mr-1" />
         <v-chip class="teacher-shell__streak" color="warning" variant="tonal">
           <v-icon start size="16">mdi-fire</v-icon>
-          14 Ngày
+          {{ t('nav.streakDays', { n: 14 }) }}
         </v-chip>
         <v-btn class="teacher-shell__icon-btn" icon variant="text">
           <v-badge color="error" dot floating>
@@ -214,18 +267,18 @@ const studentNavItems = [
           <template #activator="{ props }">
             <button v-bind="props" class="teacher-shell__profile" type="button">
               <v-avatar class="teacher-shell__avatar" size="36">
-                <v-img v-if="auth.user?.avatarUrl" :src="auth.user.avatarUrl" />
+                <v-img v-if="avatarSrc" :src="avatarSrc" />
                 <span v-else>{{ auth.user?.fullName?.[0] ?? 'U' }}</span>
               </v-avatar>
               <span class="teacher-shell__profile-text">
-                <strong>{{ auth.user?.fullName ?? 'Co Mai' }}</strong>
-                <small>{{ auth.role === 'STUDENT' ? 'Học viên' : 'Giáo viên' }}</small>
+                <strong>{{ auth.user?.fullName ?? 'Guest' }}</strong>
+                <small>{{ auth.role === 'ASSISTANT' ? t('nav.roleAssistant') : t('nav.roleTeacher') }}</small>
               </span>
             </button>
           </template>
           <v-list>
-            <v-list-item prepend-icon="mdi-account" title="Profile" to="/profile" />
-            <v-list-item prepend-icon="mdi-logout" title="Logout" @click="logout()" />
+            <v-list-item prepend-icon="mdi-account" :title="t('nav.profile')" to="/profile" />
+            <v-list-item prepend-icon="mdi-logout" :title="t('nav.logout')" @click="logout()" />
           </v-list>
         </v-menu>
       </div>
@@ -233,6 +286,17 @@ const studentNavItems = [
 
     <v-main class="teacher-shell__main">
       <v-container fluid class="teacher-shell__content">
+        <v-alert
+          v-if="announcement"
+          type="info"
+          variant="tonal"
+          density="comfortable"
+          icon="mdi-bullhorn"
+          class="mb-6"
+          border="start"
+        >
+          {{ announcement }}
+        </v-alert>
         <slot />
       </v-container>
     </v-main>

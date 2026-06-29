@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma, Role, SalaryMethod } from '@prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 
 const ASSISTANT_SELECT = {
@@ -8,6 +8,7 @@ const ASSISTANT_SELECT = {
   fullName: true,
   phone: true,
   avatarUrl: true,
+  avatarKey: true,
   status: true,
   createdAt: true,
   assistantProfile: true,
@@ -71,20 +72,64 @@ export class AssistantRepository {
     });
   }
 
+  updatePhone(assistantId: string, phone: string) {
+    return this.prisma.user.update({ where: { id: assistantId }, data: { phone } });
+  }
+
   getProfile(assistantId: string) {
     return this.prisma.assistantProfile.findUnique({ where: { userId: assistantId } });
+  }
+
+  // ----- Salary rate history -----
+  listRates(assistantId: string) {
+    return this.prisma.assistantSalaryRate.findMany({
+      where: { assistantId },
+      orderBy: { effectiveFrom: 'desc' },
+    });
+  }
+
+  latestRate(assistantId: string) {
+    return this.prisma.assistantSalaryRate.findFirst({
+      where: { assistantId },
+      orderBy: { effectiveFrom: 'desc' },
+    });
+  }
+
+  createRate(data: {
+    assistantId: string;
+    method: SalaryMethod;
+    rate: number;
+    effectiveFrom: Date;
+  }) {
+    return this.prisma.assistantSalaryRate.create({ data });
   }
 
   /**
    * Sessions the assistant is assigned to (non-cancelled), grouped per class,
    * for salary calculation. Optionally bounded by a date range.
    */
+  /** Full session detail for an assistant's teaching schedule (tenant-scoped). */
+  listInstructedSessions(assistantId: string, teacherId: string) {
+    return this.prisma.teachingSession.findMany({
+      where: { instructorId: assistantId, teacherId, deletedAt: null },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        lessonTopic: true,
+        status: true,
+        class: { select: { id: true, name: true, level: true, color: true } },
+      },
+      orderBy: { startTime: 'desc' },
+    });
+  }
+
   findAssignedSessions(assistantId: string, from?: Date, to?: Date) {
     return this.prisma.teachingSession.findMany({
       where: {
         deletedAt: null,
         status: { not: 'CANCELLED' },
-        assistants: { some: { assistantId } },
+        instructorId: assistantId,
         ...(from || to
           ? { startTime: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } }
           : {}),
