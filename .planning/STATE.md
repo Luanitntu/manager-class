@@ -1,16 +1,38 @@
+---
+gsd_state_version: 1.0
+milestone: v1
+milestone_name: Polish Release
+status: planning
+last_updated: "2026-06-29T16:49:25.577Z"
+last_activity: 2026-06-29
+progress:
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+---
+
 # Project State
 
 **Project:** Schedule Teacher
 **Initialized:** 2026-06-21
 **Current Milestone:** v1 Polish Release
-**Current Phase:** Phase 1 - Audit & Data Flow Baseline
+**Current Phase:** Phase 1 - Audit & Bug Ledger Reset
+
+## Current Position
+
+Phase: Not started (defining Phase 1 plan)
+Plan: -
+Status: Ready to plan Phase 1
+Last activity: 2026-06-29 - v1 replan/reset completed
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-21)
+See: `.planning/PROJECT.md` (updated 2026-06-29)
 
 **Core value:** Teachers and students can reliably see and act on the right class data through a clean, calendar-first interface.
-**Current focus:** UI refresh plus bug/stability sweep for teacher and student flows.
+**Current focus:** Audit data-display bugs first, then refresh and stabilize teacher/student flows.
 
 ## Active Roadmap
 
@@ -18,11 +40,11 @@ See: `.planning/ROADMAP.md`
 
 | Phase | Status | Focus |
 |-------|--------|-------|
-| 1 | Planned | Audit current UI/data-display bugs |
-| 2 | Pending | Visual system and app shell refresh |
-| 3 | Pending | Teacher workflow polish and fixes |
-| 4 | Pending | Student portal polish and fixes |
-| 5 | Pending | QA, regression tests, release readiness |
+| 1 | Planned | Audit teacher/student data-display and navigation bugs |
+| 2 | Pending | Shared visual system and app shell |
+| 3 | Pending | Teacher workflow data and UI polish |
+| 4 | Pending | Student portal data and UI polish |
+| 5 | Pending | Responsive QA, regression tests, release readiness |
 
 ## Key Constraints
 
@@ -42,16 +64,15 @@ See: `.planning/ROADMAP.md`
 - `.planning/codebase/INTEGRATIONS.md`
 - `.planning/codebase/CONCERNS.md`
 
+## Reset Notes
+
+- Previous Phase 1 plan artifacts were archived to `.planning/archive/phase-reset-2026-06-29-v1/`.
+- `.planning/phases/` is empty and ready for fresh Phase 1 planning.
+- No pending todos matched during reset.
+
 ## Next Command
 
-`/gsd-execute-phase 1`
-
-## Last Session
-
-- **Stopped at:** Phase 1 planned
-- **Resume file:** `.planning/phases/01-audit-data-flow-baseline/01-01-PLAN.md`
-- **Bug ledger:** `.planning/phases/01-audit-data-flow-baseline/01-BUG-LEDGER.md`
-- **Plan count:** 4 plans across 3 waves
+`/gsd-discuss-phase 1`
 
 ---
-*State updated: 2026-06-21 after Phase 1 planning*
+*State updated: 2026-06-29 after v1 replan/reset*

@@ -1,42 +1,46 @@
 # Requirements: Schedule Teacher v1 Polish Release
 
-**Defined:** 2026-06-21
+**Defined:** 2026-06-29
 **Core Value:** Teachers and students can reliably see and act on the right class data through a clean, calendar-first interface.
 
 ## v1 Requirements
 
+### Discovery and Audit
+
+- [ ] **AUDIT-01**: Teacher and student core routes have an audit record that states route, role, expected data, actual UI behavior, and suspected failure layer.
+- [ ] **AUDIT-02**: Data-display failures are classified by API envelope, pagination, auth/session state, role scope, composable mapping, store state, or component rendering.
+- [ ] **AUDIT-03**: Each confirmed bug has a reproduction note, severity, owner area, and verification target before implementation starts.
+
 ### UI Refresh
 
-- [ ] **UI-01**: Teacher-facing pages use a consistent modern education SaaS visual style inspired by PREP, with original colors, spacing, typography, and component treatment.
-- [ ] **UI-02**: Student-facing pages use the same visual system while emphasizing clarity around upcoming classes, documents, scores, and payments.
-- [ ] **UI-03**: The app shell provides clear role-aware navigation for teacher and student routes without crowding or confusing center/admin concepts.
-- [ ] **UI-04**: Calendar remains the primary teacher workspace and supports create, view/edit, drag, resize, and recurring-session flows without visual breakage.
-- [ ] **UI-05**: Empty, loading, error, and success states are polished and consistent across teacher/student pages.
-- [ ] **UI-06**: Main pages remain usable on common laptop and mobile-width viewports, with no overlapping text or broken controls.
+- [ ] **UI-01**: Shared app shell provides clear role-aware navigation for teacher and student routes without introducing center workflows.
+- [ ] **UI-02**: Shared cards, tables, forms, dialogs, empty states, loading states, error states, and success states use one original education SaaS visual language.
+- [ ] **UI-03**: Teacher-facing pages keep calendar-first workflows prominent and usable after the visual refresh.
+- [ ] **UI-04**: Student-facing pages emphasize clarity around upcoming classes, documents, scores/comments, and payments.
+- [ ] **UI-05**: Main teacher/student pages remain usable on common laptop and mobile-width viewports with no overlapping text or broken controls.
 
-### Data Display Reliability
+### Teacher Workflow Reliability
 
-- [ ] **DATA-01**: Teacher dashboard displays live counts, upcoming sessions, tuition summaries, and relevant alerts when data exists.
-- [ ] **DATA-02**: Teacher calendar displays existing sessions from the API for the selected date range.
-- [ ] **DATA-03**: Teacher class, student, assistant, document, payment, report, and audit pages display existing API data correctly.
-- [ ] **DATA-04**: Student dashboard displays enrolled classes, upcoming sessions, assigned documents, scores/comments, and payment status where data exists.
-- [ ] **DATA-05**: Student-accessible lists do not silently appear empty when API data exists or when role scoping requires a different API path.
-- [ ] **DATA-06**: API envelope and pagination handling are consistent in frontend composables so pages do not lose data due to unwrap/meta mismatches.
+- [ ] **TEACH-01**: Teacher dashboard displays live counts, upcoming sessions, tuition summaries, and relevant alerts when data exists.
+- [ ] **TEACH-02**: Teacher calendar displays existing sessions for the selected date range and preserves create, view/edit, drag, resize, and recurring-session flows.
+- [ ] **TEACH-03**: Teacher classes, students, and assistants pages display existing tenant-scoped API data and clear empty/loading/error states.
+- [ ] **TEACH-04**: Teacher documents page supports visible upload/link/share/download state for teacher-owned and student-visible materials.
+- [ ] **TEACH-05**: Teacher payments, reports, audit, and profile pages display existing API data without silent empty states.
 
-### Bug Fixing
+### Student Portal Reliability
 
-- [ ] **BUG-01**: Known page-level bugs where data exists but the UI does not show it are audited, reproduced, fixed, and recorded.
-- [ ] **BUG-02**: Auth/session edge cases that block teacher or student navigation are fixed.
-- [ ] **BUG-03**: Form submit/update flows for teacher/student core pages show validation errors and successful updates clearly.
-- [ ] **BUG-04**: Upload/download/share flows for documents are verified for teacher-created and student-visible materials.
-- [ ] **BUG-05**: Payment status and payment history display correctly for teachers and students.
+- [ ] **STUD-01**: Student dashboard displays the student's enrolled classes, upcoming sessions, assigned documents, scores/comments, and payment status where data exists.
+- [ ] **STUD-02**: Student classes and schedule pages use student-appropriate role-scoped API data rather than teacher-only assumptions.
+- [ ] **STUD-03**: Student documents and scores/comments pages distinguish no data from loading, error, and permission states.
+- [ ] **STUD-04**: Student payments page shows status and history clearly when payment records exist.
+- [ ] **STUD-05**: Student profile/session flows do not block navigation or show stale user data after refresh.
 
 ### Verification
 
-- [ ] **VER-01**: Frontend lint, typecheck, and build pass after UI refresh and data-display fixes.
+- [ ] **VER-01**: Frontend lint, typecheck, and build pass after UI and data-display changes.
 - [ ] **VER-02**: Backend lint, build, and existing Jest tests pass after bug fixes.
-- [ ] **VER-03**: Focused regression tests or manual verification notes cover every fixed data-display bug.
-- [ ] **VER-04**: Teacher smoke flow is verified: login -> dashboard -> calendar -> class/student/document/payment page.
+- [ ] **VER-03**: Fixed data-display bugs have focused regression tests where practical or documented manual checks where automation is absent.
+- [ ] **VER-04**: Teacher smoke flow is verified: login -> dashboard -> calendar -> class/student/document/payment/report page.
 - [ ] **VER-05**: Student smoke flow is verified: login -> dashboard -> schedule/classes -> documents -> scores/payments.
 
 ## v2 Requirements
@@ -68,23 +72,24 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| AUDIT-01 | Phase 1 | Pending |
+| AUDIT-02 | Phase 1 | Pending |
+| AUDIT-03 | Phase 1 | Pending |
 | UI-01 | Phase 2 | Pending |
-| UI-02 | Phase 4 | Pending |
+| UI-02 | Phase 2 | Pending |
 | UI-03 | Phase 2 | Pending |
-| UI-04 | Phase 3 | Pending |
-| UI-05 | Phase 2 | Pending |
-| UI-06 | Phase 5 | Pending |
-| DATA-01 | Phase 3 | Pending |
-| DATA-02 | Phase 3 | Pending |
-| DATA-03 | Phase 3 | Pending |
-| DATA-04 | Phase 4 | Pending |
-| DATA-05 | Phase 4 | Pending |
-| DATA-06 | Phase 1 | Pending |
-| BUG-01 | Phase 1 | Pending |
-| BUG-02 | Phase 1 | Pending |
-| BUG-03 | Phase 3 | Pending |
-| BUG-04 | Phase 3 | Pending |
-| BUG-05 | Phase 4 | Pending |
+| UI-04 | Phase 2 | Pending |
+| UI-05 | Phase 5 | Pending |
+| TEACH-01 | Phase 3 | Pending |
+| TEACH-02 | Phase 3 | Pending |
+| TEACH-03 | Phase 3 | Pending |
+| TEACH-04 | Phase 3 | Pending |
+| TEACH-05 | Phase 3 | Pending |
+| STUD-01 | Phase 4 | Pending |
+| STUD-02 | Phase 4 | Pending |
+| STUD-03 | Phase 4 | Pending |
+| STUD-04 | Phase 4 | Pending |
+| STUD-05 | Phase 4 | Pending |
 | VER-01 | Phase 5 | Pending |
 | VER-02 | Phase 5 | Pending |
 | VER-03 | Phase 5 | Pending |
@@ -92,24 +97,24 @@
 | VER-05 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 22 total
-- Mapped to phases: 22
+- v1 requirements: 23 total
+- Mapped to phases: 23
 - Unmapped: 0
 
 ## User Stories
 
 - As a teacher, I can open any main page and see the data I expect without needing to refresh or guess whether the app is broken.
-- As a teacher, I can manage my daily work from a polished calendar-first interface.
-- As a student, I can log in and quickly understand my classes, schedule, documents, scores, and payment status.
+- As a teacher, I can manage daily work from a polished calendar-first interface.
+- As a student, I can log in and quickly understand my classes, schedule, documents, scores/comments, and payment status.
 - As the product owner, I can validate teacher/student usage before expanding to center-level workflows.
 
 ## Acceptance Criteria
 
 - Teacher and student pages have a coherent visual system and role-appropriate navigation.
-- Existing backend data appears correctly on the relevant frontend pages.
+- Existing backend data appears correctly on relevant frontend pages.
 - Every fixed data-display bug has a reproduction note and verification note.
-- Center role is not introduced into v1 UI beyond existing super-admin/teacher/student/assistant concepts.
+- Center role is not introduced into v1 UI beyond existing legacy/admin surfaces.
 
 ---
-*Requirements defined: 2026-06-21*
-*Last updated: 2026-06-21 after initial definition*
+*Requirements defined: 2026-06-29*
+*Last updated: 2026-06-29 after v1 replan/reset*
