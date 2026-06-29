@@ -1,4 +1,6 @@
 import { useQuery } from '@tanstack/vue-query';
+import { computed } from 'vue';
+import type { UserRole } from '~/stores/auth';
 import type { ClassLocationInfo } from './useClasses';
 
 export interface UpcomingSession {
@@ -10,7 +12,7 @@ export interface UpcomingSession {
 }
 
 export interface DashboardStats {
-  role: string;
+  role: UserRole;
   // teacher
   totalClasses?: number;
   totalStudents?: number;
@@ -44,8 +46,11 @@ export interface DashboardStats {
 
 export function useDashboard() {
   const { request } = useApi();
+  const auth = useAuthStore();
+
   return useQuery({
-    queryKey: ['dashboard'],
+    queryKey: ['dashboard', computed(() => auth.user?.id), computed(() => auth.role)],
     queryFn: () => request<DashboardStats>(ApiEndpoints.dashboard),
+    enabled: computed(() => auth.isAuthenticated),
   });
 }
