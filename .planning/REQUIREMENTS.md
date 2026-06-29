@@ -27,6 +27,7 @@
 - [ ] **APP-02**: Reusable dialogs and high-traffic shared components no longer depend on Vuetify primitives.
 - [ ] **APP-03**: The app has a documented inventory of remaining old UI/Vuetify usages after the migration sweep, with none left in v1.1 scope unless explicitly deferred.
 - [ ] **APP-04**: Calendar-first teacher workflow remains accessible and visually consistent after shell migration.
+- [ ] **APP-05**: Migrated app shell and shared surfaces preserve visual parity with the intended current UI, with no broken spacing, overlapping text, missing controls, or responsive layout regressions.
 
 ### Priority Page Redesign
 
@@ -35,6 +36,7 @@
 - [ ] **PAGE-03**: `/audit-logs` is redesigned with Tailwind shared components while preserving filters, table/list display, pagination, and empty/loading states.
 - [ ] **PAGE-04**: `/profile` is redesigned with Tailwind shared components while preserving profile loading, edit, timezone selection, save, error, and success behavior.
 - [ ] **PAGE-05**: Redesigned pages match the newer app UI direction across spacing, typography, color, responsive behavior, and state treatment.
+- [ ] **PAGE-06**: Priority pages pass visual parity checks against the intended current UI: no accidental layout shifts, clipped content, unreadable text, broken controls, or missing states.
 
 ### Verification
 
@@ -42,7 +44,8 @@
 - [ ] **VER-02**: Frontend `npm run typecheck` passes after Vuetify/SCSS removal and page redesign.
 - [ ] **VER-03**: Frontend `npm run build` passes without Vuetify or SCSS dependencies.
 - [ ] **VER-04**: Manual smoke checks cover app shell navigation plus `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` on desktop and mobile-width viewports.
-- [ ] **VER-05**: Backend verification is run only if backend files are touched; otherwise the milestone records that backend was not changed.
+- [ ] **VER-05**: Screenshot or manual visual QA verifies migrated pages on desktop and mobile-width viewports have no broken UI, no overflow/overlap, and no unintended visual regression.
+- [ ] **VER-06**: Backend verification is run only if backend files are touched; otherwise the milestone records that backend was not changed.
 
 ## Future Requirements
 
@@ -85,20 +88,23 @@
 | APP-02 | Phase 3 | Pending |
 | APP-03 | Phase 3 | Pending |
 | APP-04 | Phase 3 | Pending |
+| APP-05 | Phase 3 | Pending |
 | PAGE-01 | Phase 4 | Pending |
 | PAGE-02 | Phase 4 | Pending |
 | PAGE-03 | Phase 4 | Pending |
 | PAGE-04 | Phase 4 | Pending |
 | PAGE-05 | Phase 4 | Pending |
+| PAGE-06 | Phase 4 | Pending |
 | VER-01 | Phase 5 | Pending |
 | VER-02 | Phase 5 | Pending |
 | VER-03 | Phase 5 | Pending |
 | VER-04 | Phase 5 | Pending |
 | VER-05 | Phase 5 | Pending |
+| VER-06 | Phase 5 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 24 total
-- Mapped to phases: 24
+- v1.1 requirements: 27 total
+- Mapped to phases: 27
 - Unmapped: 0
 
 ## User Stories
@@ -113,6 +119,7 @@
 - Vuetify and SCSS are removed from the frontend build/runtime surface.
 - Tailwind design system tokens, conventions, and shared UI components cover common app patterns.
 - `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` are redesigned and behavior-preserving.
+- Migrated UI keeps the intended current look and does not introduce broken, clipped, overlapping, or unexpectedly changed layouts.
 - Frontend lint, typecheck, and build pass.
 
 ---

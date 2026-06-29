@@ -50,6 +50,7 @@ See: `.planning/ROADMAP.md`
 
 - Remove Vuetify and SCSS from the frontend.
 - Use Tailwind CSS, design tokens, and shared Vue components for UI.
+- Preserve visual parity during migration: no broken UI, overlap, clipped content, missing states, or unintended layout changes.
 - Preserve existing composables/data flows.
 - Preserve teacher/student workflows and calendar-first teacher navigation.
 - Prioritize `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.

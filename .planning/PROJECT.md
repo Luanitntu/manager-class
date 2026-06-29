@@ -12,20 +12,21 @@ Teachers and students can reliably see and act on the right class data through a
 
 ## Current Milestone: v1.1 Tailwind UI Migration
 
-**Goal:** Replace the remaining Vuetify/SCSS UI layer with a reusable Tailwind-based component system and bring old pages in line with the newer app UI.
+**Goal:** Replace the remaining Vuetify/SCSS UI layer with a reusable Tailwind-based component system while preserving the existing visual intent, layouts, and user workflows.
 
 **Target features:**
 - Remove Vuetify and SCSS from the frontend build and runtime surface.
 - Keep Tailwind CSS as the app styling foundation.
 - Define a lightweight Tailwind design system with tokens, component conventions, and reusable UI components.
 - Redesign old UI pages across the app, with priority on `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.
+- Preserve visual parity during migration: no broken layouts, overlapping text, missing states, or unintended UI regressions.
 - Verify the whole app still builds, typechecks, and preserves teacher/student workflows after the UI migration.
 
 ## Business Context
 
 - **Customer**: Individual teachers first; language centers later.
 - **Revenue model**: Future SaaS subscriptions; not part of this milestone.
-- **Success metric**: The app uses one Tailwind-based UI system, has no Vuetify/SCSS dependency surface, and old UI pages visually match the newer codebase.
+- **Success metric**: The app uses one Tailwind-based UI system, has no Vuetify/SCSS dependency surface, and migrated pages look/function like the intended current UI without broken or regressed layouts.
 - **Strategy notes**: Center role remains deferred; this milestone is frontend polish and maintainability.
 
 ## Requirements
@@ -43,6 +44,7 @@ Teachers and students can reliably see and act on the right class data through a
 - [ ] Preserve or replace needed UI primitives with Tailwind-based shared components.
 - [ ] Create a lightweight Tailwind design system covering tokens, component variants, and common layout/control/data-display/feedback patterns.
 - [ ] Redesign `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` to match the newer Tailwind UI direction.
+- [ ] Maintain visual and interaction parity while migrating: no accidental page redesign beyond the agreed UI direction, no broken responsive layouts, and no missing loading/empty/error states.
 - [ ] Sweep the full app for remaining old UI patterns and migrate or explicitly document deferred areas.
 - [ ] Run frontend lint, typecheck, and build after migration; run backend checks only if backend code is touched.
 
@@ -71,6 +73,7 @@ Teachers and students can reliably see and act on the right class data through a
 - **UX**: Keep calendar-first behavior for teachers.
 - **Architecture**: Frontend pages should keep using feature composables; do not move API calls directly into components.
 - **Styling**: Use Tailwind CSS and local shared components; do not reintroduce SCSS or Vuetify wrappers.
+- **Visual parity**: Tailwind migration must preserve existing visual intent and workflows unless a page is explicitly being redesigned.
 - **Reuse**: Prefer shared components for repeated cards, tables, filters, dialogs, pagination, badges, alerts, skeletons, and empty states.
 - **Verification**: Run `npm run lint`, `npm run typecheck`, and `npm run build` from `client/` after frontend changes.
 
@@ -80,6 +83,7 @@ Teachers and students can reliably see and act on the right class data through a
 |----------|-----------|---------|
 | v1.1 removes Vuetify and SCSS | The user wants Tailwind as the single styling foundation | Pending |
 | Tailwind design system comes before page redesign | Tokens and component conventions prevent one-off Tailwind markup across pages | Pending |
+| Visual parity is a release gate | Tailwind migration should not make the UI look broken, shifted, or unexpectedly different | Pending |
 | `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` are priority pages | User identified these as old UI pages needing redesign | Pending |
 | Center role remains deferred | Prevents scope creep during UI platform migration | Pending |
 
