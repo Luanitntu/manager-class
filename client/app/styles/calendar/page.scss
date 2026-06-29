@@ -1,0 +1,18 @@
+.calendar-page {
+  --calendar-primary: #0d6efd;
+  --calendar-primary-dark: #0b1b3f;
+  --calendar-border: #dce5f1;
+  --calendar-muted: #5f7190;
+  --calendar-soft: #f5f8fc;
+
+  color: var(--calendar-primary-dark);
+  display: grid;
+  gap: 24px;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .calendar-page {
+    gap: 18px;
+  }
+}

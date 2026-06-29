@@ -1,5 +1,19 @@
 <script setup lang="ts">
 import type { TeachingSession } from '~/composables/useSessions';
+import {
+  addDays,
+  endOfDay,
+  formatShortDatePadded,
+  formatTime,
+  isSessionOnline,
+  isToday,
+  normalizeHexColor,
+  sessionEventColor,
+  sessionLocationLabel,
+  softHexColor,
+  startOfDay,
+  toDateKey,
+} from '~/utils/calendar';
 
 interface StudentScheduleItem {
   id: string;
@@ -32,8 +46,6 @@ const emit = defineEmits<{
   next: [];
 }>();
 
-const fallbackColors = ['#0071f9', '#10b981', '#7367f0', '#ff6b00'];
-
 const scheduleItems = computed<StudentScheduleItem[]>(() => {
   const weekEnd = addDays(props.weekStart, 6);
   return props.sessions
@@ -42,8 +54,8 @@ const scheduleItems = computed<StudentScheduleItem[]>(() => {
       return date >= startOfDay(props.weekStart) && date <= endOfDay(weekEnd);
     })
     .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-    .map((session, index) => {
-      const online = index % 2 === 0;
+    .map((session) => {
+      const online = isSessionOnline(session);
       return {
         id: session.id,
         className: session.class.name,
@@ -51,8 +63,8 @@ const scheduleItems = computed<StudentScheduleItem[]>(() => {
         startTime: formatTime(session.startTime),
         endTime: formatTime(session.endTime),
         date: new Date(session.startTime),
-        color: session.class.color || fallbackColors[index % fallbackColors.length] || '#0071f9',
-        location: online ? 'Học trực tuyến (Google Meet)' : locationForIndex(index),
+        color: sessionEventColor(session),
+        location: sessionLocationLabel(session),
         isOnline: online,
         isToday: isToday(new Date(session.startTime)),
       };
@@ -83,7 +95,7 @@ const visibleDayGroups = computed(() => dayGroups.value.filter((group) => group.
 const weekTitle = computed(() => {
   const start = props.weekStart;
   const end = addDays(start, 6);
-  return `Tuần ${formatDateShort(start)} - ${formatDateShort(end)}`;
+  return `Tuần ${formatShortDatePadded(start)} - ${formatShortDatePadded(end)}`;
 });
 
 function weekdayLabel(date: Date) {
@@ -92,12 +104,8 @@ function weekdayLabel(date: Date) {
   return ['THỨ', String(day + 1)];
 }
 
-function isToday(date: Date) {
-  return toDateKey(date) === toDateKey(new Date());
-}
-
 function actionLabel(item: StudentScheduleItem) {
-  return item.isOnline ? 'Vào phòng học' : 'Xem bản đồ';
+  return item.isOnline ? 'Vào phòng học' : 'Xem địa điểm';
 }
 
 function actionIcon(item: StudentScheduleItem) {
@@ -106,59 +114,9 @@ function actionIcon(item: StudentScheduleItem) {
 
 function toneStyle(color: string, soft = true) {
   return {
-    '--schedule-accent': normalizeColor(color),
-    '--schedule-accent-soft': softColor(color, soft ? 0.1 : 0.16),
+    '--schedule-accent': normalizeHexColor(color),
+    '--schedule-accent-soft': softHexColor(color, soft ? 0.1 : 0.16),
   };
-}
-
-function normalizeColor(hex: string) {
-  return /^#[0-9a-f]{6}$/i.test(hex) ? hex : '#0071f9';
-}
-
-function softColor(hex: string, alpha: number) {
-  const normalized = normalizeColor(hex).replace('#', '');
-  const bigint = Number.parseInt(normalized, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function locationForIndex(index: number) {
-  return index % 3 === 1 ? 'Phòng 101 - Cơ sở 1' : 'Phòng 202 - Cơ sở 2';
-}
-
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date(value));
-}
-
-function formatDateShort(date: Date) {
-  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
-}
-
-function toDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
-}
-
-function endOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
-}
-
-function addDays(date: Date, amount: number) {
-  const result = new Date(date);
-  result.setDate(result.getDate() + amount);
-  return result;
 }
 </script>
 
