@@ -1,90 +1,93 @@
-# Requirements: Schedule Teacher v1 Polish Release
+# Requirements: Schedule Teacher v1.1 Tailwind UI Migration
 
-**Defined:** 2026-06-21
+**Defined:** 2026-06-30
 **Core Value:** Teachers and students can reliably see and act on the right class data through a clean, calendar-first interface.
 
-## v1 Requirements
+## v1.1 Requirements
 
-### UI Refresh
+### Styling Platform
 
-- [ ] **UI-01**: Teacher-facing pages use a consistent modern education SaaS visual style inspired by PREP, with original colors, spacing, typography, and component treatment.
-- [ ] **UI-02**: Student-facing pages use the same visual system while emphasizing clarity around upcoming classes, documents, scores, and payments.
-- [ ] **UI-03**: The app shell provides clear role-aware navigation for teacher and student routes without crowding or confusing center/admin concepts.
-- [ ] **UI-04**: Calendar remains the primary teacher workspace and supports create, view/edit, drag, resize, and recurring-session flows without visual breakage.
-- [ ] **UI-05**: Empty, loading, error, and success states are polished and consistent across teacher/student pages.
-- [ ] **UI-06**: Main pages remain usable on common laptop and mobile-width viewports, with no overlapping text or broken controls.
+- [ ] **STYLE-01**: The frontend no longer registers `vuetify-nuxt-module` or uses `client/vuetify.config.ts` / Vuetify settings in Nuxt configuration.
+- [ ] **STYLE-02**: The frontend no longer imports SCSS application styles, including `client/app/assets/css/vuetify.settings.scss` and `client/app/styles/**/*.scss`.
+- [ ] **STYLE-03**: Remaining app styling is expressed through Tailwind CSS, design tokens in CSS variables where needed, and Vue component classes.
+- [ ] **STYLE-04**: Material Design Icons or icon usage continues to work without depending on Vuetify components.
 
-### Data Display Reliability
+### Shared UI Components
 
-- [ ] **DATA-01**: Teacher dashboard displays live counts, upcoming sessions, tuition summaries, and relevant alerts when data exists.
-- [ ] **DATA-02**: Teacher calendar displays existing sessions from the API for the selected date range.
-- [ ] **DATA-03**: Teacher class, student, assistant, document, payment, report, and audit pages display existing API data correctly.
-- [ ] **DATA-04**: Student dashboard displays enrolled classes, upcoming sessions, assigned documents, scores/comments, and payment status where data exists.
-- [ ] **DATA-05**: Student-accessible lists do not silently appear empty when API data exists or when role scoping requires a different API path.
-- [ ] **DATA-06**: API envelope and pagination handling are consistent in frontend composables so pages do not lose data due to unwrap/meta mismatches.
+- [ ] **UIKIT-01**: Shared layout primitives exist for page headers, toolbar rows, sections, cards, and responsive content containers.
+- [ ] **UIKIT-02**: Shared form/control components exist for buttons, inputs, selects, textareas, filters, and action groups.
+- [ ] **UIKIT-03**: Shared data display components exist for tables/lists, pagination, badges/chips, avatars, metric cards, and status indicators.
+- [ ] **UIKIT-04**: Shared feedback components exist for alerts, toasts, skeleton/loading states, empty states, and confirmation dialogs/modals.
+- [ ] **UIKIT-05**: Existing duplicated UI patterns are replaced with shared components where practical without changing page behavior.
 
-### Bug Fixing
+### App-Wide Migration
 
-- [ ] **BUG-01**: Known page-level bugs where data exists but the UI does not show it are audited, reproduced, fixed, and recorded.
-- [ ] **BUG-02**: Auth/session edge cases that block teacher or student navigation are fixed.
-- [ ] **BUG-03**: Form submit/update flows for teacher/student core pages show validation errors and successful updates clearly.
-- [ ] **BUG-04**: Upload/download/share flows for documents are verified for teacher-created and student-visible materials.
-- [ ] **BUG-05**: Payment status and payment history display correctly for teachers and students.
+- [ ] **APP-01**: Shared app layouts no longer use Vuetify shell components such as `v-app`, `v-main`, `v-navigation-drawer`, `v-app-bar`, or `v-list`.
+- [ ] **APP-02**: Reusable dialogs and high-traffic shared components no longer depend on Vuetify primitives.
+- [ ] **APP-03**: The app has a documented inventory of remaining old UI/Vuetify usages after the migration sweep, with none left in v1.1 scope unless explicitly deferred.
+- [ ] **APP-04**: Calendar-first teacher workflow remains accessible and visually consistent after shell migration.
+
+### Priority Page Redesign
+
+- [ ] **PAGE-01**: `/assistants` is redesigned with Tailwind shared components while preserving search, pagination, create assistant, list, and detail-open behavior.
+- [ ] **PAGE-02**: `/assistants/[id]` is redesigned with Tailwind shared components while preserving profile, salary summary, assigned classes, salary config, schedule, breakdown, and history behavior.
+- [ ] **PAGE-03**: `/audit-logs` is redesigned with Tailwind shared components while preserving filters, table/list display, pagination, and empty/loading states.
+- [ ] **PAGE-04**: `/profile` is redesigned with Tailwind shared components while preserving profile loading, edit, timezone selection, save, error, and success behavior.
+- [ ] **PAGE-05**: Redesigned pages match the newer app UI direction across spacing, typography, color, responsive behavior, and state treatment.
 
 ### Verification
 
-- [ ] **VER-01**: Frontend lint, typecheck, and build pass after UI refresh and data-display fixes.
-- [ ] **VER-02**: Backend lint, build, and existing Jest tests pass after bug fixes.
-- [ ] **VER-03**: Focused regression tests or manual verification notes cover every fixed data-display bug.
-- [ ] **VER-04**: Teacher smoke flow is verified: login -> dashboard -> calendar -> class/student/document/payment page.
-- [ ] **VER-05**: Student smoke flow is verified: login -> dashboard -> schedule/classes -> documents -> scores/payments.
+- [ ] **VER-01**: Frontend `npm run lint` passes after Vuetify/SCSS removal and page redesign.
+- [ ] **VER-02**: Frontend `npm run typecheck` passes after Vuetify/SCSS removal and page redesign.
+- [ ] **VER-03**: Frontend `npm run build` passes without Vuetify or SCSS dependencies.
+- [ ] **VER-04**: Manual smoke checks cover app shell navigation plus `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` on desktop and mobile-width viewports.
+- [ ] **VER-05**: Backend verification is run only if backend files are touched; otherwise the milestone records that backend was not changed.
 
-## v2 Requirements
+## Future Requirements
 
-### Center Role
+### Full Product UI Polish
 
-- **CENTER-01**: Center role can manage multiple teachers under one organization.
-- **CENTER-02**: Center role can view center-level classes, students, schedules, payments, and reports.
-- **CENTER-03**: Center role permissions are distinct from teacher and super-admin permissions.
+- **FUTURE-01**: Any non-priority admin or low-traffic page not completed in v1.1 is redesigned in a later UI cleanup milestone.
+- **FUTURE-02**: Frontend automated component or browser tests are added for shared UI components and smoke flows.
 
 ### Product Expansion
 
+- **CENTER-01**: Center role can manage multiple teachers under one organization.
 - **SUB-01**: Subscription plans and billing are supported.
-- **ATT-01**: Attendance tracking is available for classes/sessions.
-- **LIVE-01**: Zoom or Google Meet integration can be attached to sessions.
 - **MOB-01**: Native mobile app or mobile-first experience is explored.
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Center role in v1 | User wants teacher/student completed first. |
-| New large modules | v1 is UI refresh and bug/stability pass. |
-| Subscription billing | Future SaaS monetization after core product quality. |
-| Native mobile app | Current scope is web app polish. |
-| Exact PREP clone | PREP is reference/inspiration only; this product needs original UI. |
+| New backend product modules | Milestone is frontend UI platform migration. |
+| Center role workflows | User priority is current app UI consistency. |
+| New billing/subscription features | Future SaaS monetization after UI foundation is stable. |
+| Native mobile app | Current scope is responsive web. |
+| Recreating every visual from PREP | This app needs original design; PREP remains inspiration only. |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UI-01 | Phase 2 | Pending |
-| UI-02 | Phase 4 | Pending |
-| UI-03 | Phase 2 | Pending |
-| UI-04 | Phase 3 | Pending |
-| UI-05 | Phase 2 | Pending |
-| UI-06 | Phase 5 | Pending |
-| DATA-01 | Phase 3 | Pending |
-| DATA-02 | Phase 3 | Pending |
-| DATA-03 | Phase 3 | Pending |
-| DATA-04 | Phase 4 | Pending |
-| DATA-05 | Phase 4 | Pending |
-| DATA-06 | Phase 1 | Pending |
-| BUG-01 | Phase 1 | Pending |
-| BUG-02 | Phase 1 | Pending |
-| BUG-03 | Phase 3 | Pending |
-| BUG-04 | Phase 3 | Pending |
-| BUG-05 | Phase 4 | Pending |
+| STYLE-01 | Phase 1 | Pending |
+| STYLE-02 | Phase 1 | Pending |
+| STYLE-03 | Phase 1 | Pending |
+| STYLE-04 | Phase 1 | Pending |
+| UIKIT-01 | Phase 2 | Pending |
+| UIKIT-02 | Phase 2 | Pending |
+| UIKIT-03 | Phase 2 | Pending |
+| UIKIT-04 | Phase 2 | Pending |
+| UIKIT-05 | Phase 2 | Pending |
+| APP-01 | Phase 3 | Pending |
+| APP-02 | Phase 3 | Pending |
+| APP-03 | Phase 3 | Pending |
+| APP-04 | Phase 3 | Pending |
+| PAGE-01 | Phase 4 | Pending |
+| PAGE-02 | Phase 4 | Pending |
+| PAGE-03 | Phase 4 | Pending |
+| PAGE-04 | Phase 4 | Pending |
+| PAGE-05 | Phase 4 | Pending |
 | VER-01 | Phase 5 | Pending |
 | VER-02 | Phase 5 | Pending |
 | VER-03 | Phase 5 | Pending |
@@ -92,24 +95,24 @@
 | VER-05 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 22 total
-- Mapped to phases: 22
+- v1.1 requirements: 23 total
+- Mapped to phases: 23
 - Unmapped: 0
 
 ## User Stories
 
-- As a teacher, I can open any main page and see the data I expect without needing to refresh or guess whether the app is broken.
-- As a teacher, I can manage my daily work from a polished calendar-first interface.
-- As a student, I can log in and quickly understand my classes, schedule, documents, scores, and payment status.
-- As the product owner, I can validate teacher/student usage before expanding to center-level workflows.
+- As a developer, I can build app pages using shared Tailwind UI components instead of repeating one-off Vuetify markup.
+- As a teacher, I see a consistent app experience without old and new UI styles mixed together.
+- As an admin/teacher using assistant and audit pages, I can complete existing workflows in the redesigned UI.
+- As a user, I can update my profile in a page that matches the rest of the app.
 
 ## Acceptance Criteria
 
-- Teacher and student pages have a coherent visual system and role-appropriate navigation.
-- Existing backend data appears correctly on the relevant frontend pages.
-- Every fixed data-display bug has a reproduction note and verification note.
-- Center role is not introduced into v1 UI beyond existing super-admin/teacher/student/assistant concepts.
+- Vuetify and SCSS are removed from the frontend build/runtime surface.
+- Shared Tailwind UI components cover common app patterns.
+- `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` are redesigned and behavior-preserving.
+- Frontend lint, typecheck, and build pass.
 
 ---
-*Requirements defined: 2026-06-21*
-*Last updated: 2026-06-21 after initial definition*
+*Requirements defined: 2026-06-30*
+*Last updated: 2026-06-30 after milestone start*

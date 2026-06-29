@@ -1,16 +1,38 @@
+---
+gsd_state_version: 1.0
+milestone: v1.1
+milestone_name: Tailwind UI Migration
+status: planning
+last_updated: "2026-06-30T00:00:00.000+07:00"
+last_activity: 2026-06-30
+progress:
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+---
+
 # Project State
 
 **Project:** Schedule Teacher
 **Initialized:** 2026-06-21
-**Current Milestone:** v1 Polish Release
-**Current Phase:** Phase 1 - Audit & Data Flow Baseline
+**Current Milestone:** v1.1 Tailwind UI Migration
+**Current Phase:** Phase 1 - Styling Platform Cutover
+
+## Current Position
+
+Phase: Not started (defining Phase 1 plan)
+Plan: -
+Status: Ready to plan Phase 1
+Last activity: 2026-06-30 - Milestone v1.1 started
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-21)
+See: `.planning/PROJECT.md` (updated 2026-06-30)
 
 **Core value:** Teachers and students can reliably see and act on the right class data through a clean, calendar-first interface.
-**Current focus:** UI refresh plus bug/stability sweep for teacher and student flows.
+**Current focus:** Remove Vuetify/SCSS, standardize on Tailwind CSS, create shared UI components, and redesign old UI pages.
 
 ## Active Roadmap
 
@@ -18,19 +40,19 @@ See: `.planning/ROADMAP.md`
 
 | Phase | Status | Focus |
 |-------|--------|-------|
-| 1 | Planned | Audit current UI/data-display bugs |
-| 2 | Pending | Visual system and app shell refresh |
-| 3 | Pending | Teacher workflow polish and fixes |
-| 4 | Pending | Student portal polish and fixes |
-| 5 | Pending | QA, regression tests, release readiness |
+| 1 | Planned | Styling platform cutover from Vuetify/SCSS to Tailwind |
+| 2 | Pending | Shared Tailwind UI component kit |
+| 3 | Pending | App shell and shared surface migration |
+| 4 | Pending | Priority old page redesign |
+| 5 | Pending | Verification and cleanup |
 
 ## Key Constraints
 
-- Do not add center role in v1.
-- Do not add large new modules in v1.
-- Preserve teacher/student priority and calendar-first teacher workflow.
-- Preserve tenant isolation.
-- Treat PREP as visual inspiration only.
+- Remove Vuetify and SCSS from the frontend.
+- Use Tailwind CSS and shared Vue components for UI.
+- Preserve existing composables/data flows.
+- Preserve teacher/student workflows and calendar-first teacher navigation.
+- Prioritize `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.
 
 ## Context Files
 
@@ -42,16 +64,15 @@ See: `.planning/ROADMAP.md`
 - `.planning/codebase/INTEGRATIONS.md`
 - `.planning/codebase/CONCERNS.md`
 
+## Reset Notes
+
+- Previous v1 phase plans were archived to `.planning/archive/v1-polish-phase-plans-2026-06-30/`.
+- `.planning/phases/` is empty and ready for fresh v1.1 phase planning.
+- Existing user change in `client/app/components/calendar/TeacherCalendar.vue` was not touched during milestone setup.
+
 ## Next Command
 
-`/gsd-execute-phase 1`
-
-## Last Session
-
-- **Stopped at:** Phase 1 planned
-- **Resume file:** `.planning/phases/01-audit-data-flow-baseline/01-01-PLAN.md`
-- **Bug ledger:** `.planning/phases/01-audit-data-flow-baseline/01-BUG-LEDGER.md`
-- **Plan count:** 4 plans across 3 waves
+`/gsd-discuss-phase 1`
 
 ---
-*State updated: 2026-06-21 after Phase 1 planning*
+*State updated: 2026-06-30 after starting v1.1 Tailwind UI Migration*

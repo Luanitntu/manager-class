@@ -1,96 +1,113 @@
-# Roadmap: Schedule Teacher v1 Polish Release
+# Roadmap: Schedule Teacher v1.1 Tailwind UI Migration
 
-**Created:** 2026-06-21
+**Created:** 2026-06-30
 **Project Mode:** mvp
 
 ## Overview
 
-This roadmap turns the existing broad MVP into a polished teacher/student release. It prioritizes bug discovery, UI consistency, data-display reliability, and final verification over new feature expansion.
+This roadmap resets planning for a frontend UI platform milestone. The work removes Vuetify and SCSS, standardizes on Tailwind CSS, creates shared reusable UI components, migrates the app shell/shared surfaces, then redesigns the old priority pages `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.
 
 ## Phases
 
-### Phase 1: Audit & Data Flow Baseline
-**Goal:** Reproduce current data-display bugs and identify the exact API/composable/page causes before redesign work hides them.
+### Phase 1: Styling Platform Cutover
+**Goal:** Remove the Vuetify/SCSS platform surface and establish Tailwind as the only styling foundation.
 **Mode:** mvp
-**Requirements:** DATA-06, BUG-01, BUG-02
+**Requirements:** STYLE-01, STYLE-02, STYLE-03, STYLE-04
 **Status:** Planned
-**Plans:**
-- **Wave 1:** `01-01-PLAN.md` - Establish audit setup and route/API/composable matrix.
-- **Wave 2** *(blocked on Wave 1 completion)*: `01-02-PLAN.md` - Audit teacher-facing data display and navigation flows.
-- **Wave 2** *(blocked on Wave 1 completion)*: `01-03-PLAN.md` - Audit student-facing and auth/session data flows.
-- **Wave 3** *(blocked on Wave 2 completion)*: `01-04-PLAN.md` - Consolidate findings into bug ledger and audit summary.
 **Cross-cutting constraints:**
-- Audit findings must stay focused on teacher/student flows; center role remains deferred.
-- Evidence must distinguish runtime reproduction, static mismatch, not reproducible, and environment blockers.
-- API envelope, pagination, auth/session, role scope, and component rendering must be classified separately.
+- Do not break Nuxt app bootstrap or existing Tailwind configuration.
+- Preserve icon availability without depending on Vuetify components.
+- Treat package/config/lockfile changes as part of the platform cutover.
 **Success Criteria:**
-1. Teacher and student core routes are audited with seeded or existing data.
-2. Each page with missing UI data has a reproduction note and suspected source layer: API, composable, store, role scope, pagination, or component rendering.
-3. Auth/session navigation blockers are identified and prioritized.
-4. A short bug ledger exists for execution phases to close.
+1. Nuxt config no longer registers Vuetify or Vuetify settings.
+2. App CSS no longer imports SCSS.
+3. Vuetify package/dependency surface is removed where safe for the phase.
+4. A migration inventory identifies remaining `<v-*>` usage to eliminate in later phases.
 
-### Phase 2: Visual System & App Shell Refresh
-**Goal:** Establish an original PREP-inspired education SaaS UI foundation and apply it to the shared app shell.
+### Phase 2: Shared Tailwind UI Component Kit
+**Goal:** Build reusable Tailwind components for common app layout, controls, data display, feedback, and modal patterns.
 **Mode:** mvp
-**Requirements:** UI-01, UI-03, UI-05
+**Requirements:** UIKIT-01, UIKIT-02, UIKIT-03, UIKIT-04, UIKIT-05
+**Status:** Pending
+**Cross-cutting constraints:**
+- Components should be small, composable, and easy for pages to adopt.
+- Avoid card-in-card layouts and old Vuetify density/spacing assumptions.
+- Keep controls accessible with labels, focus styles, disabled states, and keyboard-safe modals.
 **Success Criteria:**
-1. Shared layout, sidebar/topnav, cards, tables, forms, dialogs, empty states, loading states, and error states share one visual language.
-2. Teacher/student navigation is clear and does not introduce center-role scope.
-3. The UI direction feels clean, modern, education-friendly, and distinct from PREP branding.
-4. Existing pages can adopt the refreshed shell without route or auth regressions.
+1. Shared components cover page headers, sections, cards, forms, filters, buttons, tables/lists, pagination, badges, avatars, alerts, skeletons, empty states, and dialogs.
+2. Repeated UI patterns are migrated to shared components where practical.
+3. Components use Tailwind classes and project design tokens, not SCSS or Vuetify.
+4. Component APIs are simple enough for priority pages to reuse.
 
-### Phase 3: Teacher Workflow Polish & Fixes
-**Goal:** Make teacher daily workflows polished and reliable across dashboard, calendar, classes, students, documents, payments, reports, and profile.
+### Phase 3: App Shell & Shared Surface Migration
+**Goal:** Replace Vuetify-dependent shell/shared surfaces with Tailwind implementations while preserving navigation and teacher calendar access.
 **Mode:** mvp
-**Requirements:** UI-04, DATA-01, DATA-02, DATA-03, BUG-03, BUG-04
+**Requirements:** APP-01, APP-02, APP-03, APP-04
+**Status:** Pending
+**Cross-cutting constraints:**
+- Preserve auth/session and role-aware navigation behavior.
+- Keep teacher calendar visible as a primary workflow.
+- Do not touch backend APIs unless a frontend migration reveals an actual contract bug.
 **Success Criteria:**
-1. Teacher dashboard and calendar display live data correctly.
-2. Teacher CRUD/list/detail pages show existing data and clear form states.
-3. Document upload/link/share/download flows are verified for teacher-owned materials.
-4. Calendar create/edit/drag/resize/recurring flows remain usable after visual refresh.
+1. Default/auth layouts no longer depend on Vuetify shell primitives.
+2. Shared dialogs/high-traffic components no longer block Vuetify removal.
+3. Remaining old UI usage is either migrated or listed with explicit deferral.
+4. App navigation works for teacher/student/admin/assistant routes after shell migration.
 
-### Phase 4: Student Portal Polish & Fixes
-**Goal:** Make the student experience usable and trustworthy for classes, schedules, documents, scores/comments, payments, and profile.
+### Phase 4: Priority Old Page Redesign
+**Goal:** Redesign `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` with the shared Tailwind UI kit while preserving behavior.
 **Mode:** mvp
-**Requirements:** UI-02, DATA-04, DATA-05, BUG-05
+**Requirements:** PAGE-01, PAGE-02, PAGE-03, PAGE-04, PAGE-05
+**Status:** Pending
+**Cross-cutting constraints:**
+- Preserve current composables and data flows.
+- Keep create/edit/save/filter/pagination states behavior-compatible.
+- Match the newer app UI direction across desktop and mobile-width layouts.
 **Success Criteria:**
-1. Student dashboard summarizes the student's own classes, schedule, materials, scores/comments, and payments.
-2. Student-accessible pages use correct role-scoped API data rather than teacher-only assumptions.
-3. Empty states distinguish between no data and loading/error/permission states.
-4. Payment status and history are understandable from the student view.
+1. `/assistants` preserves search, pagination, create assistant, list, and detail-open behavior in redesigned UI.
+2. `/assistants/[id]` preserves profile, salary, assigned class, schedule, breakdown, and history behavior in redesigned UI.
+3. `/audit-logs` preserves filters, table/list, pagination, loading, and empty states in redesigned UI.
+4. `/profile` preserves load/edit/save/timezone/error/success behavior in redesigned UI.
+5. Redesigned pages are visually consistent with the shared app shell and component kit.
 
-### Phase 5: Responsive QA, Regression Tests & Release Readiness
-**Goal:** Prove the refreshed v1 is stable enough for real teacher/student validation.
+### Phase 5: Verification & Cleanup
+**Goal:** Prove the Tailwind migration is complete, stable, and free of accidental Vuetify/SCSS regressions.
 **Mode:** mvp
-**Requirements:** UI-06, VER-01, VER-02, VER-03, VER-04, VER-05
+**Requirements:** VER-01, VER-02, VER-03, VER-04, VER-05
+**Status:** Pending
+**Cross-cutting constraints:**
+- Use existing client scripts from `client/`.
+- Run backend checks only if backend code changed.
+- Document any intentionally deferred non-priority UI surface.
 **Success Criteria:**
-1. Frontend lint, typecheck, and build pass.
-2. Backend lint, build, and Jest tests pass.
-3. Fixed bugs have regression tests where practical or documented manual checks where automation is not yet available.
-4. Teacher and student smoke flows pass on desktop and mobile-width viewports.
-5. Known remaining issues are documented with severity and next action.
+1. `npm run lint` passes from `client/`.
+2. `npm run typecheck` passes from `client/`.
+3. `npm run build` passes from `client/`.
+4. Smoke checks cover app shell plus priority pages on desktop and mobile-width viewports.
+5. Repo scan confirms no unintended Vuetify/SCSS dependency surface remains in v1.1 scope.
 
 ## Requirement Coverage
 
 | Requirement | Phase |
 |-------------|-------|
-| UI-01 | Phase 2 |
-| UI-02 | Phase 4 |
-| UI-03 | Phase 2 |
-| UI-04 | Phase 3 |
-| UI-05 | Phase 2 |
-| UI-06 | Phase 5 |
-| DATA-01 | Phase 3 |
-| DATA-02 | Phase 3 |
-| DATA-03 | Phase 3 |
-| DATA-04 | Phase 4 |
-| DATA-05 | Phase 4 |
-| DATA-06 | Phase 1 |
-| BUG-01 | Phase 1 |
-| BUG-02 | Phase 1 |
-| BUG-03 | Phase 3 |
-| BUG-04 | Phase 3 |
-| BUG-05 | Phase 4 |
+| STYLE-01 | Phase 1 |
+| STYLE-02 | Phase 1 |
+| STYLE-03 | Phase 1 |
+| STYLE-04 | Phase 1 |
+| UIKIT-01 | Phase 2 |
+| UIKIT-02 | Phase 2 |
+| UIKIT-03 | Phase 2 |
+| UIKIT-04 | Phase 2 |
+| UIKIT-05 | Phase 2 |
+| APP-01 | Phase 3 |
+| APP-02 | Phase 3 |
+| APP-03 | Phase 3 |
+| APP-04 | Phase 3 |
+| PAGE-01 | Phase 4 |
+| PAGE-02 | Phase 4 |
+| PAGE-03 | Phase 4 |
+| PAGE-04 | Phase 4 |
+| PAGE-05 | Phase 4 |
 | VER-01 | Phase 5 |
 | VER-02 | Phase 5 |
 | VER-03 | Phase 5 |
@@ -99,9 +116,10 @@ This roadmap turns the existing broad MVP into a polished teacher/student releas
 
 ## Notes
 
-- Start with Phase 1. Do not redesign before the current data-display failure modes are understood.
-- Keep center role out of v1 planning unless the user explicitly changes priority.
-- Use `.planning/codebase/` maps as mandatory context before phase planning.
+- Start with Phase 1. Removing Vuetify/SCSS before page redesign makes migration blockers explicit.
+- Phase 2 should create the shared component vocabulary before priority pages are rewritten.
+- Priority old UI pages are `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.
+- Old v1 phase plan artifacts were archived under `.planning/archive/v1-polish-phase-plans-2026-06-30/`.
 
 ---
-*Roadmap created: 2026-06-21*
+*Roadmap created: 2026-06-30*
