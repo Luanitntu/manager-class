@@ -46,6 +46,6 @@ export function useDashboard() {
   const { request } = useApi();
   return useQuery({
     queryKey: ['dashboard'],
-    queryFn: () => request<DashboardStats>('/dashboard'),
+    queryFn: () => request<DashboardStats>(ApiEndpoints.dashboard),
   });
 }

@@ -43,9 +43,8 @@ export interface BulkSessionPayload {
 /** Fetches sessions overlapping [from, to] — the calendar's primary feed. */
 export function fetchSessionRange(from: string, to: string) {
   const { request } = useApi();
-  return request<TeachingSession[]>(
-    `/sessions?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-  );
+  const params = new URLSearchParams({ from, to });
+  return request<TeachingSession[]>(ApiEndpoints.sessions.list(params));
 }
 
 export function useSessionMutations() {
@@ -67,13 +66,13 @@ export function useSessionMutations() {
 
   const create = useMutation({
     mutationFn: (body: CreateSessionPayload) =>
-      request<TeachingSession>('/sessions', { method: 'POST', body }),
+      request<TeachingSession>(ApiEndpoints.sessions.create, { method: 'POST', body }),
     onSuccess: invalidate,
   });
 
   const bulkCreate = useMutation({
     mutationFn: (body: BulkSessionPayload) =>
-      request<{ recurrenceGroupId: string; count: number }>('/sessions/bulk', {
+      request<{ recurrenceGroupId: string; count: number }>(ApiEndpoints.sessions.bulk, {
         method: 'POST',
         body,
       }),
@@ -82,12 +81,12 @@ export function useSessionMutations() {
 
   const update = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Partial<CreateSessionPayload> & { status?: string } }) =>
-      request<TeachingSession>(`/sessions/${id}`, { method: 'PATCH', body }),
+      request<TeachingSession>(ApiEndpoints.sessions.detail(id), { method: 'PATCH', body }),
     onSuccess: invalidate,
   });
 
   const remove = useMutation({
-    mutationFn: (id: string) => request(`/sessions/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => request(ApiEndpoints.sessions.detail(id), { method: 'DELETE' }),
     onSuccess: invalidate,
   });
 

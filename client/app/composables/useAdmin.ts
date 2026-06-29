@@ -48,7 +48,7 @@ export function useAdminUsers(f: UsersFilters = {}, limit: MaybeRefOrGetter<numb
       if (r) params.set('role', r);
       if (s) params.set('search', s);
       if (st) params.set('status', st);
-      return requestPaged<AdminUser[]>(`/users/admin/all?${params.toString()}`);
+      return requestPaged<AdminUser[]>(ApiEndpoints.users.adminList(params));
     },
   });
 }
@@ -60,13 +60,13 @@ export function useAdminUserMutations() {
 
   const create = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
-      request('/users/admin', { method: 'POST', body }),
+      request(ApiEndpoints.users.admin, { method: 'POST', body }),
     onSuccess: invalidate,
   });
 
   const updateUser = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
-      request(`/users/admin/${id}`, { method: 'PATCH', body }),
+      request(ApiEndpoints.users.adminDetail(id), { method: 'PATCH', body }),
     onSuccess: () => {
       invalidate();
       qc.invalidateQueries({ queryKey: ['admin-user'] });
@@ -74,21 +74,21 @@ export function useAdminUserMutations() {
   });
 
   const deleteUser = useMutation({
-    mutationFn: (id: string) => request(`/users/admin/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => request(ApiEndpoints.users.adminDetail(id), { method: 'DELETE' }),
     onSuccess: invalidate,
   });
 
   const lock = useMutation({
-    mutationFn: (id: string) => request(`/users/${id}/lock`, { method: 'PATCH' }),
+    mutationFn: (id: string) => request(ApiEndpoints.users.lock(id), { method: 'PATCH' }),
     onSuccess: invalidate,
   });
   const unlock = useMutation({
-    mutationFn: (id: string) => request(`/users/${id}/unlock`, { method: 'PATCH' }),
+    mutationFn: (id: string) => request(ApiEndpoints.users.unlock(id), { method: 'PATCH' }),
     onSuccess: invalidate,
   });
   const resetPassword = useMutation({
     mutationFn: ({ id, password }: { id: string; password: string }) =>
-      request(`/users/${id}/reset-password`, { method: 'POST', body: { password } }),
+      request(ApiEndpoints.users.resetPassword(id), { method: 'POST', body: { password } }),
   });
 
   return { create, updateUser, deleteUser, lock, unlock, resetPassword };
@@ -111,7 +111,7 @@ export function useAdminUserDetail(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['admin-user', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<AdminUserDetail>(`/users/admin/${id.value}`),
+    queryFn: () => request<AdminUserDetail>(ApiEndpoints.users.adminDetail(id.value!)),
   });
 }
 
@@ -144,7 +144,7 @@ export function useAdminSettings() {
   const { request } = useApi();
   return useQuery({
     queryKey: ['admin-settings'],
-    queryFn: () => request<SystemSettings>('/settings/admin'),
+    queryFn: () => request<SystemSettings>(ApiEndpoints.settings.admin),
   });
 }
 
@@ -153,7 +153,7 @@ export function useSettingsMutation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: Partial<SystemSettings>) =>
-      request<SystemSettings>('/settings', { method: 'PATCH', body }),
+      request<SystemSettings>(ApiEndpoints.settings.public, { method: 'PATCH', body }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-settings'] }),
   });
 }
@@ -166,7 +166,7 @@ export function useFaviconUpload() {
     mutationFn: (file: File) => {
       const fd = new FormData();
       fd.append('file', file);
-      return $fetch('/settings/favicon', {
+      return $fetch(ApiEndpoints.settings.favicon, {
         baseURL: config.public.apiBase,
         method: 'POST',
         body: fd,
@@ -209,7 +209,7 @@ export function useSystemHealth(intervalMs: Ref<number>) {
   const { request } = useApi();
   return useQuery({
     queryKey: ['system-health'],
-    queryFn: () => request<SystemHealth>('/health/system'),
+    queryFn: () => request<SystemHealth>(ApiEndpoints.health.system),
     refetchInterval: () => intervalMs.value, // configurable in Settings
   });
 }
@@ -223,7 +223,7 @@ export function useQueueStats(intervalMs: Ref<number>) {
   const { request } = useApi();
   return useQuery({
     queryKey: ['queue-stats'],
-    queryFn: () => request<QueueStats>('/health/queue'),
+    queryFn: () => request<QueueStats>(ApiEndpoints.health.queue),
     refetchInterval: () => intervalMs.value,
   });
 }
@@ -232,7 +232,7 @@ export function useTestEmail() {
   const { request } = useApi();
   return useMutation({
     mutationFn: (to?: string) =>
-      request<{ sent: boolean; to: string }>('/settings/test-email', {
+      request<{ sent: boolean; to: string }>(ApiEndpoints.settings.testEmail, {
         method: 'POST',
         body: { to },
       }),

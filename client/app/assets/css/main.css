@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap');
 @import 'tailwindcss';
+@import '../../styles/index.scss';
 
 @theme {
   --font-sans: var(--st-font-family);

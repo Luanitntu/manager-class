@@ -74,7 +74,7 @@ export function useClasses(
       });
       const term = toValue(search);
       if (term) params.set('search', term);
-      return requestPaged<ClassItem[]>(`/classes?${params.toString()}`);
+      return requestPaged<ClassItem[]>(ApiEndpoints.classes.list(params));
     },
   });
 }
@@ -87,7 +87,7 @@ export function useStudentClasses(search?: MaybeRefOrGetter<string | undefined>)
     queryFn: () => {
       const term = toValue(search);
       const qs = term ? `?search=${encodeURIComponent(term)}&limit=100` : '?limit=100';
-      return requestPaged<ClassItem[]>(`/classes${qs}`);
+      return requestPaged<ClassItem[]>(ApiEndpoints.classes.list(qs.slice(1)));
     },
   });
 }
@@ -97,7 +97,7 @@ export function useClassDetail(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['class', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<ClassItem>(`/classes/${id.value}`),
+    queryFn: () => request<ClassItem>(ApiEndpoints.classes.detail(id.value!)),
   });
 }
 
@@ -106,7 +106,7 @@ export function useClassSessions(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['class-sessions', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<ClassSession[]>(`/classes/${id.value}/sessions`),
+    queryFn: () => request<ClassSession[]>(ApiEndpoints.classes.sessions(id.value!)),
   });
 }
 
@@ -115,7 +115,7 @@ export function useClassStudents(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['class-students', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<ClassEnrollment[]>(`/classes/${id.value}/students`),
+    queryFn: () => request<ClassEnrollment[]>(ApiEndpoints.classes.students(id.value!)),
   });
 }
 
@@ -126,18 +126,18 @@ export function useClassMutations() {
 
   const create = useMutation({
     mutationFn: (body: Partial<ClassItem>) =>
-      request<ClassItem>('/classes', { method: 'POST', body }),
+      request<ClassItem>(ApiEndpoints.classes.root, { method: 'POST', body }),
     onSuccess: invalidate,
   });
 
   const update = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Partial<ClassItem> }) =>
-      request<ClassItem>(`/classes/${id}`, { method: 'PATCH', body }),
+      request<ClassItem>(ApiEndpoints.classes.detail(id), { method: 'PATCH', body }),
     onSuccess: invalidate,
   });
 
   const remove = useMutation({
-    mutationFn: (id: string) => request(`/classes/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => request(ApiEndpoints.classes.detail(id), { method: 'DELETE' }),
     onSuccess: invalidate,
   });
 
@@ -152,13 +152,13 @@ export function useClassMutations() {
 
   const enrollStudent = useMutation({
     mutationFn: ({ classId, studentId, note }: { classId: string; studentId: string; note?: string }) =>
-      request(`/classes/${classId}/students`, { method: 'POST', body: { studentId, note } }),
+      request(ApiEndpoints.classes.students(classId), { method: 'POST', body: { studentId, note } }),
     onSuccess: invalidateEnrollment,
   });
 
   const unenrollStudent = useMutation({
     mutationFn: ({ classId, studentId }: { classId: string; studentId: string }) =>
-      request(`/classes/${classId}/students/${studentId}`, { method: 'DELETE' }),
+      request(ApiEndpoints.classes.student(classId, studentId), { method: 'DELETE' }),
     onSuccess: invalidateEnrollment,
   });
 

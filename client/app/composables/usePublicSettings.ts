@@ -16,7 +16,7 @@ export interface PublicSettings {
 export function usePublicSettings() {
   const config = useRuntimeConfig();
   return useAsyncData('public-settings', () =>
-    $fetch<{ data: PublicSettings }>('/settings', { baseURL: config.public.apiBase })
+    $fetch<{ data: PublicSettings }>(ApiEndpoints.settings.public, { baseURL: config.public.apiBase })
       .then((r) => r.data)
       .catch(() => null),
   );

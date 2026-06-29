@@ -2,8 +2,8 @@ export function useReports() {
   const config = useRuntimeConfig();
   const auth = useAuthStore();
 
-  async function downloadReport(path: string, filename: string) {
-    const blob = await $fetch<Blob>(path, {
+  async function downloadReport(type: string, query: URLSearchParams, filename: string) {
+    const blob = await $fetch<Blob>(ApiEndpoints.reports.download(type, query), {
       baseURL: config.public.apiBase,
       responseType: 'blob',
       headers: auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {},

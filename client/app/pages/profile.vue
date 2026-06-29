@@ -1,10 +1,10 @@
 <script setup lang="ts">
 const auth = useAuthStore();
-const { request } = useApi();
+const { data: profile, isLoading: profileLoading } = useMyProfile();
+const { updateProfile } = useProfileMutations();
 const error = ref<string | null>(null);
 const saved = ref(false);
 const loading = ref(false);
-const profileLoading = ref(true);
 
 const form = reactive({
   fullName: auth.user?.fullName ?? '',
@@ -23,24 +23,15 @@ const timezones = (() => {
   return ['UTC', 'Asia/Ho_Chi_Minh', 'Asia/Bangkok', 'Asia/Tokyo', 'Europe/London'];
 })();
 
-onMounted(async () => {
-  try {
-    const profile = await request<{
-      fullName: string;
-      phone?: string | null;
-      timezone?: string | null;
-      avatarKey?: string | null;
-    }>('/users/me/profile');
-    form.fullName = profile.fullName;
-    form.phone = profile.phone ?? '';
-    form.timezone = profile.timezone ?? detectBrowserTimezone();
-    if (auth.user) auth.user.avatarKey = profile.avatarKey ?? null;
-  } catch {
-    // keep store defaults
-  } finally {
-    profileLoading.value = false;
+watch(profile, (value) => {
+  if (!value) return;
+  form.fullName = value.fullName;
+  form.phone = value.phone ?? '';
+  form.timezone = value.timezone ?? detectBrowserTimezone();
+  if (auth.user) {
+    auth.user.avatarKey = value.avatarKey ?? null;
   }
-});
+}, { immediate: true });
 
 async function save() {
   if (loading.value) return;
@@ -48,13 +39,10 @@ async function save() {
   saved.value = false;
   loading.value = true;
   try {
-    await request('/users/me/profile', {
-      method: 'PATCH',
-      body: {
-        fullName: form.fullName,
-        phone: form.phone || undefined,
-        timezone: form.timezone || undefined,
-      },
+    await updateProfile.mutateAsync({
+      fullName: form.fullName,
+      phone: form.phone || undefined,
+      timezone: form.timezone || undefined,
     });
     if (auth.user) {
       auth.user.fullName = form.fullName;

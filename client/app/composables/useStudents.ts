@@ -108,7 +108,7 @@ export function useStudents(
       const st = toValue(status);
       if (term) params.set('search', term);
       if (st) params.set('status', st);
-      return requestPaged<Student[]>(`/students?${params.toString()}`);
+      return requestPaged<Student[]>(ApiEndpoints.students.list(params));
     },
   });
 }
@@ -118,7 +118,7 @@ export function useStudentDetail(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['student', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<Student>(`/students/${id.value}`),
+    queryFn: () => request<Student>(ApiEndpoints.students.detail(id.value!)),
   });
 }
 
@@ -127,7 +127,7 @@ export function useStudentScores(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['student-scores', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<Score[]>(`/students/${id.value}/scores`),
+    queryFn: () => request<Score[]>(ApiEndpoints.students.scores(id.value!)),
   });
 }
 
@@ -139,7 +139,7 @@ export function useStudentTestScores() {
   return useQuery({
     queryKey: ['student-test-scores', studentId],
     enabled: computed(() => auth.role === 'STUDENT' && !!studentId.value),
-    queryFn: () => request<Score[]>(`/students/${studentId.value}/scores`),
+    queryFn: () => request<Score[]>(ApiEndpoints.students.scores(studentId.value!)),
   });
 }
 
@@ -148,7 +148,7 @@ export function useStudentPayments(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['student-payments', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<StudentPayments>(`/students/${id.value}/payments`),
+    queryFn: () => request<StudentPayments>(ApiEndpoints.students.payments(id.value!)),
   });
 }
 
@@ -157,7 +157,7 @@ export function useStudentActivity(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['student-activity', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<ActivityItem[]>(`/students/${id.value}/activity`),
+    queryFn: () => request<ActivityItem[]>(ApiEndpoints.students.activity(id.value!)),
   });
 }
 
@@ -166,7 +166,7 @@ export function useStudentComments(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['student-comments', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<StudentComment[]>(`/students/${id.value}/comments`),
+    queryFn: () => request<StudentComment[]>(ApiEndpoints.students.comments(id.value!)),
   });
 }
 
@@ -176,13 +176,13 @@ export function useStudentMutations() {
 
   const createStudent = useMutation({
     mutationFn: (body: { email: string; password: string; fullName: string; phone?: string }) =>
-      request('/users', { method: 'POST', body: { ...body, role: 'STUDENT' } }),
+      request(ApiEndpoints.users.create, { method: 'POST', body: { ...body, role: 'STUDENT' } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['students'] }),
   });
 
   const setStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: StudyStatus }) =>
-      request(`/students/${id}/profile`, { method: 'PATCH', body: { studyStatus: status } }),
+      request(ApiEndpoints.students.profile(id), { method: 'PATCH', body: { studyStatus: status } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['students'] });
       qc.invalidateQueries({ queryKey: ['student'] });
@@ -190,19 +190,19 @@ export function useStudentMutations() {
   });
 
   const deleteStudent = useMutation({
-    mutationFn: (id: string) => request(`/users/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => request(ApiEndpoints.users.detail(id), { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['students'] }),
   });
 
   const updateProfile = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
-      request(`/students/${id}/profile`, { method: 'PATCH', body }),
+      request(ApiEndpoints.students.profile(id), { method: 'PATCH', body }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['student'] }),
   });
 
   const addScore = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
-      request(`/students/${id}/scores`, { method: 'POST', body }),
+      request(ApiEndpoints.students.scores(id), { method: 'POST', body }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['student-scores'] });
       qc.invalidateQueries({ queryKey: ['student-test-scores'] });
@@ -210,7 +210,7 @@ export function useStudentMutations() {
   });
 
   const deleteScore = useMutation({
-    mutationFn: (scoreId: string) => request(`/students/scores/${scoreId}`, { method: 'DELETE' }),
+    mutationFn: (scoreId: string) => request(ApiEndpoints.students.score(scoreId), { method: 'DELETE' }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['student-scores'] });
       qc.invalidateQueries({ queryKey: ['student-test-scores'] });
@@ -219,7 +219,7 @@ export function useStudentMutations() {
 
   const addComment = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
-      request(`/students/${id}/comments`, { method: 'POST', body }),
+      request(ApiEndpoints.students.comments(id), { method: 'POST', body }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['student-comments'] }),
   });
 

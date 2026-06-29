@@ -55,7 +55,7 @@ export function useAssistants(
       });
       const term = toValue(search);
       if (term) params.set('search', term);
-      return requestPaged<Assistant[]>(`/assistants?${params.toString()}`);
+      return requestPaged<Assistant[]>(ApiEndpoints.assistants.list(params));
     },
   });
 }
@@ -65,7 +65,7 @@ export function useAssistantDetail(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['assistant', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<Assistant>(`/assistants/${id.value}`),
+    queryFn: () => request<Assistant>(ApiEndpoints.assistants.detail(id.value!)),
   });
 }
 
@@ -74,7 +74,7 @@ export function useAssistantSalary(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['assistant-salary', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<SalaryResult>(`/assistants/${id.value}/salary`),
+    queryFn: () => request<SalaryResult>(ApiEndpoints.assistants.salary(id.value!)),
   });
 }
 
@@ -95,7 +95,7 @@ export function useAssistantSalarySummary(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['assistant-salary-summary', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<SalarySummary>(`/assistants/${id.value}/salary-summary`),
+    queryFn: () => request<SalarySummary>(ApiEndpoints.assistants.salarySummary(id.value!)),
   });
 }
 
@@ -113,7 +113,7 @@ export function useAssistantSessions(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['assistant-sessions', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<AssistantSession[]>(`/assistants/${id.value}/sessions`),
+    queryFn: () => request<AssistantSession[]>(ApiEndpoints.assistants.sessions(id.value!)),
   });
 }
 
@@ -123,13 +123,13 @@ export function useAssistantMutations() {
 
   const createAssistant = useMutation({
     mutationFn: (body: { email: string; password: string; fullName: string; phone?: string }) =>
-      request('/users', { method: 'POST', body: { ...body, role: 'ASSISTANT' } }),
+      request(ApiEndpoints.users.create, { method: 'POST', body: { ...body, role: 'ASSISTANT' } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['assistants'] }),
   });
 
   const updateSalary = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
-      request(`/assistants/${id}/salary`, { method: 'PATCH', body }),
+      request(ApiEndpoints.assistants.salary(id), { method: 'PATCH', body }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['assistant'] });
       qc.invalidateQueries({ queryKey: ['assistant-salary'] });

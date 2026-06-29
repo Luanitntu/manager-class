@@ -38,7 +38,7 @@ export function useAuditLogs(f: AuditFilters = {}, limit: MaybeRefOrGetter<numbe
       if (entityType) params.set('entityType', entityType);
       if (from) params.set('from', new Date(from).toISOString());
       if (to) params.set('to', new Date(to).toISOString());
-      return requestPaged<AuditLog[]>(`/audit-logs?${params.toString()}`);
+      return requestPaged<AuditLog[]>(ApiEndpoints.auditLogs.list(params));
     },
   });
 }

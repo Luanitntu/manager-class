@@ -11,13 +11,13 @@ export function useBranding() {
   const { request } = useApi();
   return useQuery({
     queryKey: ['branding'],
-    queryFn: () => request<Branding>('/users/me/branding'),
+    queryFn: () => request<Branding>(ApiEndpoints.users.meBranding),
   });
 }
 
 export function brandLogoUrl(userId: string, version = 0): string {
   const config = useRuntimeConfig();
-  return `${config.public.apiBase}/users/${userId}/brand-logo?v=${version}`;
+  return `${config.public.apiBase}${ApiEndpoints.users.brandLogo(userId)}?v=${version}`;
 }
 
 export function useBrandingMutations() {
@@ -29,7 +29,7 @@ export function useBrandingMutations() {
 
   const update = useMutation({
     mutationFn: (body: Partial<Branding>) =>
-      request<Branding>('/users/me/branding', { method: 'PATCH', body }),
+      request<Branding>(ApiEndpoints.users.meBranding, { method: 'PATCH', body }),
     onSuccess: invalidate,
   });
 
@@ -37,7 +37,7 @@ export function useBrandingMutations() {
     mutationFn: (file: File) => {
       const fd = new FormData();
       fd.append('file', file);
-      return $fetch('/users/me/brand-logo', {
+      return $fetch(ApiEndpoints.users.meBrandLogo, {
         baseURL: config.public.apiBase,
         method: 'POST',
         body: fd,

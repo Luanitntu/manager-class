@@ -57,7 +57,7 @@ export function useDocuments(
       if (scope) params.set('scope', scope);
       if (classId) params.set('classId', classId);
       if (search) params.set('search', search);
-      return requestPaged<DocumentItem[]>(`/documents?${params.toString()}`);
+      return requestPaged<DocumentItem[]>(ApiEndpoints.documents.list(params));
     },
   });
 }
@@ -66,7 +66,7 @@ export function useDocumentCategories() {
   const { request } = useApi();
   return useQuery({
     queryKey: ['document-categories'],
-    queryFn: () => request<string[]>('/documents/categories'),
+    queryFn: () => request<string[]>(ApiEndpoints.documents.categories),
   });
 }
 
@@ -79,7 +79,7 @@ export function useDocumentDownload() {
       if (doc.url) window.open(doc.url, '_blank', 'noopener');
       return;
     }
-    const blob = await $fetch<Blob>(`/documents/${doc.id}/download`, {
+    const blob = await $fetch<Blob>(ApiEndpoints.documents.download(doc.id), {
       baseURL: config.public.apiBase,
       headers: auth.accessToken ? { Authorization: `Bearer ${auth.accessToken}` } : {},
       responseType: 'blob',
@@ -105,7 +105,7 @@ export function useDocumentMutations() {
 
   const createLink = useMutation({
     mutationFn: (body: { title: string; url: string; category?: string; description?: string }) =>
-      request<DocumentItem>('/documents', { method: 'POST', body: { ...body, type: 'LINK' } }),
+      request<DocumentItem>(ApiEndpoints.documents.create, { method: 'POST', body: { ...body, type: 'LINK' } }),
     onSuccess: invalidate,
   });
 
@@ -115,7 +115,7 @@ export function useDocumentMutations() {
       fd.append('file', payload.file);
       fd.append('title', payload.title);
       if (payload.category) fd.append('category', payload.category);
-      return $fetch('/documents/upload', {
+      return $fetch(ApiEndpoints.documents.upload, {
         baseURL: config.public.apiBase,
         method: 'POST',
         body: fd,
@@ -134,7 +134,7 @@ export function useDocumentMutations() {
             | { targetType: 'CLASS'; classId: string }
             | { targetType: 'STUDENT'; studentId: string };
         }) =>
-      request(`/documents/${payload.id}/assignments`, {
+      request(ApiEndpoints.documents.assignments(payload.id), {
         method: 'POST',
         body:
           'body' in payload
@@ -146,12 +146,12 @@ export function useDocumentMutations() {
 
   const unassign = useMutation({
     mutationFn: ({ id, assignmentId }: { id: string; assignmentId: string }) =>
-      request(`/documents/${id}/assignments/${assignmentId}`, { method: 'DELETE' }),
+      request(ApiEndpoints.documents.assignment(id, assignmentId), { method: 'DELETE' }),
     onSuccess: invalidate,
   });
 
   const remove = useMutation({
-    mutationFn: (id: string) => request(`/documents/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => request(ApiEndpoints.documents.detail(id), { method: 'DELETE' }),
     onSuccess: invalidate,
   });
 

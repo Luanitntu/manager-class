@@ -45,7 +45,7 @@ export function useTuitions(f: TuitionFilters = {}, limit: MaybeRefOrGetter<numb
       const classId = toValue(f.classId);
       if (status) params.set('status', status);
       if (classId) params.set('classId', classId);
-      return requestPaged<Tuition[]>(`/payments/tuitions?${params.toString()}`);
+      return requestPaged<Tuition[]>(ApiEndpoints.payments.tuitions(params));
     },
   });
 }
@@ -55,7 +55,7 @@ export function useTuitionDetail(id: Ref<string | null>) {
   return useQuery({
     queryKey: ['tuition', id],
     enabled: computed(() => !!id.value),
-    queryFn: () => request<TuitionDetail>(`/payments/tuitions/${id.value}`),
+    queryFn: () => request<TuitionDetail>(ApiEndpoints.payments.tuition(id.value!)),
   });
 }
 
@@ -75,36 +75,36 @@ export function usePaymentMutations() {
 
   const createTuition = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
-      request<Tuition>('/payments/tuitions', { method: 'POST', body }),
+      request<Tuition>(ApiEndpoints.payments.tuitions(), { method: 'POST', body }),
     onSuccess: invalidate,
   });
 
   const updateTuition = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
-      request<Tuition>(`/payments/tuitions/${id}`, { method: 'PATCH', body }),
+      request<Tuition>(ApiEndpoints.payments.tuition(id), { method: 'PATCH', body }),
     onSuccess: invalidate,
   });
 
   const recordPayment = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
-      request(`/payments/tuitions/${id}/payments`, { method: 'POST', body }),
+      request(ApiEndpoints.payments.tuitionPayments(id), { method: 'POST', body }),
     onSuccess: invalidate,
   });
 
   const deletePayment = useMutation({
     mutationFn: ({ tuitionId, paymentId }: { tuitionId: string; paymentId: string }) =>
-      request(`/payments/tuitions/${tuitionId}/payments/${paymentId}`, { method: 'DELETE' }),
+      request(ApiEndpoints.payments.tuitionPayment(tuitionId, paymentId), { method: 'DELETE' }),
     onSuccess: invalidate,
   });
 
   const deleteTuition = useMutation({
-    mutationFn: (id: string) => request(`/payments/tuitions/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => request(ApiEndpoints.payments.tuition(id), { method: 'DELETE' }),
     onSuccess: invalidate,
   });
 
   const sendReminder = useMutation({
     mutationFn: (id: string) =>
-      request(`/payments/tuitions/${id}/remind`, { method: 'POST' }),
+      request(ApiEndpoints.payments.remind(id), { method: 'POST' }),
   });
 
   return { createTuition, updateTuition, recordPayment, deletePayment, deleteTuition, sendReminder };

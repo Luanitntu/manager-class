@@ -59,7 +59,7 @@ async function runDownload(
     if (value) search.set(key, value);
   }
   try {
-    await downloadReport(`/reports/${type}?${search.toString()}`, filename);
+    await downloadReport(type, search, filename);
   } catch (e) {
     error.value = extractApiError(e) ?? 'Không thể tạo báo cáo. Vui lòng thử lại.';
   } finally {
