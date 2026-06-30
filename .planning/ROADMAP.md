@@ -78,11 +78,11 @@ Plans:
 **Goal:** Replace Vuetify-dependent shell/shared surfaces with Tailwind implementations while preserving navigation, teacher calendar access, and visual parity.
 **Mode:** mvp
 **Requirements:** APP-01, APP-02, APP-03, APP-04, APP-05
-**Status:** Planned (2026-06-30)
-**Plans:** 7 plans ready
+**Status:** In Progress (2026-06-30)
+**Plans:** 1/7 plans complete
 Plans:
 
-- [ ] 03-01-PLAN.md — Migrate shell preservation checks and the full auth surface.
+- [x] 03-01-PLAN.md — Migrate shell preservation checks and the full auth surface.
 - [ ] 03-02-PLAN.md — Migrate teacher calendar header, board, detail, and toast feedback.
 - [ ] 03-03-PLAN.md — Fully migrate the calendar-critical SessionDialog.
 - [ ] 03-04-PLAN.md — Migrate the teacher workspace dashboard.
