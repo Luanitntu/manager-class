@@ -37,10 +37,11 @@ Teachers and students can reliably see and act on the right class data through a
 - Architecture is multi-tenant with `teacherId` as tenant key.
 - Calendar-first teacher workflow remains the product anchor.
 - Tailwind CSS is already present in the client dependency/config surface.
+- Phase 1 platform cutover is complete: Vuetify/Sass config and dependencies were removed, active frontend source no longer requires SCSS parsing, `@mdi/font` remains available, and frontend lint/typecheck/build pass.
 
 ### Active
 
-- [ ] Remove Vuetify module usage, Vuetify component dependencies, Vuetify settings, and SCSS imports from the frontend.
+- [ ] Replace remaining Vuetify component markup with Tailwind/shared UI components across the frontend.
 - [ ] Preserve or replace needed UI primitives with Tailwind-based shared components.
 - [ ] Create a lightweight Tailwind design system covering tokens, component variants, and common layout/control/data-display/feedback patterns.
 - [ ] Redesign `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` to match the newer Tailwind UI direction.
@@ -60,7 +61,7 @@ Teachers and students can reliably see and act on the right class data through a
 
 - Existing codebase: Nuxt 4 + Vue 3 frontend, NestJS + Prisma + PostgreSQL backend.
 - Frontend lives in `client/app`; backend lives in `server/src`.
-- Current client still includes `vuetify-nuxt-module`, `client/vuetify.config.ts`, `client/app/assets/css/vuetify.settings.scss`, and SCSS imported through `client/app/assets/css/main.css`.
+- Phase 1 removed `vuetify-nuxt-module`, `sass-embedded`, `client/vuetify.config.ts`, `client/app/assets/css/vuetify.settings.scss`, and active frontend SCSS imports.
 - Tailwind 4 is already installed through `tailwindcss` and `@tailwindcss/vite`.
 - Current old UI target pages include `client/app/pages/assistants/index.vue`, `client/app/pages/assistants/[id].vue`, `client/app/pages/audit-logs.vue`, and `client/app/pages/profile.vue`.
 - Many pages/components still use `<v-*>` components, so migration must be staged to avoid breaking the whole app at once.
@@ -81,7 +82,7 @@ Teachers and students can reliably see and act on the right class data through a
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| v1.1 removes Vuetify and SCSS | The user wants Tailwind as the single styling foundation | Pending |
+| v1.1 removes Vuetify and SCSS | The user wants Tailwind as the single styling foundation | Phase 1 platform surface complete; remaining Vuetify component markup is planned for later phases |
 | Tailwind design system comes before page redesign | Tokens and component conventions prevent one-off Tailwind markup across pages | Pending |
 | Visual parity is a release gate | Tailwind migration should not make the UI look broken, shifted, or unexpectedly different | Pending |
 | `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` are priority pages | User identified these as old UI pages needing redesign | Pending |
@@ -105,4 +106,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state.
 
 ---
-*Last updated: 2026-06-30 after starting v1.1 Tailwind UI Migration*
+*Last updated: 2026-06-30 after Phase 1 completion*

@@ -14,8 +14,8 @@ This roadmap resets planning for a frontend UI platform milestone. The work remo
 **Goal:** Remove the Vuetify/SCSS platform surface and establish Tailwind as the only styling foundation.
 **Mode:** mvp
 **Requirements:** STYLE-01, STYLE-02, STYLE-03, STYLE-04
-**Status:** In Progress
-**Plans:** 7/8 plans created; 6 executed; Plan 08 ready for gap closure execution
+**Status:** Complete (2026-06-30)
+**Plans:** 8/8 plans complete
 Plans:
 
 - [x] 01-01-PLAN.md — Add minimal Tailwind icon, viewport, toast, pager, and language switcher blockers.
@@ -24,8 +24,8 @@ Plans:
 - [x] 01-04-PLAN.md — Convert dashboard SCSS build blockers to Tailwind-compatible CSS.
 - [x] 01-05-PLAN.md — Convert calendar SCSS build blockers to Tailwind-compatible CSS.
 - [x] 01-06-PLAN.md — Replace default/auth shell Vuetify surface while preserving calendar-first navigation.
-- [ ] 01-07-PLAN.md — Remove Vuetify/Sass config and dependency surface, create migration inventory, and run frontend verification. Blocked: config/inventory done; final gates fail on remaining SCSS files and `documents.vue` type narrowing.
-- [ ] 01-08-PLAN.md — Close Plan 07 verification gaps by converting remaining SCSS blockers, fixing `documents.vue` target typing, and rerunning frontend gates.
+- [x] 01-07-PLAN.md — Remove Vuetify/Sass config and dependency surface, create migration inventory, and run frontend verification. Blocked: config/inventory done; final gates fail on remaining SCSS files and `documents.vue` type narrowing.
+- [x] 01-08-PLAN.md — Close Plan 07 verification gaps by converting remaining SCSS blockers, fixing `documents.vue` target typing, and rerunning frontend gates.
 
 **Cross-cutting constraints:**
 
@@ -168,4 +168,4 @@ Plans:
 - Old v1 phase plan artifacts were archived under `.planning/archive/v1-polish-phase-plans-2026-06-30/`.
 
 ---
-*Roadmap created: 2026-06-30*
+*Roadmap updated: 2026-06-30 after Phase 1 completion*
