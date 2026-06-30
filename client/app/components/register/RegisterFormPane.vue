@@ -114,7 +114,7 @@ const onSubmit = handleSubmit(
             :label="field.label"
             :prepend-inner-icon="field.icon"
             :placeholder="field.placeholder"
-            :error-messages="errors[field.id] ? [errors[field.id]] : []"
+            :error-messages="errors[field.id] ?? ''"
             variant="outlined"
             density="comfortable"
             hide-spin-buttons
@@ -181,4 +181,4 @@ const onSubmit = handleSubmit(
   </section>
 </template>
 
-<style scoped lang="scss" src="../../styles/register/form-pane.scss"></style>
+<style scoped src="../../styles/register/form-pane.css"></style>

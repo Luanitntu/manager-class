@@ -34,4 +34,4 @@
   </section>
 </template>
 
-<style scoped lang="scss" src="../../styles/register/visual.scss"></style>
+<style scoped src="../../styles/register/visual.css"></style>

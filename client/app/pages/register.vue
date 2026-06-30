@@ -14,4 +14,4 @@ definePageMeta({ layout: false });
   </v-app>
 </template>
 
-<style scoped lang="scss" src="../styles/register/page.scss"></style>
+<style scoped src="../styles/register/page.css"></style>
