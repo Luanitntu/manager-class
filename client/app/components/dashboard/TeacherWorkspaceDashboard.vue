@@ -166,153 +166,221 @@ function sessionDay(session: UpcomingSession) {
 </script>
 
 <template>
-  <div class="teacher-dashboard">
-    <v-sheet class="teacher-dashboard__hero" rounded="lg">
-      <v-container class="teacher-dashboard__hero-copy pa-8" fluid>
-        <v-chip class="teacher-dashboard__eyebrow" color="white" size="small" variant="tonal">
-          <v-icon start size="14">mdi-clock-outline</v-icon>
-          Tiết học tiếp theo
-        </v-chip>
-        <h1>{{ nextSession?.class.name ?? 'Sẵn sàng cho lịch dạy hôm nay' }}</h1>
-        <p v-if="nextSession">
-          Thời gian: <strong>{{ sessionTime(nextSession) }} {{ sessionDay(nextSession).toLowerCase() }}</strong>
-          - Lớp: <strong>{{ nextSession.class.name }}</strong>
-          <span v-if="nextSession.lessonTopic"> - {{ nextSession.lessonTopic }}</span>
-        </p>
-        <p v-else>
-          Bạn chưa có tiết học sắp tới. Tạo lịch mới để học viên thấy thông tin mới nhất.
-        </p>
-        <v-btn class="teacher-dashboard__hero-btn" color="white" to="/calendar" variant="flat">
-          <v-icon start size="18">mdi-check-circle-outline</v-icon>
-          Điểm danh lớp học
-        </v-btn>
-      </v-container>
-      <div aria-hidden="true" class="teacher-dashboard__hero-art">
-        <div class="teacher-dashboard__art-card teacher-dashboard__art-card--notebook" />
-        <div class="teacher-dashboard__art-card teacher-dashboard__art-card--board" />
-        <div class="teacher-dashboard__art-pencil" />
-        <div class="teacher-dashboard__art-plane" />
-        <div class="teacher-dashboard__art-sphere" />
-      </div>
-    </v-sheet>
+  <UiPage class="space-y-6" padding="none" width="full">
+    <section class="relative min-w-0 overflow-hidden rounded-[var(--st-radius)] bg-[var(--st-primary)] text-white">
+      <div class="relative z-10 grid min-h-[248px] gap-6 px-6 py-6 md:grid-cols-[minmax(0,1fr)_280px] md:px-8 md:py-8">
+        <div class="flex min-w-0 flex-col items-start justify-center gap-4">
+          <UiBadge class="border-white/30 bg-white/15 text-white" tone="neutral" size="sm">
+            <AppIcon name="mdi-clock-outline" :size="14" />
+            Tiết học tiếp theo
+          </UiBadge>
 
-    <v-row aria-label="Dashboard stats" class="teacher-dashboard__stats">
-      <v-col v-for="item in cards" :key="item.label" cols="12" md="3" sm="6">
-        <v-card class="teacher-dashboard__stat-card h-100">
-          <v-avatar :class="`teacher-dashboard__stat-icon--${item.tone}`" rounded="lg" size="44" variant="outlined">
-            <v-icon size="25">{{ item.icon }}</v-icon>
-          </v-avatar>
-          <strong>{{ item.value }}</strong>
-          <span>{{ item.label }}</span>
-          <small :class="{ 'teacher-dashboard__warning-text': item.tone === 'orange' }">
-            {{ item.delta }}
-          </small>
-        </v-card>
-      </v-col>
-    </v-row>
+          <div class="min-w-0 space-y-3">
+            <h1 class="max-w-3xl break-words text-2xl font-semibold leading-[var(--st-leading-tight)]">
+              {{ nextSession?.class.name ?? 'Sẵn sàng cho lịch dạy hôm nay' }}
+            </h1>
+            <p v-if="nextSession" class="max-w-3xl text-base font-normal leading-[var(--st-leading-copy)] text-white/90">
+              Thời gian:
+              <strong class="font-semibold">{{ sessionTime(nextSession) }} {{ sessionDay(nextSession).toLowerCase() }}</strong>
+              - Lớp: <strong class="font-semibold">{{ nextSession.class.name }}</strong>
+              <span v-if="nextSession.lessonTopic"> - {{ nextSession.lessonTopic }}</span>
+            </p>
+            <p v-else class="max-w-3xl text-base font-normal leading-[var(--st-leading-copy)] text-white/90">
+              Bạn chưa có tiết học sắp tới. Tạo lịch mới để học viên thấy thông tin mới nhất.
+            </p>
+          </div>
 
-    <v-row class="teacher-dashboard__grid">
-      <v-col cols="12" lg="8">
-        <v-card class="teacher-dashboard__panel teacher-dashboard__schedule">
-          <v-card-title class="teacher-dashboard__panel-header">
-            <h2>Lịch dạy sắp tới</h2>
-            <NuxtLink to="/calendar">Xem tất cả <v-icon size="16">mdi-chevron-right</v-icon></NuxtLink>
-          </v-card-title>
-
-          <v-list v-if="displaySessions.length" class="teacher-dashboard__timeline" lines="two">
-            <v-list-item
-              v-for="(session, index) in displaySessions"
-              :key="session.id"
-              class="teacher-dashboard__session"
-            >
-              <template #prepend>
-                <div class="teacher-dashboard__session-time">
-                  <strong>{{ sessionTime(session) }}</strong>
-                  <span>{{ sessionDay(session) }}</span>
-                </div>
-                <div
-                  class="teacher-dashboard__session-dot"
-                  :style="{ '--dot-color': session.class.color || dashboardDotColor(index) }"
-                />
-              </template>
-              <v-list-item-title class="teacher-dashboard__session-title">
-                {{ session.lessonTopic || session.class.name }}
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                <NuxtLink to="/calendar">{{ session.class.name }}</NuxtLink>
-                <div class="teacher-dashboard__session-tags">
-                  <v-chip size="x-small" variant="tonal">
-                    <v-icon start size="14">mdi-account-group-outline</v-icon>
-                    Lớp học
-                  </v-chip>
-                  <v-chip size="x-small" variant="tonal">
-                    <v-icon start size="14">mdi-video-outline</v-icon>
-                    Google Meet
-                  </v-chip>
-                </div>
-              </v-list-item-subtitle>
-              <template #append>
-                <v-btn icon size="small" variant="text">
-                  <v-icon>mdi-dots-vertical</v-icon>
-                </v-btn>
-              </template>
-            </v-list-item>
-          </v-list>
-
-          <v-card-text v-else class="teacher-dashboard__empty text-center">
-            <v-icon size="34">mdi-calendar-plus-outline</v-icon>
-            <strong>Chưa có lịch dạy sắp tới</strong>
-            <span>Mở Calendar để tạo buổi học đầu tiên.</span>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" lg="4">
-        <div class="teacher-dashboard__side">
-          <v-card class="teacher-dashboard__panel teacher-dashboard__calendar">
-            <v-card-title class="teacher-dashboard__mini-header">
-              <v-icon size="20">mdi-calendar-month-outline</v-icon>
-              <h2>{{ monthLabel }}</h2>
-            </v-card-title>
-            <div class="teacher-dashboard__weekdays">
-              <span>T2</span>
-              <span>T3</span>
-              <span>T4</span>
-              <span>T5</span>
-              <span>T6</span>
-              <span>T7</span>
-              <span>CN</span>
-            </div>
-            <div class="teacher-dashboard__days">
-              <span
-                v-for="item in calendarDays"
-                :key="item.day"
-                :class="{ 'is-placeholder': item.day <= 0, 'is-active': item.active, 'is-marked': item.marked }"
-              >
-                {{ item.day > 0 ? item.day : '' }}
-              </span>
-            </div>
-          </v-card>
-
-          <v-card class="teacher-dashboard__panel teacher-dashboard__tasks">
-            <v-card-title class="teacher-dashboard__mini-header">
-              <v-icon size="20">mdi-alert-circle-outline</v-icon>
-              <h2>Cần xử lý</h2>
-            </v-card-title>
-            <v-list class="teacher-dashboard__task-list">
-              <v-list-item v-for="item in actionItems" :key="item.title" class="teacher-dashboard__task">
-                <template #prepend>
-                  <v-icon size="19">mdi-check-circle-outline</v-icon>
-                </template>
-                <v-list-item-title :class="{ 'is-urgent': item.urgent }">{{ item.title }}</v-list-item-title>
-                <v-list-item-subtitle>{{ item.subtitle }}</v-list-item-subtitle>
-              </v-list-item>
-            </v-list>
-          </v-card>
+          <UiButton to="/calendar" variant="secondary" leading-icon="mdi-check-circle-outline">
+            Điểm danh lớp học
+          </UiButton>
         </div>
-      </v-col>
-    </v-row>
-  </div>
-</template>
 
-<style scoped src="~/styles/dashboard/teacher.css"></style>
+        <div aria-hidden="true" class="hidden min-h-44 items-center justify-center md:flex">
+          <div class="relative h-44 w-64">
+            <div class="absolute left-0 top-8 h-28 w-44 rotate-[-5deg] rounded-[var(--st-radius)] border border-white/25 bg-white/15 shadow-lg backdrop-blur-sm" />
+            <div class="absolute right-0 top-0 h-32 w-44 rotate-6 rounded-[var(--st-radius)] border border-white/30 bg-white/20 shadow-lg backdrop-blur-sm">
+              <div class="m-4 h-3 w-24 rounded-full bg-white/70" />
+              <div class="mx-4 mt-3 h-2 w-32 rounded-full bg-white/35" />
+              <div class="mx-4 mt-2 h-2 w-20 rounded-full bg-white/35" />
+            </div>
+            <div class="absolute bottom-2 left-12 h-3 w-36 rotate-[-18deg] rounded-full bg-[var(--st-accent)]" />
+            <div class="absolute bottom-9 right-5 grid h-14 w-14 place-items-center rounded-full bg-white/20 text-white">
+              <AppIcon name="mdi-calendar-check-outline" :size="28" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Dashboard stats" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <UiMetricCard v-for="item in cards" :key="item.label" :label="item.label" :value="item.value">
+        <template #icon>
+          <span
+            :class="[
+              'grid h-11 w-11 place-items-center rounded-[var(--st-radius)] border',
+              item.tone === 'orange'
+                ? 'border-orange-200 bg-orange-50 text-orange-600'
+                : item.tone === 'green'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
+                  : item.tone === 'violet'
+                    ? 'border-violet-200 bg-violet-50 text-violet-600'
+                    : 'border-blue-200 bg-blue-50 text-[var(--st-primary)]',
+            ]"
+          >
+            <AppIcon :name="item.icon" :size="25" />
+          </span>
+        </template>
+        <template #hint>
+          <span :class="item.tone === 'orange' ? 'text-orange-600' : ''">{{ item.delta }}</span>
+        </template>
+      </UiMetricCard>
+    </section>
+
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+      <section class="min-w-0 rounded-[var(--st-radius)] border border-[var(--st-border)] bg-white p-4 sm:p-6">
+        <div class="mb-4 flex min-w-0 flex-wrap items-center justify-between gap-3">
+          <h2 class="min-w-0 text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+            Lịch dạy sắp tới
+          </h2>
+          <NuxtLink
+            to="/calendar"
+            class="inline-flex min-h-9 items-center gap-1 rounded-[var(--st-radius)] px-2 text-sm font-semibold text-[var(--st-primary)] transition hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-100"
+          >
+            Xem tất cả
+            <AppIcon name="mdi-chevron-right" :size="16" />
+          </NuxtLink>
+        </div>
+
+        <UiList v-if="displaySessions.length">
+          <UiListItem v-for="(session, index) in displaySessions" :key="session.id">
+            <template #leading>
+              <div class="flex min-w-[112px] items-center gap-3">
+                <div class="min-w-0">
+                  <strong class="block text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-text)]">
+                    {{ sessionTime(session) }}
+                  </strong>
+                  <span class="block text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+                    {{ sessionDay(session) }}
+                  </span>
+                </div>
+                <span
+                  class="h-3 w-3 shrink-0 rounded-full border border-white shadow-sm"
+                  :style="{ backgroundColor: session.class.color || dashboardDotColor(index) }"
+                />
+              </div>
+            </template>
+
+            <div class="min-w-0 truncate font-semibold">
+              {{ session.lessonTopic || session.class.name }}
+            </div>
+
+            <template #subtitle>
+              <div class="mt-1 flex min-w-0 flex-wrap items-center gap-2">
+                <NuxtLink
+                  to="/calendar"
+                  class="min-w-0 truncate text-sm font-semibold text-[var(--st-primary)] hover:underline"
+                >
+                  {{ session.class.name }}
+                </NuxtLink>
+                <UiBadge tone="neutral" size="sm">
+                  <AppIcon name="mdi-account-group-outline" :size="14" />
+                  Lớp học
+                </UiBadge>
+                <UiBadge tone="info" size="sm">
+                  <AppIcon name="mdi-video-outline" :size="14" />
+                  Google Meet
+                </UiBadge>
+              </div>
+            </template>
+
+            <template #actions>
+              <NuxtLink
+                to="/calendar"
+                aria-label="Mở lịch"
+                class="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--st-radius)] text-[var(--st-muted)] transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-100"
+              >
+                <AppIcon name="mdi-dots-vertical" :size="20" />
+              </NuxtLink>
+            </template>
+          </UiListItem>
+        </UiList>
+
+        <UiEmptyState
+          v-else
+          icon="mdi-calendar-plus-outline"
+          heading="Chưa có lịch dạy sắp tới"
+          body="Mở Calendar để tạo buổi học đầu tiên."
+        >
+          <template #actions>
+            <UiButton to="/calendar" variant="primary" leading-icon="mdi-calendar-month-outline">
+              Mở Calendar
+            </UiButton>
+          </template>
+        </UiEmptyState>
+      </section>
+
+      <aside class="grid min-w-0 gap-6">
+        <UiCard padding="md">
+          <div class="mb-4 flex min-w-0 items-center gap-2">
+            <AppIcon name="mdi-calendar-month-outline" :size="20" class="shrink-0 text-[var(--st-primary)]" />
+            <h2 class="min-w-0 truncate text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+              {{ monthLabel }}
+            </h2>
+          </div>
+          <div class="grid grid-cols-7 gap-1 text-center text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+            <span>T2</span>
+            <span>T3</span>
+            <span>T4</span>
+            <span>T5</span>
+            <span>T6</span>
+            <span>T7</span>
+            <span>CN</span>
+          </div>
+          <div class="mt-2 grid grid-cols-7 gap-1">
+            <span
+              v-for="item in calendarDays"
+              :key="item.day"
+              :class="[
+                'grid aspect-square min-h-9 place-items-center rounded-[var(--st-radius)] text-sm font-semibold leading-none',
+                item.day <= 0 ? 'text-transparent' : 'text-[var(--st-text)]',
+                item.active ? 'bg-[var(--st-primary)] text-white' : '',
+                item.marked && !item.active ? 'border border-[var(--st-primary)] bg-blue-50 text-[var(--st-primary)]' : '',
+              ]"
+            >
+              {{ item.day > 0 ? item.day : '' }}
+            </span>
+          </div>
+        </UiCard>
+
+        <UiCard padding="md">
+          <div class="mb-4 flex min-w-0 items-center gap-2">
+            <AppIcon name="mdi-alert-circle-outline" :size="20" class="shrink-0 text-orange-600" />
+            <h2 class="min-w-0 truncate text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+              Cần xử lý
+            </h2>
+          </div>
+          <ul class="space-y-3">
+            <li v-for="item in actionItems" :key="item.title" class="flex min-w-0 gap-3">
+              <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[var(--st-radius)] bg-[var(--st-bg-soft)] text-[var(--st-primary)]">
+                <AppIcon name="mdi-check-circle-outline" :size="19" />
+              </span>
+              <div class="min-w-0">
+                <div
+                  :class="[
+                    'truncate text-base font-semibold leading-[var(--st-leading-copy)]',
+                    item.urgent ? 'text-orange-600' : 'text-[var(--st-text)]',
+                  ]"
+                >
+                  {{ item.title }}
+                </div>
+                <p class="truncate text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+                  {{ item.subtitle }}
+                </p>
+              </div>
+            </li>
+          </ul>
+        </UiCard>
+      </aside>
+    </div>
+  </UiPage>
+</template>
