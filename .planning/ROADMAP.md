@@ -14,12 +14,12 @@ This roadmap resets planning for a frontend UI platform milestone. The work remo
 **Goal:** Remove the Vuetify/SCSS platform surface and establish Tailwind as the only styling foundation.
 **Mode:** mvp
 **Requirements:** STYLE-01, STYLE-02, STYLE-03, STYLE-04
-**Status:** Planned
-**Plans:** 1/7 plans executed
+**Status:** In Progress
+**Plans:** 2/7 plans executed
 Plans:
 
 - [x] 01-01-PLAN.md — Add minimal Tailwind icon, viewport, toast, pager, and language switcher blockers.
-- [ ] 01-02-PLAN.md — Convert global/auth/landing SCSS build blockers to Tailwind-compatible CSS.
+- [x] 01-02-PLAN.md — Convert global/auth/landing SCSS build blockers to Tailwind-compatible CSS.
 - [ ] 01-03-PLAN.md — Convert register SCSS build blockers to Tailwind-compatible CSS.
 - [ ] 01-04-PLAN.md — Convert dashboard SCSS build blockers to Tailwind-compatible CSS.
 - [ ] 01-05-PLAN.md — Convert calendar SCSS build blockers to Tailwind-compatible CSS.
