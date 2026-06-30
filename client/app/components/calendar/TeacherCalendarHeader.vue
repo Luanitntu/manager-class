@@ -11,32 +11,26 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <header class="calendar-page__header">
-    <div>
-      <h1>Lịch dạy</h1>
-      <p>{{ subtitle }}</p>
-    </div>
-
-    <div class="calendar-page__actions">
-      <v-btn
-        class="calendar-page__sync"
-        prepend-icon="mdi-calendar-sync-outline"
-        variant="flat"
-        @click="emit('sync')"
-      >
-        Đồng bộ Google Calendar
-      </v-btn>
-      <v-btn
-        v-if="canEdit"
-        class="calendar-page__create"
-        color="primary"
-        prepend-icon="mdi-plus"
-        @click="emit('create')"
-      >
-        Tạo buổi học
-      </v-btn>
-    </div>
-  </header>
+  <UiPageHeader title="Lịch dạy" :subtitle="subtitle">
+    <template #actions>
+      <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+        <UiButton
+          class="w-full sm:w-auto"
+          leading-icon="mdi-calendar-sync-outline"
+          variant="secondary"
+          @click="emit('sync')"
+        >
+          Đồng bộ Google Calendar
+        </UiButton>
+        <UiButton
+          v-if="canEdit"
+          class="w-full sm:w-auto"
+          leading-icon="mdi-plus"
+          @click="emit('create')"
+        >
+          Tạo buổi học
+        </UiButton>
+      </div>
+    </template>
+  </UiPageHeader>
 </template>
-
-<style scoped src="~/styles/calendar/header.css"></style>

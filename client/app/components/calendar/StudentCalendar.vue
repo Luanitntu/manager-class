@@ -6,7 +6,7 @@ import { addDays, endOfDay, startOfDay, startOfWeek } from '~/utils/calendar';
 const sessions = ref<TeachingSession[]>([]);
 const isLoading = ref(false);
 const weekStart = ref(startOfWeek(new Date()));
-const snackbar = reactive({ show: false, text: '', color: 'error' });
+const toast = useToast();
 
 let currentRange: { from: string; to: string } | null = null;
 
@@ -19,10 +19,8 @@ watch(
   { immediate: true },
 );
 
-function notify(text: string, color = 'error') {
-  snackbar.text = text;
-  snackbar.color = color;
-  snackbar.show = true;
+function notify(text: string, type: 'success' | 'error' | 'info' = 'error') {
+  toast.show({ message: text, type, duration: 3000 });
 }
 
 async function loadRange(from: Date, to: Date) {
@@ -58,7 +56,7 @@ function goNext() {
 </script>
 
 <template>
-  <div class="calendar-page">
+  <div class="grid w-full gap-6 text-[var(--st-text)] sm:gap-[18px]">
     <StudentSchedule
       :is-loading="isLoading"
       :sessions="sessions"
@@ -68,10 +66,5 @@ function goNext() {
       @today="goToday"
     />
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
-      {{ snackbar.text }}
-    </v-snackbar>
   </div>
 </template>
-
-<style scoped src="~/styles/calendar/page.css"></style>

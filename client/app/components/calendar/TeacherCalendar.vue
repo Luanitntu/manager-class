@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { TeachingSession } from '~/composables/useSessions';
 import { fetchSessionRange } from '~/composables/useSessions';
+import TeacherCalendarBoard from '~/components/calendar/TeacherCalendarBoard.vue';
+import TeacherCalendarHeader from '~/components/calendar/TeacherCalendarHeader.vue';
+import TeacherSessionDetail from '~/components/calendar/TeacherSessionDetail.vue';
 import {
   addDays,
   buildCalendarCells,
@@ -24,12 +27,12 @@ const dialog = ref(false);
 const selected = ref<TeachingSession | null>(null);
 const activeSession = ref<TeachingSession | null>(null);
 const prefill = ref<{ start: string; end: string } | null>(null);
-const snackbar = reactive({ show: false, text: '', color: 'error' });
 const sessions = ref<TeachingSession[]>([]);
 const isLoading = ref(false);
 const viewDate = ref(startOfMonth(new Date()));
 const viewMode = ref<CalendarViewMode>('month');
 const draggingSession = ref<TeachingSession | null>(null);
+const toast = useToast();
 
 let currentRange: { from: string; to: string } | null = null;
 
@@ -46,10 +49,8 @@ watch(
   { immediate: true },
 );
 
-function notify(text: string, color = 'error') {
-  snackbar.text = text;
-  snackbar.color = color;
-  snackbar.show = true;
+function notify(text: string, type: 'success' | 'error' | 'info' = 'error') {
+  toast.show({ message: text, type, duration: 3000 });
 }
 
 async function loadRange(from: Date, to: Date) {
@@ -157,7 +158,7 @@ async function onCellDrop(date: Date) {
 </script>
 
 <template>
-  <div class="calendar-page">
+  <div class="grid w-full gap-6 text-[var(--st-text)] sm:gap-[18px]">
     <TeacherCalendarHeader
       :can-edit="canEdit"
       :subtitle="pageSubtitle"
@@ -199,10 +200,5 @@ async function onCellDrop(date: Date) {
       @saved="reload"
     />
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
-      {{ snackbar.text }}
-    </v-snackbar>
   </div>
 </template>
-
-<style scoped src="~/styles/calendar/page.css"></style>
