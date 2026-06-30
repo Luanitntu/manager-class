@@ -47,14 +47,14 @@ Plans:
 **Mode:** mvp
 **Requirements:** UIKIT-00, UIKIT-01, UIKIT-02, UIKIT-03, UIKIT-04, UIKIT-05
 **Status:** Planned
-**Plans:** 4/7 plans executed
+**Plans:** 5/7 plans executed
 Plans:
 
 - [x] 02-01-PLAN.md — Create UI kit docs and layout primitives.
 - [x] 02-02-PLAN.md — Create Tailwind-only controls and form primitives.
 - [x] 02-03-PLAN.md — Create slot-first data display primitives.
 - [x] 02-04-PLAN.md — Extract pagination into UiPagination and preserve TablePager.
-- [ ] 02-05-PLAN.md — Create feedback, skeleton, tabs, and dialog primitives.
+- [x] 02-05-PLAN.md — Create feedback, skeleton, tabs, and dialog primitives.
 - [ ] 02-06-PLAN.md — Migrate proof surfaces AppSkeleton, AppToast, and ClassLocation.
 - [ ] 02-07-PLAN.md — Finalize docs, handoff, static scans, and frontend gates.
 
