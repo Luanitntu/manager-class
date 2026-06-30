@@ -1,5 +1,3 @@
-@use '../auth-shared' as *;
-
 .register-form-pane {
   position: relative;
   z-index: 10;
@@ -26,13 +24,13 @@
   line-height: 1;
   font-weight: 800;
   text-decoration: none;
+}
 
-  &__icon {
-    width: 32px;
-    height: 32px;
-    flex: 0 0 32px;
-    border-radius: 8px;
-  }
+.register-brand__icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 8px;
 }
 
 .register-card {
@@ -43,22 +41,20 @@
   gap: 16px;
 }
 
-.register-heading {
-  h1 {
-    margin: 0 0 8px;
-    color: $slate-900;
-    font-size: clamp(26px, 2.4vw, 30px);
-    line-height: 1.2;
-    font-weight: 800;
-    letter-spacing: 0;
-  }
+.register-heading h1 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: clamp(26px, 2.4vw, 30px);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0;
+}
 
-  p {
-    margin: 0;
-    color: $slate-600;
-    font-size: 15px;
-    line-height: 1.5;
-  }
+.register-heading p {
+  margin: 0;
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 .register-form {
@@ -71,95 +67,93 @@
   gap: 2px;
 }
 
-.register-input {
-  :deep(.v-field) {
-    min-height: 48px;
-    border-radius: 8px;
-    background: #fff;
-    color: $slate-900;
-    transition: box-shadow 160ms ease;
+.register-input :deep(.v-field) {
+  min-height: 48px;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  transition: box-shadow 160ms ease;
+}
 
-    &.v-field--focused {
-      box-shadow: var(--st-focus);
-    }
-  }
+.register-input :deep(.v-field.v-field--focused) {
+  box-shadow: var(--st-focus);
+}
 
-  :deep(.v-field__outline) {
-    color: var(--st-border);
-    opacity: 1;
-  }
+.register-input :deep(.v-field__outline) {
+  color: var(--st-border);
+  opacity: 1;
+}
 
-  :deep(.v-field--focused .v-field__outline) {
-    color: var(--st-primary);
-  }
+.register-input :deep(.v-field--focused .v-field__outline) {
+  color: var(--st-primary);
+}
 
-  :deep(.v-field--error .v-field__outline) {
-    color: #dc2626;
-  }
+.register-input :deep(.v-field--error .v-field__outline) {
+  color: #dc2626;
+}
 
-  :deep(.v-field-label) {
-    color: $slate-700;
-    font-weight: 700;
-    opacity: 1;
-  }
+.register-input :deep(.v-field-label) {
+  color: #334155;
+  font-weight: 700;
+  opacity: 1;
+}
 
-  :deep(.v-field__input) {
-    min-height: 48px;
-    padding-top: 0;
-    padding-bottom: 0;
-    color: $slate-900;
-    font-size: 14px;
-    line-height: 48px;
+.register-input :deep(.v-field__input) {
+  min-height: 48px;
+  padding-top: 0;
+  padding-bottom: 0;
+  color: #0f172a;
+  font-size: 14px;
+  line-height: 48px;
+}
 
-    &::placeholder {
-      color: $slate-400;
-      opacity: 1;
-    }
-  }
+.register-input :deep(.v-field__input)::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
 
-  :deep(.v-field__prepend-inner) {
-    min-height: 48px;
-    padding-top: 0;
-    align-items: center;
-    color: $slate-400;
+.register-input :deep(.v-field__prepend-inner) {
+  min-height: 48px;
+  padding-top: 0;
+  align-items: center;
+  color: #94a3b8;
+}
 
-    .v-icon {
-      opacity: 1;
-    }
-  }
+.register-input :deep(.v-field__prepend-inner .v-icon) {
+  opacity: 1;
+}
 
-  :deep(.v-input__details) {
-    min-height: 20px;
-    padding-inline: 0;
-    padding-top: 4px;
-  }
+.register-input :deep(.v-input__details) {
+  min-height: 20px;
+  padding-inline: 0;
+  padding-top: 4px;
+}
 
-  :deep(.v-messages) {
-    min-height: 16px;
-    color: #dc2626;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.35;
-  }
+.register-input :deep(.v-messages) {
+  min-height: 16px;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .register-terms {
   margin: 0;
-  color: $slate-500;
+  color: #64748b;
   font-size: 12px;
   line-height: 1.45;
   overflow-wrap: anywhere;
+}
 
-  a {
-    color: $brand-blue;
-    font-weight: 700;
-    overflow-wrap: anywhere;
-    text-decoration: none;
+.register-terms a {
+  color: #2563eb;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
 
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+.register-terms a:hover {
+  text-decoration: underline;
 }
 
 .register-submit.v-btn {
@@ -181,41 +175,41 @@
   transition: background 160ms ease, opacity 160ms ease;
   text-transform: none;
   letter-spacing: 0;
+}
 
-  &:hover {
-    background: var(--st-primary-dark);
-  }
+.register-submit.v-btn:hover {
+  background: var(--st-primary-dark);
+}
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.8;
-  }
+.register-submit.v-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
 
-  :deep(.v-btn__content) {
-    gap: 8px;
-  }
+.register-submit.v-btn :deep(.v-btn__content) {
+  gap: 8px;
 }
 
 .register-divider {
   position: relative;
   text-align: center;
   line-height: 1;
+}
 
-  :deep(.v-divider) {
-    position: absolute;
-    inset: 50% 0 auto;
-    color: $slate-200;
-    opacity: 1;
-  }
+.register-divider :deep(.v-divider) {
+  position: absolute;
+  inset: 50% 0 auto;
+  color: #e2e8f0;
+  opacity: 1;
+}
 
-  span {
-    position: relative;
-    display: inline-block;
-    background: #fff;
-    color: $slate-500;
-    padding: 0 16px;
-    font-size: 14px;
-  }
+.register-divider span {
+  position: relative;
+  display: inline-block;
+  background: #fff;
+  color: #64748b;
+  padding: 0 16px;
+  font-size: 14px;
 }
 
 .register-social {
@@ -230,7 +224,7 @@
   border: 1px solid var(--st-border);
   border-radius: 8px;
   background: #fff;
-  color: $slate-700;
+  color: #334155;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -241,40 +235,40 @@
   line-height: 1;
   text-transform: none;
   transition: background 160ms ease, border-color 160ms ease;
+}
 
-  &:hover:not(:disabled) {
-    border-color: var(--st-primary);
-    background: var(--st-bg-soft);
-  }
+.register-social-button.v-btn:hover:not(:disabled) {
+  border-color: var(--st-primary);
+  background: var(--st-bg-soft);
+}
 
-  &:disabled {
-    opacity: 0.58;
-  }
+.register-social-button.v-btn:disabled {
+  opacity: 0.58;
+}
 
-  :deep(.v-btn__content) {
-    gap: 8px;
-  }
+.register-social-button.v-btn :deep(.v-btn__content) {
+  gap: 8px;
 }
 
 .register-login {
   margin: 0;
-  color: $slate-600;
+  color: #475569;
   font-size: 14px;
   line-height: 1.35;
   text-align: center;
+}
 
-  a {
-    display: inline-flex;
-    align-items: center;
-    color: $brand-blue;
-    font-weight: 800;
-    line-height: 1.2;
-    text-decoration: none;
+.register-login a {
+  display: inline-flex;
+  align-items: center;
+  color: #2563eb;
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+}
 
-    &:hover {
-      color: $brand-blue-dark;
-    }
-  }
+.register-login a:hover {
+  color: #1d4ed8;
 }
 
 @media (max-width: 1023px) {

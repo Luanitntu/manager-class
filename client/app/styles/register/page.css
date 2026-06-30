@@ -1,22 +1,20 @@
-@use '../auth-shared' as *;
-
 .register-shell {
   min-height: 100dvh;
   overflow-x: hidden;
   display: flex;
   flex-direction: row-reverse;
   background: #fff;
-  color: $slate-900;
+  color: #0f172a;
   font-family: var(--st-font-family);
+}
 
-  :deep(.v-icon) {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    vertical-align: middle;
-  }
+.register-shell :deep(.v-icon) {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .register-shell,
