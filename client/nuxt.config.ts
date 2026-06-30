@@ -13,7 +13,6 @@ export default {
   modules: [
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
-    'vuetify-nuxt-module',
     '@nuxtjs/i18n',
     '@nuxt/eslint',
   ],
@@ -34,13 +33,6 @@ export default {
   },
 
   css: ['@mdi/font/css/materialdesignicons.min.css', '~/assets/css/main.css'],
-
-  vuetify: {
-    moduleOptions: {
-      styles: { configFile: 'assets/css/vuetify.settings.scss' },
-    },
-    vuetifyOptions: './vuetify.config.ts',
-  },
 
   runtimeConfig: {
     public: {

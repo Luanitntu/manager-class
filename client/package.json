@@ -46,9 +46,7 @@
     "eslint": "^9.17.0",
     "oxc-parser": "^0.133.0",
     "rolldown": "^1.1.2",
-    "sass-embedded": "^1.83.0",
     "typescript": "^5.7.2",
-    "vue-tsc": "^2.2.0",
-    "vuetify-nuxt-module": "^0.18.3"
+    "vue-tsc": "^2.2.0"
   }
 }
