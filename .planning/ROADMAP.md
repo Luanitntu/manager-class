@@ -79,7 +79,7 @@ Plans:
 **Mode:** mvp
 **Requirements:** APP-01, APP-02, APP-03, APP-04, APP-05
 **Status:** In Progress (2026-06-30)
-**Plans:** 5/7 plans complete
+**Plans:** 6/7 plans executed
 Plans:
 
 - [x] 03-01-PLAN.md — Migrate shell preservation checks and the full auth surface.
@@ -87,7 +87,7 @@ Plans:
 - [x] 03-03-PLAN.md — Fully migrate the calendar-critical SessionDialog.
 - [x] 03-04-PLAN.md — Migrate the teacher workspace dashboard.
 - [x] 03-05-PLAN.md — Migrate the student dashboard and StudentSchedule.
-- [ ] 03-06-PLAN.md — Migrate bounded low-risk shared detail dialog areas.
+- [x] 03-06-PLAN.md — Migrate bounded low-risk shared detail dialog areas.
 - [ ] 03-07-PLAN.md — Produce final migration inventory, validation evidence, and frontend gates.
 
 **Cross-cutting constraints:**
@@ -190,4 +190,4 @@ Plans:
 - Old v1 phase plan artifacts were archived under `.planning/archive/v1-polish-phase-plans-2026-06-30/`.
 
 ---
-*Roadmap updated: 2026-06-30 after Phase 3 Plan 05 completion*
+*Roadmap updated: 2026-06-30 after Phase 3 Plan 06 completion*

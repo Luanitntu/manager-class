@@ -4,16 +4,16 @@ milestone: v1.1
 milestone_name: Tailwind UI Migration
 current_phase: 3 — App Shell & Shared Surface Migration
 status: in progress
-stopped_at: Completed 03-05-PLAN.md
-last_updated: "2026-06-30T22:58:01+07:00"
+stopped_at: Completed 03-06-PLAN.md
+last_updated: "2026-06-30T16:13:49.522Z"
 last_activity: 2026-06-30
-last_activity_desc: Phase 03 Plan 05 completed
+last_activity_desc: Phase 03 Plan 06 completed
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 22
-  completed_plans: 20
-  percent: 54
+  completed_plans: 21
+  percent: 95
 current_phase_name: App Shell & Shared Surface Migration
 ---
 
@@ -27,9 +27,9 @@ current_phase_name: App Shell & Shared Surface Migration
 ## Current Position
 
 Phase: Phase 3 planned
-Plan: 03-05 complete; next 03-06
+Plan: 03-06 complete; next 03-07
 Status: In progress on Phase 3 app shell and shared surface migration
-Last activity: 2026-06-30 — Phase 03 Plan 05 completed
+Last activity: 2026-06-30 — Phase 03 Plan 06 completed
 
 ## Project Reference
 
@@ -99,14 +99,15 @@ See: `.planning/ROADMAP.md`
 - Phase 3 Plan 03 migrated SessionDialog to Tailwind/Ui primitives while preserving single/recurring create, edit, delete confirmation, status updates, timezone conversion, error extraction, and saved reload behavior.
 - Phase 3 Plan 04 migrated the teacher workspace dashboard to Tailwind/Ui primitives while preserving next-session, metrics, upcoming sessions, mini calendar, action items, empty state, and calendar CTA behavior.
 - Phase 3 Plan 05 migrated student dashboard and weekly schedule surfaces to Tailwind/Ui primitives while preserving dashboard content states, schedule grouping, online/offline labels, and week navigation emits.
+- Phase 3 Plan 06 migrated assistant and student detail dialogs to Tailwind/Ui primitives while preserving salary, profile, score, and comment mutations and adding score delete confirmation.
 
 ---
-*State updated: 2026-06-30 after Phase 3 Plan 02 completion*
+*State updated: 2026-06-30 after Phase 3 Plan 06 completion*
 
 ## Session
 
-**Last session:** 2026-06-30T22:58:01+07:00
-**Stopped at:** Completed 03-05-PLAN.md
+**Last session:** 2026-06-30T23:13:49+07:00
+**Stopped at:** Completed 03-06-PLAN.md
 **Resume file:** None
 
 ## Performance Metrics
@@ -126,3 +127,4 @@ See: `.planning/ROADMAP.md`
 | Phase 03-app-shell-shared-surface-migration P03 | 6min | 3 tasks | SessionDialog migration complete |
 | Phase 03-app-shell-shared-surface-migration P04 | 27min | 2 tasks | teacher dashboard migration complete |
 | Phase 03-app-shell-shared-surface-migration P05 | 13min | 2 tasks | student dashboard and schedule migration complete |
+| Phase 03-app-shell-shared-surface-migration P06 | 14min | 2 tasks | shared detail dialog migration complete |
