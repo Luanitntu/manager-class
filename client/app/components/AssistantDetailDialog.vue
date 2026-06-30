@@ -14,6 +14,11 @@ const { data: salary, isLoading: isSalaryLoading } = useAssistantSalary(idRef);
 const { updateSalary } = useAssistantMutations();
 
 const form = reactive({ salaryMethod: 'PER_SESSION', salaryRate: 0, bio: '' });
+const salaryMethodItems = [
+  { value: 'PER_SESSION', title: 'Per session' },
+  { value: 'PER_HOUR', title: 'Per hour' },
+  { value: 'PER_CLASS', title: 'Per class' },
+];
 
 watch(assistant, (a) => {
   if (!a?.assistantProfile) return;
@@ -40,98 +45,106 @@ const methodLabel: Record<string, string> = {
   PER_HOUR: 'per hour',
   PER_CLASS: 'per class',
 };
+
+function formatNumber(value: number) {
+  return value.toLocaleString();
+}
 </script>
 
 <template>
-  <v-dialog
+  <UiDialog
     :model-value="modelValue"
-    max-width="640"
-    scrollable
+    size="lg"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <v-card v-if="assistant">
-      <v-card-title class="d-flex align-center ga-3">
-        <v-avatar color="primary"><span class="text-white">{{ assistant.fullName[0] }}</span></v-avatar>
-        <div>
-          <div>{{ assistant.fullName }}</div>
-          <div class="text-caption text-medium-emphasis">{{ assistant.email }}</div>
-        </div>
-        <v-spacer />
-        <v-btn icon="mdi-close" variant="text" @click="emit('update:modelValue', false)" />
-      </v-card-title>
+    <template v-if="assistant" #title>
+      <span class="flex min-w-0 items-center gap-3">
+        <UiAvatar :name="assistant.fullName" size="md" />
+        <span class="min-w-0">
+          <span class="block truncate">{{ assistant.fullName }}</span>
+          <span class="block truncate text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+            {{ assistant.email }}
+          </span>
+        </span>
+      </span>
+    </template>
 
-      <v-card-text>
-        <h3 class="text-subtitle-1 font-weight-bold mb-2">Salary configuration</h3>
-        <div class="d-flex ga-3 align-center">
-          <v-select
+    <div v-if="assistant" class="grid min-h-[360px] gap-6">
+      <section class="grid gap-4">
+        <h3 class="text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+          Salary configuration
+        </h3>
+        <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(120px,160px)_auto] sm:items-end">
+          <UiSelect
             v-model="form.salaryMethod"
-            :items="['PER_SESSION', 'PER_HOUR', 'PER_CLASS']"
+            :items="salaryMethodItems"
             label="Method"
-            density="comfortable"
           />
-          <v-text-field v-model="form.salaryRate" type="number" label="Rate" density="comfortable" />
-          <v-btn color="primary" :loading="updateSalary.isPending.value" @click="saveSalary">
-            Save
-          </v-btn>
+          <UiInput v-model="form.salaryRate" type="number" label="Rate" />
+          <UiButton
+            :loading="updateSalary.isPending.value"
+            :disabled="updateSalary.isPending.value"
+            @click="saveSalary"
+          >
+            Save salary settings
+          </UiButton>
         </div>
+      </section>
 
-        <v-divider class="my-4" />
-
-        <h3 class="text-subtitle-1 font-weight-bold mb-2">Salary summary</h3>
-        <div v-if="salary">
-          <div class="d-flex ga-6 mb-3">
-            <div>
-              <div class="text-h6 font-weight-bold">{{ salary.totalAmount.toLocaleString() }}</div>
-              <div class="text-caption text-medium-emphasis">
-                Total ({{ methodLabel[salary.method] }})
-              </div>
-            </div>
-            <div>
-              <div class="text-h6 font-weight-bold">{{ salary.totalSessions }}</div>
-              <div class="text-caption text-medium-emphasis">Sessions</div>
-            </div>
-            <div>
-              <div class="text-h6 font-weight-bold">{{ salary.totalHours }}</div>
-              <div class="text-caption text-medium-emphasis">Hours</div>
-            </div>
+      <section class="grid gap-4 border-t border-[var(--st-border)] pt-6">
+        <h3 class="text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+          Salary summary
+        </h3>
+        <div v-if="salary" class="grid gap-4">
+          <div class="grid gap-3 sm:grid-cols-3">
+            <UiMetricCard
+              label="Total"
+              :value="formatNumber(salary.totalAmount)"
+              :hint="methodLabel[salary.method]"
+            />
+            <UiMetricCard label="Sessions" :value="salary.totalSessions" />
+            <UiMetricCard label="Hours" :value="salary.totalHours" />
           </div>
-          <v-table density="compact">
+          <UiTable :empty="!salary.byClass.length" caption="Assistant salary by class">
             <thead>
-              <tr>
-                <th>Class</th>
-                <th class="text-right">Sessions</th>
-                <th class="text-right">Hours</th>
-                <th class="text-right">Amount</th>
+              <tr class="border-b border-[var(--st-border)] text-sm font-semibold text-[var(--st-muted)]">
+                <th class="px-4 py-3 text-left">Class</th>
+                <th class="px-4 py-3 text-right">Sessions</th>
+                <th class="px-4 py-3 text-right">Hours</th>
+                <th class="px-4 py-3 text-right">Amount</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="c in salary.byClass" :key="c.classId">
-                <td>{{ c.className }}</td>
-                <td class="text-right">{{ c.sessionCount }}</td>
-                <td class="text-right">{{ c.hours }}</td>
-                <td class="text-right">{{ c.amount.toLocaleString() }}</td>
-              </tr>
-              <tr v-if="!salary.byClass.length">
-                <td colspan="4" class="text-center text-medium-emphasis">No assigned sessions.</td>
+              <tr v-for="c in salary.byClass" :key="c.classId" class="border-b border-slate-100 last:border-b-0">
+                <td class="min-w-48 px-4 py-3 font-normal text-[var(--st-text)]">{{ c.className }}</td>
+                <td class="px-4 py-3 text-right">{{ c.sessionCount }}</td>
+                <td class="px-4 py-3 text-right">{{ c.hours }}</td>
+                <td class="px-4 py-3 text-right font-semibold">{{ formatNumber(c.amount) }}</td>
               </tr>
             </tbody>
-          </v-table>
+            <template #empty>No assigned sessions.</template>
+          </UiTable>
         </div>
-        <AppSkeleton v-else-if="isSalaryLoading" variant="table" :rows="3" :columns="4" />
+        <UiSkeleton v-else-if="isSalaryLoading" variant="table" :rows="3" :columns="4" />
+      </section>
 
-        <v-divider class="my-4" />
-
-        <h3 class="text-subtitle-1 font-weight-bold mb-2">Assigned classes</h3>
-        <v-chip-group>
-          <v-chip v-for="a in assistant.classAssignments ?? []" :key="a.class.id" variant="tonal">
+      <section class="grid gap-3 border-t border-[var(--st-border)] pt-6">
+        <h3 class="text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+          Assigned classes
+        </h3>
+        <div v-if="assistant.classAssignments?.length" class="flex flex-wrap gap-2">
+          <UiBadge v-for="a in assistant.classAssignments" :key="a.class.id" tone="primary" size="md">
             {{ a.class.name }}
-          </v-chip>
-        </v-chip-group>
-        <div v-if="!assistant.classAssignments?.length" class="text-medium-emphasis text-caption">
-          No class assignments yet (assign from a class).
+          </UiBadge>
         </div>
-      </v-card-text>
-    </v-card>
-    <AppSkeleton v-else-if="modelValue && assistantId && isAssistantLoading" variant="detail" :rows="5" />
-  </v-dialog>
+        <UiEmptyState
+          v-else
+          icon="mdi-account-group-outline"
+          heading="No class assignments yet"
+          body="Assign this assistant from a class."
+        />
+      </section>
+    </div>
+    <UiSkeleton v-else-if="modelValue && assistantId && isAssistantLoading" variant="detail" :rows="5" />
+  </UiDialog>
 </template>
