@@ -74,3 +74,18 @@ Phase 2 shared UI primitives live here. They are Vue 3/Nuxt components styled on
 - Phase 4 should consume these primitives for `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile`.
 - `SessionDialog`, `StudentDetailDialog`, and `AssistantDetailDialog` are consumers of the dialog/form/table primitives, not Phase 2 rewrites.
 - UIKIT-00 through UIKIT-05 require static scans: no component CSS, no Vuetify tags, no direct feature composable ownership inside `client/app/components/ui`.
+
+## Proof Migration Status
+
+| Surface | Status | Notes |
+| --- | --- | --- |
+| `AppSkeleton` | Migrated | Compatibility wrapper over `UiSkeleton`; public props and variants preserved. |
+| `TablePager` | Migrated | Compatibility wrapper over `UiPagination`; `meta`, `page`, and `limit` API preserved. |
+| `AppToast` | Migrated | Uses `UiToast`; `useToast`, dismiss, roles, stacking, and responsive placement preserved. |
+| `ClassLocation` | Migrated | Uses `UiBadge` and `AppIcon`; inline/default modes and meeting-link safety preserved. |
+
+## Verification
+
+Static scan commands and final gate results are recorded in `.planning/phases/02-tailwind-design-system-shared-ui-kit/02-HANDOFF.md` and the plan summaries.
+
+No new packages, third-party UI registries, component CSS, or backend changes were introduced by Phase 2.

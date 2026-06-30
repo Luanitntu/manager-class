@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { PaginationMeta } from '~/composables/useApi';
+interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
 
 const props = defineProps<{
   meta: PaginationMeta;
