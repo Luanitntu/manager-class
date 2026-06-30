@@ -27,34 +27,40 @@ onMounted(async () => {
 <template>
   <AuthShell>
     <template #aside>
-      <h2 class="text-h4 font-weight-bold mb-3">Schedule Teacher</h2>
-      <p class="text-body-1" style="opacity: 0.9; max-width: 460px">
+      <h2 class="mb-3 text-2xl font-semibold leading-[var(--st-leading-tight)]">Schedule Teacher</h2>
+      <p class="max-w-md text-base font-normal leading-[var(--st-leading-copy)] text-white/90">
         Quản lý lớp học, lịch dạy và học phí — tất cả trong một nơi.
       </p>
     </template>
 
     <div class="text-center">
-    <template v-if="state === 'verifying'">
-      <v-progress-circular indeterminate color="primary" class="mb-4" />
-      <div class="text-medium-emphasis">{{ t('auth.verifying') }}</div>
-    </template>
+      <template v-if="state === 'verifying'">
+        <span class="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-[var(--st-radius)] bg-blue-50 text-[var(--st-primary)]">
+          <UiSpinner size="md" />
+        </span>
+        <div class="text-base font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">{{ t('auth.verifying') }}</div>
+      </template>
 
-    <template v-else-if="state === 'ok'">
-      <v-avatar color="success" size="48" rounded="lg" class="mb-3">
-        <v-icon color="white" size="28">mdi-check</v-icon>
-      </v-avatar>
-      <h1 class="text-h6 font-weight-bold mb-2">{{ t('auth.verified') }}</h1>
-      <v-btn color="primary" to="/login">{{ t('auth.continueSignIn') }}</v-btn>
-    </template>
+      <template v-else-if="state === 'ok'">
+        <span class="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-[var(--st-radius)] bg-emerald-600 text-white">
+          <AppIcon name="mdi-check" :size="28" />
+        </span>
+        <h1 class="mb-2 text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">{{ t('auth.verified') }}</h1>
+        <UiButton to="/login" class="mt-2">
+          {{ t('auth.continueSignIn') }}
+        </UiButton>
+      </template>
 
-    <template v-else>
-      <v-avatar color="error" size="48" rounded="lg" class="mb-3">
-        <v-icon color="white" size="28">mdi-alert</v-icon>
-      </v-avatar>
-      <h1 class="text-h6 font-weight-bold mb-2">{{ t('auth.verifyFailed') }}</h1>
-      <p class="text-medium-emphasis mb-4">{{ error }}</p>
-      <v-btn variant="text" to="/login">{{ t('auth.backToSignIn') }}</v-btn>
-    </template>
+      <template v-else>
+        <span class="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-[var(--st-radius)] bg-red-600 text-white">
+          <AppIcon name="mdi-alert" :size="28" />
+        </span>
+        <h1 class="mb-2 text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">{{ t('auth.verifyFailed') }}</h1>
+        <p class="mb-4 text-base font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">{{ error }}</p>
+        <UiButton variant="ghost" to="/login">
+          {{ t('auth.backToSignIn') }}
+        </UiButton>
+      </template>
     </div>
   </AuthShell>
 </template>

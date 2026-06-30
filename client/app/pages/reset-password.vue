@@ -42,42 +42,46 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <AuthShell>
     <template #aside>
-      <h2 class="text-h4 font-weight-bold mb-3">Schedule Teacher</h2>
-      <p class="text-body-1" style="opacity: 0.9; max-width: 460px">
+      <h2 class="mb-3 text-2xl font-semibold leading-[var(--st-leading-tight)]">Schedule Teacher</h2>
+      <p class="max-w-md text-base font-normal leading-[var(--st-leading-copy)] text-white/90">
         Quản lý lớp học, lịch dạy và học phí — tất cả trong một nơi.
       </p>
     </template>
 
     <div class="mb-6">
-      <v-avatar color="primary" size="48" rounded="lg" class="mb-3">
-        <v-icon color="white" size="28">mdi-lock-reset</v-icon>
-      </v-avatar>
-      <h1 class="text-h5 font-weight-bold">{{ t('auth.resetTitle') }}</h1>
+      <span class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-[var(--st-radius)] bg-[var(--st-primary)] text-white">
+        <AppIcon name="mdi-lock-reset" :size="28" />
+      </span>
+      <h1 class="text-2xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">{{ t('auth.resetTitle') }}</h1>
     </div>
 
-    <v-alert v-if="done" type="success" variant="tonal" class="mb-4" density="compact">
+    <UiAlert v-if="done" tone="success" class="mb-4">
       {{ t('auth.resetDone') }}
-    </v-alert>
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-4" density="compact">
+    </UiAlert>
+    <UiAlert v-if="error" tone="error" class="mb-4">
       {{ error }}
-    </v-alert>
+    </UiAlert>
 
-    <v-form v-if="!done" @submit.prevent="onSubmit">
-      <v-text-field
+    <form v-if="!done" class="grid gap-4" @submit.prevent="onSubmit">
+      <UiInput
         v-model="password"
         v-bind="passwordAttrs"
         :label="t('auth.newPassword')"
         type="password"
-        prepend-inner-icon="mdi-lock-outline"
-        :error-messages="errors.password"
-      />
-      <v-btn type="submit" color="primary" block size="large" :loading="loading" :disabled="loading">
+        autocomplete="new-password"
+        :error="errors.password"
+      >
+        <template #leading>
+          <AppIcon name="mdi-lock-outline" :size="20" class="text-slate-400" />
+        </template>
+      </UiInput>
+      <UiButton type="submit" size="lg" class="w-full" :loading="loading" :disabled="loading">
         {{ t('auth.updatePassword') }}
-      </v-btn>
-    </v-form>
+      </UiButton>
+    </form>
 
-    <div class="text-center mt-6 text-medium-emphasis">
-      <NuxtLink to="/login" class="text-primary text-decoration-none">{{ t('auth.backToSignIn') }}</NuxtLink>
+    <div class="mt-6 text-center text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+      <NuxtLink to="/login" class="font-semibold text-[var(--st-primary)] hover:text-[var(--st-primary-dark)]">{{ t('auth.backToSignIn') }}</NuxtLink>
     </div>
   </AuthShell>
 </template>
