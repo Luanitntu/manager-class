@@ -4,16 +4,16 @@ milestone: v1.1
 milestone_name: Tailwind UI Migration
 current_phase: 3 — App Shell & Shared Surface Migration
 status: in progress
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-06-30T22:07:33+07:00"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-06-30T22:20:47+07:00"
 last_activity: 2026-06-30
 last_activity_desc: Phase 03 planned and verified
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 22
-  completed_plans: 16
-  percent: 43
+  completed_plans: 17
+  percent: 45
 current_phase_name: App Shell & Shared Surface Migration
 ---
 
@@ -27,9 +27,9 @@ current_phase_name: App Shell & Shared Surface Migration
 ## Current Position
 
 Phase: Phase 3 planned
-Plan: 03-01 complete; next 03-02
+Plan: 03-02 complete; next 03-03
 Status: In progress on Phase 3 app shell and shared surface migration
-Last activity: 2026-06-30 — Phase 03 Plan 01 completed
+Last activity: 2026-06-30 — Phase 03 Plan 02 completed
 
 ## Project Reference
 
@@ -95,14 +95,15 @@ See: `.planning/ROADMAP.md`
 - Phase 2 planning produced 7 verified plans, plus research and validation artifacts. Execute Phase 2 next.
 - Phase 3 planning produced 7 verified plans plus research and validation artifacts. Execute Phase 3 next.
 - Phase 3 Plan 01 migrated auth shell, login/register, password recovery/reset, and verify email surfaces to Tailwind/Ui primitives while preserving auth behavior.
+- Phase 3 Plan 02 migrated teacher calendar header, board, detail panel, and teacher/student calendar feedback to Tailwind/Ui primitives while preserving calendar actions and session flows.
 
 ---
-*State updated: 2026-06-30 after Phase 3 Plan 01 completion*
+*State updated: 2026-06-30 after Phase 3 Plan 02 completion*
 
 ## Session
 
-**Last session:** 2026-06-30T22:07:33+07:00
-**Stopped at:** Completed 03-01-PLAN.md
+**Last session:** 2026-06-30T22:20:47+07:00
+**Stopped at:** Completed 03-02-PLAN.md
 **Resume file:** None
 
 ## Performance Metrics
@@ -118,3 +119,4 @@ See: `.planning/ROADMAP.md`
 | Phase 01-styling-platform-cutover P07 | 45min | 2/3 tasks | blocked on verification |
 | Phase 01-styling-platform-cutover P08 | 45min | 3 tasks | gap closure complete |
 | Phase 03-app-shell-shared-surface-migration P01 | 14min | 3 tasks | auth/shell surface migration complete |
+| Phase 03-app-shell-shared-surface-migration P02 | 28min | 3 tasks | teacher calendar surface migration complete |
