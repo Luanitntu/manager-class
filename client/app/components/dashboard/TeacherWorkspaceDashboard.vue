@@ -315,6 +315,4 @@ function sessionDay(session: UpcomingSession) {
   </div>
 </template>
 
-<style scoped lang="scss">
-@use '~/styles/dashboard/teacher.scss';
-</style>
+<style scoped src="~/styles/dashboard/teacher.css"></style>
