@@ -430,17 +430,17 @@ Use arbitrary values for existing `--st-*` tokens instead of adding component CS
 | A1 | Nuxt build artifacts may reflect component changes after build. | Runtime State Inventory | Low; build output is generated and should not be edited. |
 | A2 | Vuetify previously supplied some accessibility semantics implicitly. | Common Pitfalls | Medium; mitigated by explicit UI-SPEC a11y rules. |
 
-## Open Questions
+## Open Questions - RESOLVED 2026-06-30
 
-1. **Should `TablePager` remain indefinitely as a compatibility wrapper?** [VERIFIED: usage scan]
-   - What we know: Multiple pages currently import/use `TablePager`. [VERIFIED: usage scan]
-   - What's unclear: Whether downstream phases prefer direct `UiPagination` replacement everywhere. [ASSUMED]
-   - Recommendation: Keep `TablePager` wrapper in Phase 2 and let Phase 4 migrate call sites when touching pages. [VERIFIED: Phase boundary]
+1. **RESOLVED: `TablePager` remains as a compatibility wrapper over `UiPagination` in Phase 2.** [VERIFIED: usage scan][VERIFIED: Phase boundary]
+   - Decision: Phase 2 extracts the shared pagination behavior into `UiPagination` and keeps `TablePager` as the stable compatibility wrapper for existing call sites.
+   - Rationale: Multiple pages currently import/use `TablePager`; preserving the wrapper avoids broad consumer churn inside the UI foundation phase.
+   - Boundary: Direct call-site migration from `TablePager` to `UiPagination` is deferred to Phase 4 or other consumer phases when those pages are already being touched.
 
-2. **How deep should `UiDialog` focus trapping go in Phase 2?** [VERIFIED: `02-UI-SPEC.md`]
-   - What we know: Dialog foundation must support Escape/backdrop/focus behavior later. [VERIFIED: `02-UI-SPEC.md`]
-   - What's unclear: No existing local focus-trap helper was found in requested files. [VERIFIED: source scan]
-   - Recommendation: Implement minimal local focus management only if needed for proof; otherwise document contract and defer full dialog migration. [VERIFIED: `02-CONTEXT.md`]
+2. **RESOLVED: `UiDialog` implements and documents minimal focus management sufficient for the Phase 2 foundation.** [VERIFIED: `02-UI-SPEC.md`][VERIFIED: `02-CONTEXT.md`]
+   - Decision: Phase 2 `UiDialog` must support foundation-level focus behavior: move focus into the dialog on open, provide visible focus styles, close eligible dialogs with Escape, support documented backdrop behavior, and attempt focus restoration to the opener on close.
+   - Rationale: Dialog foundation needs enough accessibility behavior for downstream migration planning, but Phase 2 is not the phase for high-risk workflow rewrites.
+   - Boundary: Full migration and hardening of high-risk dialog workflows such as `SessionDialog`, `StudentDetailDialog`, and `AssistantDetailDialog` remains deferred to Phase 3/4 consumer phases.
 
 ## Environment Availability
 
