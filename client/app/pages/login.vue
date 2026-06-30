@@ -6,10 +6,8 @@ definePageMeta({ layout: false });
 </script>
 
 <template>
-  <v-app>
-    <main class="login-shell">
-      <LoginFormPane />
-      <LoginVisual />
-    </main>
-  </v-app>
+  <main class="flex min-h-screen overflow-x-hidden bg-[var(--st-surface)] font-[var(--st-font-family)] text-slate-900">
+    <LoginFormPane />
+    <LoginVisual />
+  </main>
 </template>

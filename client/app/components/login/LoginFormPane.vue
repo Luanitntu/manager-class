@@ -45,112 +45,96 @@ const onSubmit = handleSubmit(
 </script>
 
 <template>
-  <section class="login-form-pane">
+  <section class="relative z-10 flex min-h-screen w-1/2 items-center justify-center overflow-y-auto px-10 py-24 max-lg:w-full max-lg:px-6 max-sm:px-5">
     <NuxtLink
       to="/"
-      class="login-brand"
+      class="absolute left-10 top-8 inline-flex items-center gap-2 text-xl font-semibold leading-none text-[var(--st-primary)] max-lg:left-6 max-sm:left-5 max-sm:text-base"
       aria-label="ScheduleTeacher"
     >
-      <span class="login-brand-icon">
-        <v-icon icon="mdi-calendar-check" size="20" />
+      <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--st-radius)] bg-[var(--st-primary)] text-white">
+        <AppIcon name="mdi-calendar-check" :size="20" />
       </span>
       <span>ScheduleTeacher</span>
     </NuxtLink>
 
-    <div class="login-card">
-      <div class="login-heading">
-        <h1>
+    <div class="w-full max-w-[440px] max-sm:max-w-[360px]">
+      <div class="mb-6">
+        <h1 class="mb-2 text-2xl font-semibold leading-[var(--st-leading-tight)] text-slate-900">
           Đăng nhập
         </h1>
-        <p>
+        <p class="text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
           Chào mừng trở lại! Vui lòng nhập thông tin của bạn.
         </p>
       </div>
 
-      <v-form class="login-form" @submit.prevent="onSubmit">
-        <div class="login-fields">
-          <div class="login-field">
-            <label for="login-identifier">
-              Email
-            </label>
-            <v-text-field
+      <form class="grid gap-4" @submit.prevent="onSubmit">
+        <div class="grid gap-3">
+          <UiInput
               id="login-identifier"
               v-model="identifier"
               v-bind="identifierAttrs"
-              class="login-input"
+              label="Email"
               type="text"
               inputmode="email"
               autocomplete="username"
-              variant="outlined"
-              density="comfortable"
-              prepend-inner-icon="mdi-email-outline"
               placeholder="nguyenvana@gmail.com"
-              :error-messages="errors.identifier ? [errors.identifier] : []"
-              hide-spin-buttons
-            />
-          </div>
+              :error="errors.identifier"
+            >
+              <template #leading>
+                <AppIcon name="mdi-email-outline" :size="20" class="text-slate-400" />
+              </template>
+          </UiInput>
 
-          <div class="login-field">
-            <label for="login-password">
-              Mật khẩu
-            </label>
-            <v-text-field
+          <UiInput
               id="login-password"
               v-model="password"
               v-bind="passwordAttrs"
-              class="login-input"
+              label="Mật khẩu"
               type="password"
               autocomplete="current-password"
-              variant="outlined"
-              density="comfortable"
-              prepend-inner-icon="mdi-lock-outline"
               placeholder="••••••••"
-              :error-messages="errors.password ? [errors.password] : []"
-            />
-          </div>
+              :error="errors.password"
+            >
+              <template #leading>
+                <AppIcon name="mdi-lock-outline" :size="20" class="text-slate-400" />
+              </template>
+          </UiInput>
         </div>
 
-        <div class="login-options">
-          <v-checkbox
+        <div class="flex min-w-0 items-center justify-between gap-4 text-sm max-sm:flex-col max-sm:items-start">
+          <UiCheckbox
             v-model="rememberMe"
-            class="login-remember"
-            color="primary"
-            density="compact"
-            hide-details
             label="Ghi nhớ đăng nhập"
           />
           <NuxtLink
             to="/forgot-password"
-            class="login-forgot-link"
+            class="inline-flex shrink-0 items-center font-semibold leading-[var(--st-leading-copy)] text-[var(--st-primary)] hover:text-[var(--st-primary-dark)]"
           >
             Quên mật khẩu?
           </NuxtLink>
         </div>
 
-        <v-btn
+        <UiButton
           type="submit"
-          class="login-submit"
-          color="primary"
-          variant="flat"
-          block
+          size="lg"
+          class="w-full"
           :loading="loading"
           :disabled="loading"
+          trailing-icon="mdi-arrow-right"
         >
-          <span>Đăng nhập</span>
-          <v-icon icon="mdi-arrow-right" size="18" />
-        </v-btn>
-      </v-form>
+          Đăng nhập
+        </UiButton>
+      </form>
 
-      <div class="login-divider">
-        <span>Hoặc tiếp tục với</span>
+      <div class="relative my-5 flex justify-center text-sm font-normal leading-none text-[var(--st-muted)] before:absolute before:inset-x-0 before:top-1/2 before:h-px before:bg-slate-200">
+        <span class="relative bg-white px-4">Hoặc tiếp tục với</span>
       </div>
 
-      <div class="login-social">
-        <v-btn
+      <div class="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+        <UiButton
           type="button"
-          class="login-social-button"
-          variant="outlined"
-          block
+          variant="secondary"
+          class="w-full"
           disabled
           title="Chưa hỗ trợ đăng nhập bằng mạng xã hội"
         >
@@ -177,23 +161,22 @@ const onSubmit = handleSubmit(
             />
           </svg>
           <span>Google</span>
-        </v-btn>
-        <v-btn
+        </UiButton>
+        <UiButton
           type="button"
-          class="login-social-button"
-          variant="outlined"
-          block
+          variant="secondary"
+          class="w-full"
           disabled
           title="Chưa hỗ trợ đăng nhập bằng mạng xã hội"
+          leading-icon="mdi-github"
         >
-          <v-icon icon="mdi-github" size="20" />
           <span>GitHub</span>
-        </v-btn>
+        </UiButton>
       </div>
 
-      <p class="login-register">
+      <p class="mt-5 text-center text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
         Chưa có tài khoản?
-        <NuxtLink to="/register">
+        <NuxtLink to="/register" class="font-semibold text-[var(--st-primary)] hover:text-[var(--st-primary-dark)]">
           Đăng ký ngay
         </NuxtLink>
       </p>

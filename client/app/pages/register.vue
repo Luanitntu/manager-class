@@ -6,12 +6,8 @@ definePageMeta({ layout: false });
 </script>
 
 <template>
-  <v-app>
-    <main class="register-shell">
-      <RegisterFormPane />
-      <RegisterVisual />
-    </main>
-  </v-app>
+  <main class="flex min-h-screen flex-row-reverse overflow-x-hidden bg-white font-[var(--st-font-family)] text-slate-900 max-lg:block">
+    <RegisterFormPane />
+    <RegisterVisual />
+  </main>
 </template>
-
-<style scoped src="../styles/register/page.css"></style>
