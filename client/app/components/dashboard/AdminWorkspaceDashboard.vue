@@ -275,6 +275,4 @@ function fmt(iso: string) {
   </div>
 </template>
 
-<style scoped lang="scss">
-@use '~/styles/dashboard/admin.scss';
-</style>
+<style scoped src="~/styles/dashboard/admin.css"></style>

@@ -1,0 +1,4 @@
+.admin-dashboard :deep(.v-card) {
+  border-radius: 8px;
+  box-shadow: none;
+}
