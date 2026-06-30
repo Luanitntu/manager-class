@@ -15,7 +15,7 @@ This roadmap resets planning for a frontend UI platform milestone. The work remo
 **Mode:** mvp
 **Requirements:** STYLE-01, STYLE-02, STYLE-03, STYLE-04
 **Status:** In Progress
-**Plans:** 6/7 plans executed; Plan 07 blocked at verification
+**Plans:** 7/8 plans created; 6 executed; Plan 08 ready for gap closure execution
 Plans:
 
 - [x] 01-01-PLAN.md — Add minimal Tailwind icon, viewport, toast, pager, and language switcher blockers.
@@ -25,6 +25,7 @@ Plans:
 - [x] 01-05-PLAN.md — Convert calendar SCSS build blockers to Tailwind-compatible CSS.
 - [x] 01-06-PLAN.md — Replace default/auth shell Vuetify surface while preserving calendar-first navigation.
 - [ ] 01-07-PLAN.md — Remove Vuetify/Sass config and dependency surface, create migration inventory, and run frontend verification. Blocked: config/inventory done; final gates fail on remaining SCSS files and `documents.vue` type narrowing.
+- [ ] 01-08-PLAN.md — Close Plan 07 verification gaps by converting remaining SCSS blockers, fixing `documents.vue` target typing, and rerunning frontend gates.
 
 **Cross-cutting constraints:**
 
