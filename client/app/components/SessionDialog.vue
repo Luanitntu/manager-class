@@ -23,6 +23,10 @@ const { t } = useI18n();
 const classes = computed(() => classesData.value?.data ?? []);
 const isEdit = computed(() => !!props.session);
 const selectedClass = computed(() => classes.value.find((c) => c.id === form.classId) ?? null);
+const classItems = computed(() => classes.value.map((item) => ({
+  value: item.id,
+  title: item.name,
+})));
 
 // Who can teach: the current teacher (you) + their assistants. Pick exactly one.
 const instructorOptions = computed(() => {
@@ -35,10 +39,19 @@ const instructorOptions = computed(() => {
   }));
   return [...me, ...assistants];
 });
+const instructorItems = computed(() => instructorOptions.value.map((item) => ({
+  value: item.id,
+  title: item.fullName,
+})));
 
 type Mode = 'single' | 'recurring';
 const mode = ref<Mode>('single');
 const error = ref<string | null>(null);
+const confirmDeleteOpen = ref(false);
+const modeItems = computed(() => [
+  { value: 'single', label: t('session.single') },
+  { value: 'recurring', label: t('session.recurring') },
+]);
 
 const form = reactive({
   classId: '',
@@ -107,9 +120,24 @@ const saving = computed(
   () => create.isPending.value || update.isPending.value || bulkCreate.isPending.value,
 );
 const deleting = computed(() => remove.isPending.value);
+const canSave = computed(() => {
+  if (!form.classId || !form.startTime || !form.endTime) return false;
+  if (mode.value === 'recurring' && !isEdit.value) {
+    return !!form.startDate && !!form.endDate && form.daysOfWeek.length > 0;
+  }
+  return !!form.date;
+});
 
 function close() {
   emit('update:modelValue', false);
+}
+
+function toggleWeekday(day: number) {
+  if (form.daysOfWeek.includes(day)) {
+    form.daysOfWeek = form.daysOfWeek.filter((value) => value !== day);
+  } else {
+    form.daysOfWeek = [...form.daysOfWeek, day].sort((a, b) => a - b);
+  }
 }
 
 async function save() {
@@ -157,6 +185,7 @@ async function deleteSession() {
   try {
     await remove.mutateAsync(props.session.id);
     emit('saved');
+    confirmDeleteOpen.value = false;
     close();
   } catch (e: unknown) {
     error.value = extractApiError(e);
@@ -176,98 +205,178 @@ async function setStatus(status: 'COMPLETED' | 'SCHEDULED') {
   }
 }
 
-const statusColor: Record<string, string> = {
+type BadgeTone = 'neutral' | 'primary' | 'info' | 'success' | 'warning' | 'danger';
+
+const statusColor: Record<string, BadgeTone> = {
   SCHEDULED: 'info',
   COMPLETED: 'success',
-  CANCELLED: 'error',
+  CANCELLED: 'danger',
 };
 </script>
 
 <template>
-  <v-dialog :model-value="modelValue" max-width="560" @update:model-value="emit('update:modelValue', $event)">
-    <v-card>
-      <v-card-title class="d-flex align-center justify-space-between">
-        <div class="d-flex align-center ga-2">
-          <span>{{ isEdit ? t('session.editSession') : t('session.newSession') }}</span>
-          <v-chip v-if="isEdit && session" size="x-small" :color="statusColor[session.status]" variant="tonal">
+  <UiDialog
+    :model-value="modelValue"
+    size="md"
+    @update:model-value="emit('update:modelValue', $event)"
+  >
+    <template #title>
+      <div class="flex min-w-0 flex-wrap items-center gap-2">
+        <span class="min-w-0 truncate">{{ isEdit ? t('session.editSession') : t('session.newSession') }}</span>
+        <UiBadge
+          v-if="isEdit && session"
+          :tone="statusColor[session.status] ?? 'neutral'"
+          size="sm"
+        >
             {{ session.status }}
-          </v-chip>
+        </UiBadge>
+      </div>
+    </template>
+
+    <div class="grid gap-4">
+      <UiAlert v-if="error" tone="error">
+        {{ error }}
+      </UiAlert>
+
+      <UiSegmentedControl
+        v-if="!isEdit"
+        v-model="mode"
+        :items="modeItems"
+        :label="`${t('session.newSession')} ${t('common.actions')}`"
+      />
+
+      <AppSkeleton v-if="isClassesLoading && !classes.length" variant="form" :rows="1" />
+
+      <UiSelect
+        v-else
+        v-model="form.classId"
+        :items="classItems"
+        :label="t('session.class')"
+        :loading="isClassesLoading"
+        required
+      />
+
+      <div v-if="selectedClass" class="flex min-w-0 flex-wrap items-center gap-2">
+        <UiBadge tone="neutral" size="sm" icon="mdi-google-classroom">
+          {{ t('dashboard.classLabel') }}
+        </UiBadge>
+        <ClassLocation :value="selectedClass" />
+      </div>
+
+      <template v-if="mode === 'single' || isEdit">
+        <UiInput v-model="form.date" type="date" :label="t('session.date')" required />
+      </template>
+
+      <template v-else>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <UiInput v-model="form.startDate" type="date" :label="t('session.from')" required />
+          <UiInput v-model="form.endDate" type="date" :label="t('session.to')" required />
         </div>
-        <v-btn icon="mdi-close" variant="text" size="small" @click="close" />
-      </v-card-title>
-
-      <v-card-text>
-        <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mb-4">
-          {{ error }}
-        </v-alert>
-
-        <v-btn-toggle v-if="!isEdit" v-model="mode" mandatory density="comfortable" color="primary" class="mb-4">
-          <v-btn value="single" size="small">{{ t('session.single') }}</v-btn>
-          <v-btn value="recurring" size="small">{{ t('session.recurring') }}</v-btn>
-        </v-btn-toggle>
-
-        <AppSkeleton v-if="isClassesLoading && !classes.length" variant="form" :rows="1" class="mb-4" />
-
-        <v-select v-else v-model="form.classId" :items="classes" item-title="name" item-value="id"
-          :label="t('session.class')" :loading="isClassesLoading" prepend-inner-icon="mdi-google-classroom" />
-
-        <div v-if="selectedClass" class="d-flex align-center ga-2 mb-3 mt-n2">
-          <span class="text-caption text-medium-emphasis">{{ t('dashboard.classLabel') }}:</span>
-          <ClassLocation :value="selectedClass" />
-        </div>
-
-        <template v-if="mode === 'single' || isEdit">
-          <v-text-field v-model="form.date" type="date" :label="t('session.date')" />
-        </template>
-
-        <template v-else>
-          <div class="d-flex ga-3">
-            <v-text-field v-model="form.startDate" type="date" :label="t('session.from')" />
-            <v-text-field v-model="form.endDate" type="date" :label="t('session.to')" />
-          </div>
-          <div class="mb-2 text-caption text-medium-emphasis">{{ t('session.repeatOn') }}</div>
-          <v-chip-group v-model="form.daysOfWeek" multiple column class="mb-2">
-            <v-chip v-for="d in weekdays" :key="d.value" :value="d.value" filter variant="outlined">
+        <fieldset class="grid gap-2">
+          <legend class="text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-text)]">
+            {{ t('session.repeatOn') }}
+            <span class="text-red-600" aria-hidden="true">*</span>
+          </legend>
+          <div class="flex min-w-0 flex-wrap gap-2">
+            <button
+              v-for="d in weekdays"
+              :key="d.value"
+              type="button"
+              :aria-pressed="form.daysOfWeek.includes(d.value)"
+              :class="[
+                'inline-flex min-h-9 items-center gap-1 rounded-[var(--st-radius)] border px-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-100',
+                form.daysOfWeek.includes(d.value)
+                  ? 'border-[var(--st-primary)] bg-blue-50 text-[var(--st-primary)]'
+                  : 'border-[var(--st-border)] bg-white text-[var(--st-muted)] hover:bg-slate-50',
+              ]"
+              @click="toggleWeekday(d.value)"
+            >
+              <AppIcon
+                v-if="form.daysOfWeek.includes(d.value)"
+                name="mdi-check"
+                :size="16"
+              />
               {{ d.label }}
-            </v-chip>
-          </v-chip-group>
-        </template>
+            </button>
+          </div>
+        </fieldset>
+      </template>
 
-        <div class="d-flex ga-3">
-          <v-text-field v-model="form.startTime" type="time" :label="t('session.start')" />
-          <v-text-field v-model="form.endTime" type="time" :label="t('session.end')" />
+      <div class="grid gap-3 sm:grid-cols-2">
+        <UiInput v-model="form.startTime" type="time" :label="t('session.start')" required />
+        <UiInput v-model="form.endTime" type="time" :label="t('session.end')" required />
+      </div>
+
+      <UiInput v-model="form.lessonTopic" :label="t('session.lessonTopic')">
+        <template #leading>
+          <AppIcon name="mdi-book-open-variant" :size="18" class="text-slate-500" />
+        </template>
+      </UiInput>
+
+      <UiSelect
+        v-model="form.instructorId"
+        :items="instructorItems"
+        :label="t('session.instructor')"
+        :hint="t('session.instructorHint')"
+      />
+    </div>
+
+    <template #footer>
+      <UiActionGroup align="between" class="w-full">
+        <div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <UiButton
+            v-if="isEdit"
+            variant="danger"
+            leading-icon="mdi-delete"
+            :loading="deleting"
+            :disabled="deleting || saving"
+            @click="confirmDeleteOpen = true"
+          >
+            {{ t('common.delete') }}
+          </UiButton>
+          <template v-if="isEdit && session">
+            <UiButton
+              v-if="session.status !== 'COMPLETED'"
+              variant="secondary"
+              leading-icon="mdi-check-circle"
+              :loading="update.isPending.value"
+              :disabled="deleting || saving"
+              @click="setStatus('COMPLETED')"
+            >
+              {{ t('session.markDone') }}
+            </UiButton>
+            <UiButton
+              v-else
+              variant="ghost"
+              leading-icon="mdi-restore"
+              :loading="update.isPending.value"
+              :disabled="deleting || saving"
+              @click="setStatus('SCHEDULED')"
+            >
+              {{ t('session.reopen') }}
+            </UiButton>
+          </template>
         </div>
+        <div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:justify-end">
+          <UiButton variant="secondary" :disabled="saving || deleting" @click="close">
+            {{ t('common.cancel') }}
+          </UiButton>
+          <UiButton :loading="saving" :disabled="!canSave || deleting" @click="save">
+            {{ t('common.save') }}
+          </UiButton>
+        </div>
+      </UiActionGroup>
+    </template>
+  </UiDialog>
 
-        <v-text-field v-model="form.lessonTopic" :label="t('session.lessonTopic')"
-          prepend-inner-icon="mdi-book-open-variant" />
-
-        <!-- Who teaches this session: you or one of your assistants. -->
-        <v-select v-model="form.instructorId" :items="instructorOptions" item-title="fullName" item-value="id"
-          :label="t('session.instructor')" :hint="t('session.instructorHint')" persistent-hint
-          prepend-inner-icon="mdi-account-tie-outline" />
-      </v-card-text>
-
-      <v-card-actions class="px-4 pb-4">
-        <v-btn v-if="isEdit" color="error" variant="text" prepend-icon="mdi-delete" :loading="deleting"
-          :disabled="deleting || saving" @click="deleteSession">
-          {{ t('common.delete') }}
-        </v-btn>
-        <template v-if="isEdit && session">
-          <v-btn v-if="session.status !== 'COMPLETED'" color="success" variant="tonal" prepend-icon="mdi-check-circle"
-            :loading="update.isPending.value" @click="setStatus('COMPLETED')">
-            {{ t('session.markDone') }}
-          </v-btn>
-          <v-btn v-else variant="text" prepend-icon="mdi-restore" :loading="update.isPending.value"
-            @click="setStatus('SCHEDULED')">
-            {{ t('session.reopen') }}
-          </v-btn>
-        </template>
-        <v-spacer />
-        <v-btn variant="text" :disabled="saving || deleting" @click="close">{{ t('common.cancel') }}</v-btn>
-        <v-btn color="primary" :loading="saving" :disabled="!form.classId" @click="save">
-          {{ t('common.save') }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <UiConfirmDialog
+    v-model="confirmDeleteOpen"
+    title="Delete session"
+    message="This action cannot be undone. Delete this session?"
+    confirm-label="Delete session"
+    :cancel-label="t('common.cancel')"
+    destructive
+    :loading="deleting"
+    @confirm="deleteSession"
+  />
 </template>
