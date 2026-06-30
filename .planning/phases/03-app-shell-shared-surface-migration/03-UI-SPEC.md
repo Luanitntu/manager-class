@@ -366,7 +366,7 @@ Preserve existing app/i18n copy in touched surfaces unless changing component im
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | `Create session` for new calendar session, `Save session` for edited calendar session, `Save profile`, `Save salary settings`, `Send reset link`, `Update password`, `Continue to sign in` |
+| Primary CTA | `Create session` for new calendar session, `Save session` for edited calendar session, `Save salary settings`, `Send reset link`, `Update password`, `Continue to sign in` |
 | Empty state heading | Calendar/dashboard/schedule: `No upcoming sessions`; student schedule: `No classes this week`; scores: `No scores yet`; comments: `No comments yet`; assistant classes: `No class assignments yet` |
 | Empty state body | Calendar/dashboard/schedule: `Create a session or adjust the selected week.`; scores: `Add a score after selecting a class.`; comments: `Add a comment to record student progress.`; assistant classes: `Assign this assistant from a class.` |
 | Error state | `Something went wrong. Check the details and try again.` Use `extractApiError` output when available. |
@@ -375,7 +375,9 @@ Preserve existing app/i18n copy in touched surfaces unless changing component im
 Copy rules:
 
 - CTA labels use specific verb + noun, not generic `Save` when the object is ambiguous.
-- Existing i18n keys such as `common.save`, `common.cancel`, `session.newSession`, and `session.editSession` may remain if current localization already supplies the visible copy.
+- Primary, save, and confirm actions in touched Phase 3 surfaces must use object-specific visible labels/i18n values such as `Save session`, `Save salary settings`, `Delete session`, and `Delete score`; do not use `common.save` or generic `Save` / `Cancel` as CTA labels.
+- `common.cancel` may be used only for secondary non-CTA dismissal controls.
+- Existing i18n keys such as `session.newSession` and `session.editSession` may remain if current localization already supplies the visible copy.
 - Do not add visible instructional text explaining UI mechanics or keyboard shortcuts.
 - Disabled social auth buttons keep existing unavailable titles or equivalent accessible labels.
 
