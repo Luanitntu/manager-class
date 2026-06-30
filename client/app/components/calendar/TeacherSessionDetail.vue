@@ -13,25 +13,41 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <v-sheet class="calendar-detail" :class="{ 'calendar-detail--active': activeSession }">
-    <template v-if="activeSession">
-      <div class="calendar-detail__mark" :style="{ '--event-color': sessionEventColor(activeSession) }" />
-      <div>
-        <p>{{ sessionDetailRange(activeSession) }}</p>
-        <h3>{{ activeSession.lessonTopic || activeSession.class.name }}</h3>
-        <span>{{ activeSession.class.name }}</span>
-      </div>
-      <v-spacer />
-      <v-btn v-if="canEdit" color="primary" variant="flat" @click="emit('open', activeSession)">
+  <UiCard
+    v-if="activeSession"
+    class="flex min-h-[132px] flex-col items-center gap-4 text-center sm:flex-row sm:text-left"
+    padding="lg"
+  >
+    <div
+      class="h-[58px] w-1.5 shrink-0 rounded-[var(--st-radius)]"
+      :style="{ backgroundColor: sessionEventColor(activeSession) }"
+    />
+    <div class="min-w-0 flex-1">
+      <p class="text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+        {{ sessionDetailRange(activeSession) }}
+      </p>
+      <h3 class="mt-1 truncate text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+        {{ activeSession.lessonTopic || activeSession.class.name }}
+      </h3>
+      <UiBadge class="mt-2" tone="primary">
+        {{ activeSession.class.name }}
+      </UiBadge>
+    </div>
+    <UiButton
+      v-if="canEdit"
+      class="w-full shrink-0 sm:w-auto"
+      leading-icon="mdi-pencil-outline"
+      @click="emit('open', activeSession)"
+    >
         Chỉnh sửa
-      </v-btn>
-    </template>
+    </UiButton>
+  </UiCard>
 
-    <template v-else>
-      <v-icon size="34">mdi-calendar-blank-outline</v-icon>
-      <p>Bấm vào một buổi học trên lịch để xem chi tiết</p>
-    </template>
-  </v-sheet>
+  <UiEmptyState
+    v-else
+    class="min-h-[132px]"
+    icon="mdi-calendar-blank-outline"
+    heading="Chưa chọn buổi học"
+    body="Bấm vào một buổi học trên lịch để xem chi tiết"
+  />
 </template>
-
-<style scoped src="~/styles/calendar/detail.css"></style>
