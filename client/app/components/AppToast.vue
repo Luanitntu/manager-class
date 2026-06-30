@@ -22,7 +22,7 @@ const toastIcons: Record<ToastType, string> = {
         :role="toast.type === 'error' ? 'alert' : 'status'"
       >
         <span class="app-toast__icon" aria-hidden="true">
-          <v-icon :icon="toastIcons[toast.type]" size="20" />
+          <AppIcon :name="toastIcons[toast.type]" :size="20" />
         </span>
 
         <span class="app-toast__content">
@@ -36,14 +36,14 @@ const toastIcons: Record<ToastType, string> = {
           aria-label="Đóng thông báo"
           @click="dismiss(toast.id)"
         >
-          <v-icon icon="mdi-close" size="18" />
+          <AppIcon name="mdi-close" :size="18" />
         </button>
       </article>
     </TransitionGroup>
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .app-toast-region {
   bottom: 24px;
   pointer-events: none;
@@ -114,21 +114,21 @@ const toastIcons: Record<ToastType, string> = {
   gap: 3px;
   min-width: 0;
   padding-top: 1px;
+}
 
-  strong {
-    color: var(--st-text);
-    font-size: 14px;
-    font-weight: 800;
-    letter-spacing: 0;
-    line-height: 1.25;
-  }
+.app-toast__content strong {
+  color: var(--st-text);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
 
-  span {
-    color: var(--st-muted);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.45;
-  }
+.app-toast__content span {
+  color: var(--st-muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
 }
 
 .app-toast__close {
@@ -145,11 +145,11 @@ const toastIcons: Record<ToastType, string> = {
   padding: 0;
   transition: background 160ms ease, color 160ms ease;
   width: 28px;
+}
 
-  &:hover {
-    background: #f8fafc;
-    color: var(--st-text);
-  }
+.app-toast__close:hover {
+  background: #f8fafc;
+  color: var(--st-text);
 }
 
 .app-toast-enter-active,
