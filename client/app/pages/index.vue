@@ -7,7 +7,7 @@ import LandingHero from '../components/landing/LandingHero.vue';
 import LandingShowcase from '../components/landing/LandingShowcase.vue';
 import LandingStats from '../components/landing/LandingStats.vue';
 import LandingTopbar from '../components/landing/LandingTopbar.vue';
-import '../styles/landing.scss';
+import '../styles/landing.css';
 
 definePageMeta({ layout: false });
 </script>
