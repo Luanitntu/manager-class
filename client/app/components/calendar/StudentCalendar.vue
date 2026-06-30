@@ -74,6 +74,4 @@ function goNext() {
   </div>
 </template>
 
-<style scoped lang="scss">
-@use '~/styles/calendar/page.scss';
-</style>
+<style scoped src="~/styles/calendar/page.css"></style>
