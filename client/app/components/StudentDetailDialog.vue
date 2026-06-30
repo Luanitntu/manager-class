@@ -19,6 +19,18 @@ const { updateProfile, addScore, deleteScore, addComment } = useStudentMutations
 
 const tab = ref('profile');
 const classes = computed(() => classesData.value?.data ?? []);
+const classItems = computed(() => classes.value.map((item) => ({
+  value: item.id,
+  title: item.name,
+})));
+const tabItems = [
+  { value: 'profile', label: 'Profile' },
+  { value: 'scores', label: 'Scores' },
+  { value: 'comments', label: 'Comments' },
+];
+const scoreTypeItems = ['MIDTERM', 'FINAL', 'ASSIGNMENT', 'QUIZ', 'CUSTOM'];
+const commentCategoryItems = ['attitude', 'strengths', 'weaknesses', 'progress'];
+const orderedComments = computed(() => comments.value ?? []);
 
 const profile = reactive({
   fullName: '',
@@ -42,6 +54,7 @@ watch(student, (s) => {
 const scoreForm = reactive({ classId: '', type: 'QUIZ', value: 0, maxValue: 10, label: '' });
 const commentForm = reactive({ category: 'progress', content: '' });
 const deletingScoreId = ref<string | null>(null);
+const scoreDeleteTarget = ref<string | null>(null);
 
 async function saveProfile() {
   if (updateProfile.isPending.value) return;
@@ -85,156 +98,172 @@ async function removeScore(scoreId: string) {
     deletingScoreId.value = null;
   }
 }
+
+function requestScoreDelete(scoreId: string) {
+  if (deletingScoreId.value) return;
+  scoreDeleteTarget.value = scoreId;
+}
+
+async function confirmScoreDelete() {
+  if (!scoreDeleteTarget.value) return;
+  const scoreId = scoreDeleteTarget.value;
+  await removeScore(scoreId);
+  scoreDeleteTarget.value = null;
+}
 </script>
 
 <template>
-  <v-dialog
+  <UiDialog
     :model-value="modelValue"
-    max-width="720"
-    scrollable
+    size="xl"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <v-card v-if="student">
-      <v-card-title class="d-flex align-center ga-3">
-        <v-avatar color="secondary"><span class="text-white">{{ student.fullName[0] }}</span></v-avatar>
-        <div>
-          <div>{{ student.fullName }}</div>
-          <div class="text-caption text-medium-emphasis">{{ student.email }}</div>
-        </div>
-        <v-spacer />
-        <v-btn icon="mdi-close" variant="text" @click="emit('update:modelValue', false)" />
-      </v-card-title>
+    <template v-if="student" #title>
+      <span class="flex min-w-0 items-center gap-3">
+        <UiAvatar :name="student.fullName" size="md" />
+        <span class="min-w-0">
+          <span class="block truncate">{{ student.fullName }}</span>
+          <span class="block truncate text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+            {{ student.email }}
+          </span>
+        </span>
+      </span>
+    </template>
 
-      <v-tabs v-model="tab" color="primary">
-        <v-tab value="profile">Profile</v-tab>
-        <v-tab value="scores">Scores</v-tab>
-        <v-tab value="comments">Comments</v-tab>
-      </v-tabs>
+    <div v-if="student" class="min-h-[360px]">
+      <UiTabs v-model="tab" :items="tabItems" label="Student detail tabs">
+        <section v-if="tab === 'profile'" class="grid gap-4">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UiInput v-model="profile.fullName" label="Full name" />
+            <UiInput v-model="profile.phone" label="Phone" />
+          </div>
+          <UiInput v-model="profile.address" label="Address" />
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UiInput v-model="profile.occupation" label="Occupation" />
+            <UiInput v-model="profile.educationLevel" label="Education level" />
+          </div>
+          <UiTextarea v-model="profile.learningGoal" label="Learning goal" :rows="2" />
+          <div class="flex justify-end">
+            <UiButton :loading="updateProfile.isPending.value" @click="saveProfile">
+              Save profile
+            </UiButton>
+          </div>
+        </section>
 
-      <v-card-text style="min-height: 360px">
-        <v-window v-model="tab">
-          <!-- Profile -->
-          <v-window-item value="profile">
-            <v-text-field v-model="profile.fullName" label="Full name" />
-            <v-text-field v-model="profile.phone" label="Phone" />
-            <v-text-field v-model="profile.address" label="Address" />
-            <div class="d-flex ga-3">
-              <v-text-field v-model="profile.occupation" label="Occupation" />
-              <v-text-field v-model="profile.educationLevel" label="Education level" />
-            </div>
-            <v-textarea v-model="profile.learningGoal" label="Learning goal" rows="2" />
-            <div class="d-flex justify-end">
-              <v-btn color="primary" :loading="updateProfile.isPending.value" @click="saveProfile">
-                Save profile
-              </v-btn>
-            </div>
-          </v-window-item>
+        <section v-else-if="tab === 'scores'" class="grid gap-4">
+          <div class="grid gap-3 lg:grid-cols-[minmax(160px,1fr)_minmax(120px,150px)_minmax(88px,110px)_minmax(88px,110px)_auto] lg:items-end">
+            <UiSelect
+              v-model="scoreForm.classId"
+              :items="classItems"
+              label="Class"
+              placeholder="Select class"
+            />
+            <UiSelect v-model="scoreForm.type" :items="scoreTypeItems" label="Type" />
+            <UiInput v-model="scoreForm.value" type="number" label="Score" />
+            <UiInput v-model="scoreForm.maxValue" type="number" label="Max" />
+            <UiIconButton
+              label="Add score"
+              icon="mdi-plus"
+              variant="secondary"
+              :disabled="!scoreForm.classId || addScore.isPending.value"
+              :loading="addScore.isPending.value"
+              @click="submitScore"
+            />
+          </div>
+          <UiInput v-model="scoreForm.label" label="Label" placeholder="Optional label" />
 
-          <!-- Scores -->
-          <v-window-item value="scores">
-            <div class="d-flex ga-2 align-center mb-4 flex-wrap">
-              <v-select
-                v-model="scoreForm.classId"
-                :items="classes"
-                item-title="name"
-                item-value="id"
-                label="Class"
-                density="compact"
-                hide-details
-                style="min-width: 140px"
-              />
-              <v-select
-                v-model="scoreForm.type"
-                :items="['MIDTERM', 'FINAL', 'ASSIGNMENT', 'QUIZ', 'CUSTOM']"
-                label="Type"
-                density="compact"
-                hide-details
-                style="max-width: 130px"
-              />
-              <v-text-field
-                v-model="scoreForm.value"
-                type="number"
-                label="Score"
-                density="compact"
-                hide-details
-                style="max-width: 90px"
-              />
-              <v-text-field
-                v-model="scoreForm.maxValue"
-                type="number"
-                label="Max"
-                density="compact"
-                hide-details
-                style="max-width: 80px"
-              />
-              <v-btn
-                icon="mdi-plus"
-                color="primary"
-                :disabled="!scoreForm.classId || addScore.isPending.value"
-                :loading="addScore.isPending.value"
-                @click="submitScore"
-              />
-            </div>
-            <v-list>
-              <v-list-item v-for="s in scores ?? []" :key="s.id">
-                <v-list-item-title>
-                  {{ s.class?.name }} — {{ s.type }}{{ s.label ? ` (${s.label})` : '' }}
-                </v-list-item-title>
-                <template #append>
-                  <span class="font-weight-bold mr-3">{{ s.value }} / {{ s.maxValue }}</span>
-                  <v-btn
-                    icon="mdi-delete"
-                    size="x-small"
-                    variant="text"
-                    :disabled="!!deletingScoreId"
-                    :loading="deletingScoreId === s.id"
-                    @click="removeScore(s.id)"
-                  />
-                </template>
-              </v-list-item>
-              <div v-if="!scores?.length" class="text-center text-medium-emphasis pa-4">
-                No scores yet.
+          <UiList v-if="scores?.length">
+            <UiListItem v-for="s in scores" :key="s.id">
+              <div class="min-w-0">
+                <div class="truncate font-semibold text-[var(--st-text)]">
+                  {{ s.class?.name }} - {{ s.type }}{{ s.label ? ` (${s.label})` : '' }}
+                </div>
+                <div class="text-sm font-normal text-[var(--st-muted)]">
+                  {{ s.scoredAt ? new Date(s.scoredAt).toLocaleDateString() : '' }}
+                </div>
               </div>
-            </v-list>
-          </v-window-item>
+              <template #actions>
+                <span class="whitespace-nowrap text-base font-semibold text-[var(--st-text)]">
+                  {{ s.value }} / {{ s.maxValue }}
+                </span>
+                <UiIconButton
+                  label="Delete score"
+                  icon="mdi-delete"
+                  size="compact"
+                  variant="danger"
+                  :disabled="!!deletingScoreId"
+                  :loading="deletingScoreId === s.id"
+                  @click="requestScoreDelete(s.id)"
+                />
+              </template>
+            </UiListItem>
+          </UiList>
+          <UiEmptyState
+            v-else
+            icon="mdi-chart-box-outline"
+            heading="No scores yet"
+            body="Add a score after selecting a class."
+          />
+        </section>
 
-          <!-- Comments -->
-          <v-window-item value="comments">
-            <div class="d-flex ga-2 mb-4">
-              <v-select
-                v-model="commentForm.category"
-                :items="['attitude', 'strengths', 'weaknesses', 'progress']"
-                label="Category"
-                density="compact"
-                hide-details
-                style="max-width: 150px"
-              />
-              <v-text-field
-                v-model="commentForm.content"
-                label="Comment"
-                density="compact"
-                hide-details
-                @keyup.enter="submitComment"
-              />
-              <v-btn
-                icon="mdi-send"
-                color="primary"
-                :disabled="!commentForm.content || addComment.isPending.value"
-                :loading="addComment.isPending.value"
-                @click="submitComment"
-              />
-            </div>
-            <v-timeline v-if="comments?.length" side="end" density="compact">
-              <v-timeline-item v-for="c in comments" :key="c.id" dot-color="primary" size="x-small">
-                <div class="text-caption text-medium-emphasis">{{ c.category }}</div>
-                <div>{{ c.content }}</div>
-              </v-timeline-item>
-            </v-timeline>
-            <div v-else class="text-center text-medium-emphasis pa-4">No comments yet.</div>
-          </v-window-item>
-        </v-window>
-      </v-card-text>
-    </v-card>
-    <AppSkeleton v-else-if="modelValue && studentId && isStudentLoading" variant="detail" :rows="6" />
-  </v-dialog>
+        <section v-else class="grid gap-4">
+          <div class="grid gap-3 lg:grid-cols-[minmax(140px,180px)_minmax(0,1fr)_auto] lg:items-end">
+            <UiSelect
+              v-model="commentForm.category"
+              :items="commentCategoryItems"
+              label="Category"
+            />
+            <UiInput
+              v-model="commentForm.content"
+              label="Comment"
+              @keyup.enter="submitComment"
+            />
+            <UiIconButton
+              label="Add comment"
+              icon="mdi-send"
+              variant="secondary"
+              :disabled="!commentForm.content || addComment.isPending.value"
+              :loading="addComment.isPending.value"
+              @click="submitComment"
+            />
+          </div>
+
+          <UiList v-if="orderedComments.length">
+            <UiListItem v-for="c in orderedComments" :key="c.id">
+              <div class="min-w-0">
+                <div class="text-sm font-semibold text-[var(--st-primary)]">
+                  {{ c.category || 'progress' }}
+                </div>
+                <div class="mt-1 break-words text-base font-normal text-[var(--st-text)]">
+                  {{ c.content }}
+                </div>
+              </div>
+              <template #meta>
+                {{ c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '' }}
+              </template>
+            </UiListItem>
+          </UiList>
+          <UiEmptyState
+            v-else
+            icon="mdi-comment-text-outline"
+            heading="No comments yet"
+            body="Add a comment to record student progress."
+          />
+        </section>
+      </UiTabs>
+    </div>
+    <UiSkeleton v-else-if="modelValue && studentId && isStudentLoading" variant="detail" :rows="6" />
+  </UiDialog>
+
+  <UiConfirmDialog
+    :model-value="!!scoreDeleteTarget"
+    title="Delete score"
+    message="This action cannot be undone. Delete this score?"
+    confirm-label="Delete score"
+    cancel-label="Cancel"
+    destructive
+    :loading="!!deletingScoreId"
+    @update:model-value="(open) => { if (!open && !deletingScoreId) scoreDeleteTarget = null; }"
+    @confirm="confirmScoreDelete"
+  />
 </template>
