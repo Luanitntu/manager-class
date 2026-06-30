@@ -204,7 +204,7 @@ Phase 2 should provide these primitives, with exact names unless implementation 
 | `UiAlert` | `tone: info/success/warning/error`, title slot, default slot, icon slot |
 | `UiToast` | Toast item surface for `AppToast`; `role=status` except errors use `role=alert` |
 | `UiSkeleton` | Replaces `AppSkeleton` styling; variants `list/table/card/form/detail/calendar` |
-| `UiEmptyState` | Icon, heading, body, optional action slot |
+| `UiEmptyState` | Icon, required heading slot, required body slot, optional action slot; no built-in heading/body copy |
 | `UiProgress` | Linear progress only where existing surfaces need it |
 | `UiSpinner` | Small inline loading indicator for buttons/field adornments |
 
@@ -213,7 +213,7 @@ Phase 2 should provide these primitives, with exact names unless implementation 
 | Component | Required Contract |
 |-----------|-------------------|
 | `UiDialog` | `modelValue`, title slot, default slot, footer slot; focus trap; Escape closes unless disabled; backdrop click configurable |
-| `UiConfirmDialog` | Title, message, confirm/cancel labels, destructive tone; returns explicit confirm/cancel events |
+| `UiConfirmDialog` | Caller-supplied noun-specific title, message, confirm/cancel labels, destructive tone; returns explicit confirm/cancel events |
 | `UiModalHeader` / `UiModalFooter` | Optional helpers only if used by multiple dialogs |
 
 Dialog foundation must support later `SessionDialog`, `StudentDetailDialog`, and `AssistantDetailDialog` migrations, but Phase 2 should not fully migrate those workflows by default.
@@ -282,22 +282,22 @@ If a proof migration cannot preserve parity within small scope, document the blo
 
 ## Copywriting Contract
 
-Source copy should keep existing app/i18n strings where already present. New shared components may expose slots so pages supply product copy.
+Untouched surfaces may keep existing app/i18n strings where already present. Any touched Phase 2 surface must follow this contract. New shared components may expose slots so pages supply product copy.
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | `Save changes` for generic edit forms; feature pages may keep existing i18n labels such as `Save`, `Create assistant`, or localized equivalents |
-| Empty state heading | `No data yet` |
-| Empty state body | `When items are added, they will appear here.` |
+| Primary CTA | Any touched Phase 2 CTA must use specific verb+noun copy such as `Save profile`, `Save assistant`, `Save salary settings`, `Create assistant`, `Add class session`, or `Apply filters`. Untouched legacy/i18n copy may remain only outside touched Phase 2 surfaces. |
+| Empty state heading | Required per surface through `UiEmptyState` heading slot; examples: `No sessions scheduled`, `No assistants found`, `No audit logs found`, `No salary records yet` |
+| Empty state body | Required per surface through `UiEmptyState` body slot; examples: `Add a class session or adjust your filters.`, `Create an assistant or change your search.`, `Adjust filters to view matching activity.`, `Save salary settings to start tracking records.` |
 | Error state | `Something went wrong. Check the details and try again.` |
-| Destructive confirmation | `Delete item`: `This action cannot be undone. Delete this item?` |
+| Destructive confirmation | Caller-supplied noun-specific copy only; examples: `Delete class`: `This action cannot be undone. Delete this class?`, `Delete assistant`: `This action cannot be undone. Delete this assistant?`, `Remove session`: `This action cannot be undone. Remove this session?` |
 
 Phase-specific copy rules:
 
-- Shared `UiEmptyState` defaults to neutral generic copy only when a page does not provide more specific slot content.
-- `UiConfirmDialog` must require explicit confirm copy from caller for destructive actions.
+- Shared `UiEmptyState` must not provide generic heading/body defaults. Callers must supply surface-specific empty copy through required slots.
+- `UiConfirmDialog` must require explicit noun-specific title, message, and confirm label from callers for destructive actions; do not ship item-level fallback copy.
 - Do not add visible instructional text that explains component mechanics.
-- Keep Vietnamese/i18n strings where existing pages already use them. The shared UI kit must not hard-code English into feature surfaces except generic fallback examples in documentation.
+- Keep Vietnamese/i18n strings where existing pages already use them outside touched Phase 2 surfaces. The shared UI kit must not hard-code English into feature surfaces except contract examples in documentation.
 
 Destructive actions in Phase 2:
 
