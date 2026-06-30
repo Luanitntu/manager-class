@@ -39,6 +39,4 @@ const emit = defineEmits<{
   </header>
 </template>
 
-<style scoped lang="scss">
-@use '~/styles/calendar/header.scss';
-</style>
+<style scoped src="~/styles/calendar/header.css"></style>

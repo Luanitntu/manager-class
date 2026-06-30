@@ -34,6 +34,4 @@ const emit = defineEmits<{
   </v-sheet>
 </template>
 
-<style scoped lang="scss">
-@use '~/styles/calendar/detail.scss';
-</style>
+<style scoped src="~/styles/calendar/detail.css"></style>

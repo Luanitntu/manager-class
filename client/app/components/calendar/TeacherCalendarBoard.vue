@@ -129,6 +129,4 @@ function updateViewMode(value: unknown) {
   </v-card>
 </template>
 
-<style scoped lang="scss">
-@use '~/styles/calendar/board.scss';
-</style>
+<style scoped src="~/styles/calendar/board.css"></style>
