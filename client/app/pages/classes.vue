@@ -241,13 +241,12 @@ function extraStudentCount(item: ClassItem) {
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .teacher-classes {
   --classes-blue: #0071f9;
   --classes-text: #1e293b;
   --classes-muted: #64748b;
   --classes-border: #e2e8f0;
-
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -255,377 +254,371 @@ function extraStudentCount(item: ClassItem) {
   max-width: 1152px;
   padding-bottom: 24px;
   width: 100%;
+}
 
-  &__header {
-    align-items: center;
-    display: flex;
-    gap: 16px;
-    justify-content: space-between;
-    margin-bottom: 24px;
+.teacher-classes__header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
 
-    h1 {
-      color: var(--classes-text);
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: 0;
-      line-height: 1.33;
-      margin: 0;
-    }
+.teacher-classes__header h1 {
+  color: var(--classes-text);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.33;
+  margin: 0;
+}
 
-    p {
-      color: var(--classes-muted);
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 1.4;
-      margin: 4px 0 0;
-    }
-  }
+.teacher-classes__header p {
+  color: var(--classes-muted);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
 
-  &__actions {
-    align-items: center;
-    display: flex;
-    gap: 12px;
-  }
+.teacher-classes__actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
 
-  &__search {
-    align-items: center;
-    background: #fff;
-    border: 1px solid var(--classes-border);
-    border-radius: 8px;
-    color: #94a3b8;
-    display: flex;
-    gap: 8px;
-    height: 38px;
-    padding: 0 12px;
-    transition: border-color 180ms ease, box-shadow 180ms ease;
-    width: 256px;
+.teacher-classes__search {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--classes-border);
+  border-radius: 8px;
+  color: #94a3b8;
+  display: flex;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+  width: 256px;
+}
 
-    &:focus-within {
-      border-color: var(--classes-blue);
-      box-shadow: 0 0 0 3px rgb(0 113 249 / 12%);
-    }
+.teacher-classes__search:focus-within {
+  border-color: var(--classes-blue);
+  box-shadow: 0 0 0 3px rgb(0 113 249 / 12%);
+}
 
-    input {
-      color: #334155;
-      font-size: 14px;
-      font-weight: 500;
-      min-width: 0;
-      outline: none;
-      width: 100%;
+.teacher-classes__search input {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 0;
+  outline: none;
+  width: 100%;
+}
 
-      &::placeholder {
-        color: #94a3b8;
-      }
-    }
-  }
+.teacher-classes__search input::placeholder {
+  color: #94a3b8;
+}
 
-  &__create {
-    background: var(--classes-blue) !important;
-    border-radius: 8px !important;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
-    color: #fff !important;
-    font-size: 14px;
-    font-weight: 800;
-    height: 38px !important;
-    letter-spacing: 0;
-    padding: 0 16px !important;
-  }
+.teacher-classes__create {
+  background: var(--classes-blue) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
+  color: #fff !important;
+  font-size: 14px;
+  font-weight: 800;
+  height: 38px !important;
+  letter-spacing: 0;
+  padding: 0 16px !important;
+}
 
-  &__alert {
-    margin-bottom: 16px;
-  }
+.teacher-classes__alert {
+  margin-bottom: 16px;
+}
 
-  &__grid {
-    display: grid;
-    gap: 24px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.teacher-classes__grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 
-  &__card {
-    background: #fff;
-    border: 1px solid var(--classes-border);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
-    overflow: hidden;
-    position: relative;
-    transition: border-color 180ms ease, box-shadow 180ms ease;
+.teacher-classes__card {
+  background: #fff;
+  border: 1px solid var(--classes-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+  overflow: hidden;
+  position: relative;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
 
-    &:hover {
-      border-color: #cbd5e1;
-      box-shadow: 0 4px 6px -1px rgb(15 23 42 / 10%), 0 2px 4px -2px rgb(15 23 42 / 10%);
+.teacher-classes__card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgb(15 23 42 / 10%), 0 2px 4px -2px rgb(15 23 42 / 10%);
+}
 
-      h2 {
-        color: var(--classes-blue);
-      }
-    }
-  }
+.teacher-classes__card:hover h2 {
+  color: var(--classes-blue);
+}
 
-  &__strip {
-    background: var(--class-color);
-    height: 8px;
-    width: 100%;
-  }
+.teacher-classes__strip {
+  background: var(--class-color);
+  height: 8px;
+  width: 100%;
+}
 
-  &__body {
-    padding: 20px;
-  }
+.teacher-classes__body {
+  padding: 20px;
+}
 
-  &__card-head {
-    align-items: flex-start;
-    display: flex;
-    gap: 14px;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
+.teacher-classes__card-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
 
-  &__title-block {
-    min-width: 0;
-  }
+.teacher-classes__title-block {
+  min-width: 0;
+}
 
-  &__level {
-    background: #f1f5f9;
-    border-radius: 6px;
-    color: #475569;
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.05em;
-    line-height: 1;
-    margin-bottom: 8px;
-    max-width: 100%;
-    overflow: hidden;
-    padding: 6px 10px;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
+.teacher-classes__level {
+  background: #f1f5f9;
+  border-radius: 6px;
+  color: #475569;
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  margin-bottom: 8px;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 6px 10px;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
-  h2 {
-    color: var(--classes-text);
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 0;
-    line-height: 1.25;
-    margin: 0;
-    transition: color 180ms ease;
-  }
+.teacher-classes h2 {
+  color: var(--classes-text);
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.25;
+  margin: 0;
+  transition: color 180ms ease;
+}
 
-  &__menu {
-    border-radius: 6px !important;
-    color: #94a3b8 !important;
-    height: 30px !important;
-    width: 30px !important;
+.teacher-classes__menu {
+  border-radius: 6px !important;
+  color: #94a3b8 !important;
+  height: 30px !important;
+  width: 30px !important;
+}
 
-    &:hover {
-      background: #f8fafc !important;
-      color: #475569 !important;
-    }
-  }
+.teacher-classes__menu:hover {
+  background: #f8fafc !important;
+  color: #475569 !important;
+}
 
-  &__stats {
-    display: grid;
-    gap: 16px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-bottom: 20px;
+.teacher-classes__stats {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 20px;
+}
 
-    div {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 0;
-    }
+.teacher-classes__stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
 
-    span {
-      align-items: center;
-      color: var(--classes-muted);
-      display: flex;
-      font-size: 14px;
-      font-weight: 500;
-      gap: 6px;
-      line-height: 1.3;
-    }
+.teacher-classes__stats span {
+  align-items: center;
+  color: var(--classes-muted);
+  display: flex;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 6px;
+  line-height: 1.3;
+}
 
-    strong {
-      color: var(--classes-text);
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1.3;
-    }
-  }
+.teacher-classes__stats strong {
+  color: var(--classes-text);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.3;
+}
 
-  &__next {
-    align-items: center;
-    background: #f8fafc;
-    border: 1px solid #f1f5f9;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    min-height: 44px;
-    padding: 12px;
+.teacher-classes__next {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  min-height: 44px;
+  padding: 12px;
+}
 
-    span,
-    strong {
-      font-size: 12px;
-      line-height: 1.25;
-    }
+.teacher-classes__next span,
+.teacher-classes__next strong {
+  font-size: 12px;
+  line-height: 1.25;
+}
 
-    span {
-      color: var(--classes-muted);
-      font-weight: 500;
-    }
+.teacher-classes__next span {
+  color: var(--classes-muted);
+  font-weight: 500;
+}
 
-    strong {
-      color: var(--classes-blue);
-      font-weight: 800;
-      text-align: right;
-    }
-  }
+.teacher-classes__next strong {
+  color: var(--classes-blue);
+  font-weight: 800;
+  text-align: right;
+}
 
-  &__progress {
-    > div:first-child {
-      align-items: center;
-      color: #475569;
-      display: flex;
-      font-size: 12px;
-      font-weight: 800;
-      justify-content: space-between;
-      line-height: 1.25;
-      margin-bottom: 6px;
-    }
-  }
+.teacher-classes__progress > div:first-child {
+  align-items: center;
+  color: #475569;
+  display: flex;
+  font-size: 12px;
+  font-weight: 800;
+  justify-content: space-between;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
 
-  &__track {
-    background: #f1f5f9;
-    border-radius: 999px;
-    height: 8px;
-    overflow: hidden;
-    width: 100%;
+.teacher-classes__track {
+  background: #f1f5f9;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+  width: 100%;
+}
 
-    span {
-      background: var(--class-color);
-      border-radius: inherit;
-      display: block;
-      height: 100%;
-      transition: width 240ms ease;
-    }
-  }
+.teacher-classes__track span {
+  background: var(--class-color);
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  transition: width 240ms ease;
+}
 
-  &__footer {
-    align-items: center;
-    background: #f8fafc;
-    border-top: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: space-between;
-    min-height: 54px;
-    padding: 12px 20px;
-  }
+.teacher-classes__footer {
+  align-items: center;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  min-height: 54px;
+  padding: 12px 20px;
+}
 
-  &__avatars {
-    display: flex;
-    margin-left: 0;
+.teacher-classes__avatars {
+  display: flex;
+  margin-left: 0;
+}
 
-    span {
-      align-items: center;
-      background: #e2e8f0;
-      border: 2px solid #fff;
-      border-radius: 50%;
-      color: #475569;
-      display: inline-flex;
-      font-size: 10px;
-      font-weight: 800;
-      height: 24px;
-      justify-content: center;
-      line-height: 1;
-      margin-left: -8px;
-      min-width: 24px;
-      padding: 0 3px;
+.teacher-classes__avatars span {
+  align-items: center;
+  background: #e2e8f0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  color: #475569;
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 800;
+  height: 24px;
+  justify-content: center;
+  line-height: 1;
+  margin-left: -8px;
+  min-width: 24px;
+  padding: 0 3px;
+}
 
-      &:first-child {
-        margin-left: 0;
-      }
-    }
-  }
+.teacher-classes__avatars span:first-child {
+  margin-left: 0;
+}
 
-  &__detail {
-    align-items: center;
-    color: var(--classes-blue);
-    display: inline-flex;
-    font-size: 14px;
-    font-weight: 800;
-    gap: 4px;
-    line-height: 1;
-    transition: color 180ms ease;
+.teacher-classes__detail {
+  align-items: center;
+  color: var(--classes-blue);
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 800;
+  gap: 4px;
+  line-height: 1;
+  transition: color 180ms ease;
+}
 
-    &:hover {
-      color: #1e40af;
-    }
-  }
+.teacher-classes__detail:hover {
+  color: #1e40af;
+}
 
-  &__empty {
-    align-items: center;
-    background: #fff;
-    border: 1px solid var(--classes-border);
-    border-radius: 12px;
-    color: var(--classes-muted);
-    display: grid;
-    gap: 10px;
-    justify-items: center;
-    min-height: 320px;
-    padding: 40px;
-    text-align: center;
+.teacher-classes__empty {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--classes-border);
+  border-radius: 12px;
+  color: var(--classes-muted);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  min-height: 320px;
+  padding: 40px;
+  text-align: center;
+}
 
-    strong {
-      color: var(--classes-text);
-      font-size: 18px;
-      font-weight: 800;
-    }
+.teacher-classes__empty strong {
+  color: var(--classes-text);
+  font-size: 18px;
+  font-weight: 800;
+}
 
-    span {
-      font-size: 14px;
-      font-weight: 500;
-      max-width: 360px;
-    }
-  }
+.teacher-classes__empty span {
+  font-size: 14px;
+  font-weight: 500;
+  max-width: 360px;
+}
 
-  &__dialog {
-    border-radius: 12px !important;
-  }
+.teacher-classes__dialog {
+  border-radius: 12px !important;
 }
 
 @media (max-width: 1120px) {
-  .teacher-classes {
-    &__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .teacher-classes__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 760px) {
-  .teacher-classes {
-    &__header {
-      align-items: stretch;
-      flex-direction: column;
-    }
+  .teacher-classes__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
-    &__actions {
-      align-items: stretch;
-      flex-direction: column;
-    }
+  .teacher-classes__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
-    &__search {
-      width: 100%;
-    }
+  .teacher-classes__search {
+    width: 100%;
+  }
 
-    &__create {
-      width: 100%;
-    }
+  .teacher-classes__create {
+    width: 100%;
+  }
 
-    &__grid {
-      gap: 16px;
-      grid-template-columns: 1fr;
-    }
+  .teacher-classes__grid {
+    gap: 16px;
+    grid-template-columns: 1fr;
   }
 }
 </style>

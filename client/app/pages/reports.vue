@@ -181,225 +181,220 @@ async function runDownload(
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .teacher-reports {
   --reports-blue: #0071f9;
   --reports-text: #0f2544;
   --reports-muted: #516483;
   --reports-border: #dce5ef;
-
   display: flex;
   flex-direction: column;
   margin: 0 auto;
   max-width: 1120px;
   padding-bottom: 24px;
   width: 100%;
+}
 
-  &__header {
-    margin-bottom: 24px;
+.teacher-reports__header {
+  margin-bottom: 24px;
+}
 
-    h1 {
-      color: var(--reports-text);
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: 0;
-      line-height: 1.34;
-      margin: 0;
-    }
+.teacher-reports__header h1 {
+  color: var(--reports-text);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.34;
+  margin: 0;
+}
 
-    p {
-      color: var(--reports-muted);
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 1.45;
-      margin: 4px 0 0;
-    }
-  }
+.teacher-reports__header p {
+  color: var(--reports-muted);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
 
-  &__alert {
-    margin-bottom: 18px;
-  }
+.teacher-reports__alert {
+  margin-bottom: 18px;
+}
 
-  &__grid {
-    display: grid;
-    gap: 24px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.teacher-reports__grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 
-  &__card {
-    background: #fff;
-    border: 1px solid var(--reports-border);
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgb(15 23 42 / 10%);
-    display: flex;
-    flex-direction: column;
-    min-height: 344px;
-    padding: 24px;
+.teacher-reports__card {
+  background: #fff;
+  border: 1px solid var(--reports-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 10%);
+  display: flex;
+  flex-direction: column;
+  min-height: 344px;
+  padding: 24px;
+}
 
-    h2 {
-      color: var(--reports-text);
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: 0;
-      line-height: 1.34;
-      margin: 18px 0 8px;
-    }
+.teacher-reports__card h2 {
+  color: var(--reports-text);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.34;
+  margin: 18px 0 8px;
+}
 
-    p {
-      color: var(--reports-muted);
-      flex: 1;
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 1.55;
-      margin: 0 0 26px;
-    }
+.teacher-reports__card p {
+  color: var(--reports-muted);
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.55;
+  margin: 0 0 26px;
+}
 
-    &--attendance {
-      min-height: 260px;
-      width: 100%;
+.teacher-reports__card--attendance {
+  min-height: 260px;
+  width: 100%;
+}
 
-      p {
-        margin-bottom: 24px;
-      }
-    }
-  }
+.teacher-reports__card--attendance p {
+  margin-bottom: 24px;
+}
 
-  &__icon {
-    align-items: center;
-    border-radius: 9px;
-    display: inline-flex;
-    height: 48px;
-    justify-content: center;
-    width: 48px;
+.teacher-reports__icon {
+  align-items: center;
+  border-radius: 9px;
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
+}
 
-    &.is-revenue {
-      background: #e9fbf2;
-      color: #00a878;
-    }
+.teacher-reports__icon.is-revenue {
+  background: #e9fbf2;
+  color: #00a878;
+}
 
-    &.is-scores {
-      background: #eff6ff;
-      color: #0d6efd;
-    }
+.teacher-reports__icon.is-scores {
+  background: #eff6ff;
+  color: #0d6efd;
+}
 
-    &.is-attendance {
-      background: #fff7ed;
-      color: #ff6100;
-    }
-  }
+.teacher-reports__icon.is-attendance {
+  background: #fff7ed;
+  color: #ff6100;
+}
 
-  &__field {
-    margin-bottom: 25px;
+.teacher-reports__field {
+  margin-bottom: 25px;
+}
 
-    label {
-      color: #1f2a3a;
-      display: block;
-      font-size: 12px;
-      font-weight: 800;
-      line-height: 1.2;
-      margin-bottom: 7px;
-    }
+.teacher-reports__field label {
+  color: #1f2a3a;
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 7px;
+}
 
-    :deep(.v-field) {
-      background: #f8fbff;
-      border-radius: 9px;
-      color: #0f2544;
-      min-height: 39px;
-    }
+.teacher-reports__field :deep(.v-field) {
+  background: #f8fbff;
+  border-radius: 9px;
+  color: #0f2544;
+  min-height: 39px;
+}
 
-    :deep(.v-field__outline) {
-      --v-field-border-opacity: 1;
-      color: var(--reports-border);
-    }
+.teacher-reports__field :deep(.v-field__outline) {
+  --v-field-border-opacity: 1;
+  color: var(--reports-border);
+}
 
-    :deep(.v-field__input) {
-      font-size: 14px;
-      font-weight: 500;
-      min-height: 38px;
-      padding-bottom: 0;
-      padding-top: 0;
-    }
+.teacher-reports__field :deep(.v-field__input) {
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 38px;
+  padding-bottom: 0;
+  padding-top: 0;
+}
 
-    :deep(.v-select__selection-text) {
-      color: #0f2544;
-      font-size: 14px;
-      font-weight: 500;
-    }
-  }
+.teacher-reports__field :deep(.v-select__selection-text) {
+  color: #0f2544;
+  font-size: 14px;
+  font-weight: 500;
+}
 
-  &__export {
-    background: #fff !important;
-    border: 1px solid var(--reports-border);
-    border-radius: 8px !important;
-    box-shadow: none !important;
-    color: #12243e !important;
-    font-size: 15px;
-    font-weight: 800;
-    height: 46px !important;
-    letter-spacing: 0;
-    margin-top: auto;
+.teacher-reports__export {
+  background: #fff !important;
+  border: 1px solid var(--reports-border);
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  color: #12243e !important;
+  font-size: 15px;
+  font-weight: 800;
+  height: 46px !important;
+  letter-spacing: 0;
+  margin-top: auto;
+}
 
-    :deep(.v-btn__content) {
-      align-items: center;
-      gap: 4px;
-      min-width: 0;
-      white-space: normal;
-    }
+.teacher-reports__export :deep(.v-btn__content) {
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  white-space: normal;
+}
 
-    :deep(.v-icon) {
-      margin-inline: 0 4px;
-      opacity: 1;
-    }
+.teacher-reports__export :deep(.v-icon) {
+  margin-inline: 0 4px;
+  opacity: 1;
+}
 
-    &:hover {
-      border-color: #bfdbfe;
-      color: var(--reports-blue) !important;
-    }
+.teacher-reports__export:hover {
+  border-color: #bfdbfe;
+  color: var(--reports-blue) !important;
+}
 
-    .is-excel {
-      color: #00b894;
-    }
+.teacher-reports__export .is-excel {
+  color: #00b894;
+}
 
-    .is-blue {
-      color: #0d6efd;
-    }
+.teacher-reports__export .is-blue {
+  color: #0d6efd;
+}
 
-    .is-orange {
-      color: #ff6100;
-    }
-  }
+.teacher-reports__export .is-orange {
+  color: #ff6100;
 }
 
 @media (max-width: 900px) {
-  .teacher-reports {
-    &__grid {
-      grid-template-columns: 1fr;
-    }
+  .teacher-reports__grid {
+    grid-template-columns: 1fr;
+  }
 
-    &__card {
-      min-height: 0;
-    }
+  .teacher-reports__card {
+    min-height: 0;
   }
 }
 
 @media (max-width: 560px) {
-  .teacher-reports {
-    &__header h1 {
-      font-size: 22px;
-    }
+  .teacher-reports__header h1 {
+    font-size: 22px;
+  }
 
-    &__card {
-      padding: 20px;
+  .teacher-reports__card {
+    padding: 20px;
+  }
 
-      h2 {
-        font-size: 17px;
-      }
-    }
+  .teacher-reports__card h2 {
+    font-size: 17px;
+  }
 
-    &__export {
-      font-size: 14px;
-      min-height: 48px;
-    }
+  .teacher-reports__export {
+    font-size: 14px;
+    min-height: 48px;
   }
 }
 </style>

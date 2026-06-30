@@ -405,13 +405,12 @@ async function pay() {
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .teacher-payments {
   --payments-blue: #0071f9;
   --payments-text: #1e293b;
   --payments-muted: #64748b;
   --payments-border: #e2e8f0;
-
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -419,485 +418,479 @@ async function pay() {
   max-width: 1152px;
   padding-bottom: 24px;
   width: 100%;
-
-  &__header {
-    align-items: center;
-    display: flex;
-    gap: 16px;
-    justify-content: space-between;
-    margin-bottom: 24px;
-
-    h1 {
-      color: var(--payments-text);
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: 0;
-      line-height: 1.33;
-      margin: 0;
-    }
-
-    p {
-      color: var(--payments-muted);
-      font-size: 14px;
-      font-weight: 500;
-      margin: 4px 0 0;
-    }
-  }
-
-  &__actions {
-    align-items: center;
-    display: flex;
-    gap: 12px;
-  }
-
-  &__export,
-  &__create {
-    border-radius: 8px !important;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
-    font-size: 14px;
-    font-weight: 800;
-    height: 38px !important;
-    letter-spacing: 0;
-    padding: 0 16px !important;
-  }
-
-  &__export {
-    background: #fff !important;
-    border: 1px solid var(--payments-border);
-    color: #334155 !important;
-  }
-
-  &__create {
-    background: var(--payments-blue) !important;
-    color: #fff !important;
-  }
-
-  &__stats {
-    display: grid;
-    gap: 16px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-bottom: 24px;
-  }
-
-  &__stat {
-    align-items: center;
-    background: #fff;
-    border: 1px solid var(--payments-border);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
-    display: flex;
-    gap: 16px;
-    min-height: 92px;
-    padding: 20px;
-
-    > span {
-      align-items: center;
-      border-radius: 50%;
-      display: inline-flex;
-      flex: 0 0 48px;
-      height: 48px;
-      justify-content: center;
-      width: 48px;
-    }
-
-    small {
-      color: var(--payments-muted);
-      display: block;
-      font-size: 14px;
-      font-weight: 800;
-      margin-bottom: 4px;
-    }
-
-    strong {
-      color: var(--payments-text);
-      display: block;
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: 0;
-      line-height: 1.1;
-      white-space: nowrap;
-    }
-
-    &.is-total > span {
-      background: #eff6ff;
-      color: var(--payments-blue);
-    }
-
-    &.is-paid > span {
-      background: #ecfdf5;
-      color: #10b981;
-    }
-
-    &.is-debt {
-      > span {
-        background: #fef2f2;
-        color: #ef4444;
-      }
-
-      strong {
-        color: #dc2626;
-      }
-    }
-  }
-
-  &__panel {
-    background: #fff;
-    border: 1px solid var(--payments-border);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  &__toolbar {
-    align-items: center;
-    background: #f8fafc;
-    border-bottom: 1px solid var(--payments-border);
-    display: flex;
-    gap: 16px;
-    justify-content: space-between;
-    padding: 16px;
-  }
-
-  &__search {
-    align-items: center;
-    background: #fff;
-    border: 1px solid var(--payments-border);
-    border-radius: 8px;
-    color: #94a3b8;
-    display: flex;
-    flex: 1 1 448px;
-    gap: 8px;
-    height: 38px;
-    max-width: 448px;
-    padding: 0 12px;
-    transition: border-color 180ms ease, box-shadow 180ms ease;
-
-    &:focus-within {
-      border-color: var(--payments-blue);
-      box-shadow: 0 0 0 3px rgb(0 113 249 / 12%);
-    }
-
-    input {
-      color: #334155;
-      font-size: 14px;
-      font-weight: 500;
-      min-width: 0;
-      outline: 0;
-      width: 100%;
-
-      &::placeholder {
-        color: #94a3b8;
-      }
-    }
-  }
-
-  &__filter {
-    background: #fff !important;
-    border: 1px solid var(--payments-border);
-    border-radius: 8px !important;
-    box-shadow: none !important;
-    color: var(--payments-muted) !important;
-  }
-
-  &__table-wrap {
-    overflow-x: auto;
-  }
-
-  &__table {
-    border-collapse: collapse;
-    font-size: 14px;
-    min-width: 980px;
-    text-align: left;
-    width: 100%;
-
-    thead {
-      background: #fff;
-      border-bottom: 1px solid var(--payments-border);
-      color: var(--payments-muted);
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    th,
-    td {
-      padding: 16px 24px;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-
-    tbody tr {
-      border-bottom: 1px solid #f1f5f9;
-      cursor: pointer;
-      transition: background 180ms ease;
-
-      &:hover {
-        background: #f8fafc;
-      }
-
-      &:last-child {
-        border-bottom: 0;
-      }
-    }
-
-    td > strong {
-      color: var(--payments-text);
-      display: block;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
-    td > small {
-      color: var(--payments-blue);
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      margin-top: 3px;
-    }
-
-    .is-right {
-      text-align: right;
-    }
-
-    .is-money {
-      color: #dc2626;
-      font-weight: 800;
-
-      &.is-paid {
-        color: #059669;
-      }
-
-      &.is-zero {
-        color: #334155;
-      }
-    }
-  }
-
-  &__status {
-    border-radius: 999px;
-    display: inline-flex;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1;
-    padding: 7px 10px;
-
-    &.is-paid {
-      background: #d1fae5;
-      color: #047857;
-    }
-
-    &.is-partial {
-      background: #fef3c7;
-      color: #b45309;
-    }
-
-    &.is-pending {
-      background: #f1f5f9;
-      color: #334155;
-    }
-
-    &.is-overdue {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-  }
-
-  &__due {
-    color: #94a3b8;
-    display: block;
-    font-size: 10px;
-    font-weight: 700;
-    margin-top: 5px;
-  }
-
-  &__row-actions {
-    align-items: center;
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-  }
-
-  &__remind {
-    color: #f97316 !important;
-
-    &:hover {
-      background: #fff7ed !important;
-    }
-  }
-
-  &__menu {
-    color: #94a3b8 !important;
-
-    &:hover {
-      background: #eff6ff !important;
-      color: var(--payments-blue) !important;
-    }
-  }
-
-  &__empty {
-    align-items: center;
-    color: var(--payments-muted);
-    display: grid;
-    gap: 10px;
-    justify-items: center;
-    min-height: 320px;
-    padding: 40px;
-    text-align: center;
-
-    strong {
-      color: var(--payments-text);
-      font-size: 18px;
-      font-weight: 800;
-    }
-  }
-
-  &__dialog {
-    border-radius: 12px !important;
-  }
-
-  &__detail-title {
-    align-items: center;
-    display: flex;
-    gap: 12px;
-    justify-content: space-between;
-  }
-
-  &__detail-stats {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-bottom: 20px;
-
-    div {
-      background: #f8fafc;
-      border: 1px solid #f1f5f9;
-      border-radius: 10px;
-      padding: 14px;
-    }
-
-    strong {
-      color: var(--payments-text);
-      display: block;
-      font-size: 18px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
-    span {
-      color: var(--payments-muted);
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      margin-top: 4px;
-    }
-  }
-
-  &__pay-form {
-    align-items: center;
-    display: grid;
-    gap: 10px;
-    grid-template-columns: 130px 130px minmax(0, 1fr) auto;
-    margin-bottom: 20px;
-  }
-
-  h3 {
-    color: var(--payments-text);
-    font-size: 15px;
-    font-weight: 800;
-    margin: 0 0 10px;
-  }
-
-  &__history {
-    border: 1px solid var(--payments-border);
-    border-radius: 10px;
-    overflow: hidden;
-
-    table {
-      border-collapse: collapse;
-      font-size: 13px;
-      width: 100%;
-    }
-
-    th,
-    td {
-      border-bottom: 1px solid #f1f5f9;
-      padding: 10px 12px;
-      text-align: left;
-    }
-
-    th {
-      background: #f8fafc;
-      color: var(--payments-muted);
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-
-    tr:last-child td {
-      border-bottom: 0;
-    }
-
-    .is-right {
-      text-align: right;
-    }
-  }
-
-  &__history-empty {
-    color: var(--payments-muted);
-    font-size: 14px;
-    padding: 20px;
-    text-align: center;
-  }
+}
+
+.teacher-payments__header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.teacher-payments__header h1 {
+  color: var(--payments-text);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.33;
+  margin: 0;
+}
+
+.teacher-payments__header p {
+  color: var(--payments-muted);
+  font-size: 14px;
+  font-weight: 500;
+  margin: 4px 0 0;
+}
+
+.teacher-payments__actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.teacher-payments__export,
+.teacher-payments__create {
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
+  font-size: 14px;
+  font-weight: 800;
+  height: 38px !important;
+  letter-spacing: 0;
+  padding: 0 16px !important;
+}
+
+.teacher-payments__export {
+  background: #fff !important;
+  border: 1px solid var(--payments-border);
+  color: #334155 !important;
+}
+
+.teacher-payments__create {
+  background: var(--payments-blue) !important;
+  color: #fff !important;
+}
+
+.teacher-payments__stats {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 24px;
+}
+
+.teacher-payments__stat {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--payments-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+  display: flex;
+  gap: 16px;
+  min-height: 92px;
+  padding: 20px;
+}
+
+.teacher-payments__stat > span {
+  align-items: center;
+  border-radius: 50%;
+  display: inline-flex;
+  flex: 0 0 48px;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
+}
+
+.teacher-payments__stat small {
+  color: var(--payments-muted);
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.teacher-payments__stat strong {
+  color: var(--payments-text);
+  display: block;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.teacher-payments__stat.is-total > span {
+  background: #eff6ff;
+  color: var(--payments-blue);
+}
+
+.teacher-payments__stat.is-paid > span {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+.teacher-payments__stat.is-debt > span {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.teacher-payments__stat.is-debt strong {
+  color: #dc2626;
+}
+
+.teacher-payments__panel {
+  background: #fff;
+  border: 1px solid var(--payments-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.teacher-payments__toolbar {
+  align-items: center;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--payments-border);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.teacher-payments__search {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--payments-border);
+  border-radius: 8px;
+  color: #94a3b8;
+  display: flex;
+  flex: 1 1 448px;
+  gap: 8px;
+  height: 38px;
+  max-width: 448px;
+  padding: 0 12px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.teacher-payments__search:focus-within {
+  border-color: var(--payments-blue);
+  box-shadow: 0 0 0 3px rgb(0 113 249 / 12%);
+}
+
+.teacher-payments__search input {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 0;
+  outline: 0;
+  width: 100%;
+}
+
+.teacher-payments__search input::placeholder {
+  color: #94a3b8;
+}
+
+.teacher-payments__filter {
+  background: #fff !important;
+  border: 1px solid var(--payments-border);
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  color: var(--payments-muted) !important;
+}
+
+.teacher-payments__table-wrap {
+  overflow-x: auto;
+}
+
+.teacher-payments__table {
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 980px;
+  text-align: left;
+  width: 100%;
+}
+
+.teacher-payments__table thead {
+  background: #fff;
+  border-bottom: 1px solid var(--payments-border);
+  color: var(--payments-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.teacher-payments__table th,
+.teacher-payments__table td {
+  padding: 16px 24px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.teacher-payments__table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+
+.teacher-payments__table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.teacher-payments__table tbody tr:last-child {
+  border-bottom: 0;
+}
+
+.teacher-payments__table td > strong {
+  color: var(--payments-text);
+  display: block;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.teacher-payments__table td > small {
+  color: var(--payments-blue);
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+.teacher-payments__table .is-right {
+  text-align: right;
+}
+
+.teacher-payments__table .is-money {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+.teacher-payments__table .is-money.is-paid {
+  color: #059669;
+}
+
+.teacher-payments__table .is-money.is-zero {
+  color: #334155;
+}
+
+.teacher-payments__status {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 7px 10px;
+}
+
+.teacher-payments__status.is-paid {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.teacher-payments__status.is-partial {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.teacher-payments__status.is-pending {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.teacher-payments__status.is-overdue {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.teacher-payments__due {
+  color: #94a3b8;
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.teacher-payments__row-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.teacher-payments__remind {
+  color: #f97316 !important;
+}
+
+.teacher-payments__remind:hover {
+  background: #fff7ed !important;
+}
+
+.teacher-payments__menu {
+  color: #94a3b8 !important;
+}
+
+.teacher-payments__menu:hover {
+  background: #eff6ff !important;
+  color: var(--payments-blue) !important;
+}
+
+.teacher-payments__empty {
+  align-items: center;
+  color: var(--payments-muted);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  min-height: 320px;
+  padding: 40px;
+  text-align: center;
+}
+
+.teacher-payments__empty strong {
+  color: var(--payments-text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.teacher-payments__dialog {
+  border-radius: 12px !important;
+}
+
+.teacher-payments__detail-title {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.teacher-payments__detail-stats {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 20px;
+}
+
+.teacher-payments__detail-stats div {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.teacher-payments__detail-stats strong {
+  color: var(--payments-text);
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.teacher-payments__detail-stats span {
+  color: var(--payments-muted);
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.teacher-payments__pay-form {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 130px 130px minmax(0, 1fr) auto;
+  margin-bottom: 20px;
+}
+
+.teacher-payments h3 {
+  color: var(--payments-text);
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+
+.teacher-payments__history {
+  border: 1px solid var(--payments-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.teacher-payments__history table {
+  border-collapse: collapse;
+  font-size: 13px;
+  width: 100%;
+}
+
+.teacher-payments__history th,
+.teacher-payments__history td {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.teacher-payments__history th {
+  background: #f8fafc;
+  color: var(--payments-muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.teacher-payments__history tr:last-child td {
+  border-bottom: 0;
+}
+
+.teacher-payments__history .is-right {
+  text-align: right;
+}
+
+.teacher-payments__history-empty {
+  color: var(--payments-muted);
+  font-size: 14px;
+  padding: 20px;
+  text-align: center;
 }
 
 @media (max-width: 900px) {
-  .teacher-payments {
-    &__stats {
-      grid-template-columns: 1fr;
-    }
+  .teacher-payments__stats {
+    grid-template-columns: 1fr;
+  }
 
-    &__pay-form {
-      grid-template-columns: 1fr;
-    }
+  .teacher-payments__pay-form {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 720px) {
-  .teacher-payments {
-    &__header {
-      align-items: stretch;
-      flex-direction: column;
-    }
+  .teacher-payments__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
-    &__actions {
-      align-items: stretch;
-      flex-direction: column;
-    }
+  .teacher-payments__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
-    &__export,
-    &__create {
-      width: 100%;
-    }
+  .teacher-payments__export,
+  .teacher-payments__create {
+    width: 100%;
+  }
 
-    &__toolbar {
-      align-items: stretch;
-      flex-direction: column;
-    }
+  .teacher-payments__toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
-    &__search {
-      flex-basis: auto;
-      max-width: none;
-      width: 100%;
-    }
+  .teacher-payments__search {
+    flex-basis: auto;
+    max-width: none;
+    width: 100%;
+  }
 
-    &__detail-title,
-    &__detail-stats {
-      grid-template-columns: 1fr;
-    }
+  .teacher-payments__detail-title,
+  .teacher-payments__detail-stats {
+    grid-template-columns: 1fr;
   }
 }
 </style>

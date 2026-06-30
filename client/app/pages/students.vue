@@ -201,13 +201,12 @@ function statusClass(student: Student) {
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .teacher-students {
   --students-blue: #0071f9;
   --students-text: #1e293b;
   --students-muted: #64748b;
   --students-border: #e2e8f0;
-
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -215,333 +214,331 @@ function statusClass(student: Student) {
   max-width: 1152px;
   padding-bottom: 24px;
   width: 100%;
+}
 
-  &__header {
-    align-items: center;
-    display: flex;
-    gap: 16px;
-    justify-content: space-between;
-    margin-bottom: 24px;
+.teacher-students__header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
 
-    h1 {
-      color: var(--students-text);
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: 0;
-      line-height: 1.33;
-      margin: 0;
-    }
+.teacher-students__header h1 {
+  color: var(--students-text);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.33;
+  margin: 0;
+}
 
-    p {
-      color: var(--students-muted);
-      font-size: 14px;
-      font-weight: 500;
-      margin: 4px 0 0;
-    }
-  }
+.teacher-students__header p {
+  color: var(--students-muted);
+  font-size: 14px;
+  font-weight: 500;
+  margin: 4px 0 0;
+}
 
-  &__actions {
-    align-items: center;
-    display: flex;
-    gap: 12px;
-  }
+.teacher-students__actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
 
-  &__filter,
-  &__create {
-    border-radius: 8px !important;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
-    font-size: 14px;
-    font-weight: 800;
-    height: 38px !important;
-    letter-spacing: 0;
-    padding: 0 16px !important;
-  }
+.teacher-students__filter,
+.teacher-students__create {
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
+  font-size: 14px;
+  font-weight: 800;
+  height: 38px !important;
+  letter-spacing: 0;
+  padding: 0 16px !important;
+}
 
-  &__filter {
-    background: #fff !important;
-    border: 1px solid var(--students-border);
-    color: #334155 !important;
-  }
+.teacher-students__filter {
+  background: #fff !important;
+  border: 1px solid var(--students-border);
+  color: #334155 !important;
+}
 
-  &__create {
-    background: var(--students-blue) !important;
-    color: #fff !important;
-  }
+.teacher-students__create {
+  background: var(--students-blue) !important;
+  color: #fff !important;
+}
 
-  &__panel {
-    background: #fff;
-    border: 1px solid var(--students-border);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    overflow: hidden;
-  }
+.teacher-students__panel {
+  background: #fff;
+  border: 1px solid var(--students-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-  &__toolbar {
-    background: #f8fafc;
-    border-bottom: 1px solid var(--students-border);
-    display: flex;
-    gap: 16px;
-    padding: 16px;
-  }
+.teacher-students__toolbar {
+  background: #f8fafc;
+  border-bottom: 1px solid var(--students-border);
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+}
 
-  &__search {
-    align-items: center;
-    background: #fff;
-    border: 1px solid var(--students-border);
-    border-radius: 8px;
-    color: #94a3b8;
-    display: flex;
-    gap: 8px;
-    height: 38px;
-    max-width: 448px;
-    padding: 0 12px;
-    transition: border-color 180ms ease, box-shadow 180ms ease;
-    width: 100%;
+.teacher-students__search {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--students-border);
+  border-radius: 8px;
+  color: #94a3b8;
+  display: flex;
+  gap: 8px;
+  height: 38px;
+  max-width: 448px;
+  padding: 0 12px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+  width: 100%;
+}
 
-    &:focus-within {
-      border-color: var(--students-blue);
-      box-shadow: 0 0 0 3px rgb(0 113 249 / 12%);
-    }
+.teacher-students__search:focus-within {
+  border-color: var(--students-blue);
+  box-shadow: 0 0 0 3px rgb(0 113 249 / 12%);
+}
 
-    input {
-      color: #334155;
-      font-size: 14px;
-      font-weight: 500;
-      min-width: 0;
-      outline: none;
-      width: 100%;
+.teacher-students__search input {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 0;
+  outline: none;
+  width: 100%;
+}
 
-      &::placeholder {
-        color: #94a3b8;
-      }
-    }
-  }
+.teacher-students__search input::placeholder {
+  color: #94a3b8;
+}
 
-  &__table-wrap {
-    overflow-x: auto;
-  }
+.teacher-students__table-wrap {
+  overflow-x: auto;
+}
 
-  &__table {
-    border-collapse: collapse;
-    font-size: 14px;
-    min-width: 900px;
-    text-align: left;
-    width: 100%;
+.teacher-students__table {
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 900px;
+  text-align: left;
+  width: 100%;
+}
 
-    thead {
-      background: #fff;
-      border-bottom: 1px solid var(--students-border);
-      color: var(--students-muted);
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
+.teacher-students__table thead {
+  background: #fff;
+  border-bottom: 1px solid var(--students-border);
+  color: var(--students-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
 
-    th,
-    td {
-      padding: 16px 24px;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
+.teacher-students__table th,
+.teacher-students__table td {
+  padding: 16px 24px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
 
-    tbody tr {
-      border-bottom: 1px solid #f1f5f9;
-      cursor: pointer;
-      transition: background 180ms ease;
+.teacher-students__table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
 
-      &:hover {
-        background: #f8fafc;
-      }
+.teacher-students__table tbody tr:hover {
+  background: #f8fafc;
+}
 
-      &:last-child {
-        border-bottom: 0;
-      }
-    }
+.teacher-students__table tbody tr:last-child {
+  border-bottom: 0;
+}
 
-    .is-right {
-      text-align: right;
-    }
-  }
+.teacher-students__table .is-right {
+  text-align: right;
+}
 
-  &__student-cell {
-    align-items: center;
-    display: flex;
-    gap: 12px;
+.teacher-students__student-cell {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
 
-    strong {
-      color: var(--students-text);
-      display: block;
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
+.teacher-students__student-cell strong {
+  color: var(--students-text);
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+}
 
-    small {
-      color: var(--students-muted);
-      display: block;
-      font-size: 12px;
-      font-weight: 500;
-      margin-top: 2px;
-    }
-  }
+.teacher-students__student-cell small {
+  color: var(--students-muted);
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 2px;
+}
 
-  &__avatar {
-    background: #dbeafe !important;
-    color: #2563eb !important;
-    font-size: 14px;
-    font-weight: 800;
-  }
+.teacher-students__avatar {
+  background: #dbeafe !important;
+  color: #2563eb !important;
+  font-size: 14px;
+  font-weight: 800;
+}
 
-  &__contact {
-    color: #475569;
-    display: flex;
-    flex-direction: column;
-    font-weight: 500;
-    gap: 4px;
+.teacher-students__contact {
+  color: #475569;
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+  gap: 4px;
+}
 
-    span {
-      align-items: center;
-      display: inline-flex;
-      gap: 6px;
-    }
+.teacher-students__contact span {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
 
-    :deep(.v-icon) {
-      color: #94a3b8;
-    }
-  }
+.teacher-students__contact :deep(.v-icon) {
+  color: #94a3b8;
+}
 
-  &__classes {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+.teacher-students__classes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-    span {
-      align-items: center;
-      background: #f1f5f9;
-      border-radius: 4px;
-      color: #334155;
-      display: inline-flex;
-      font-size: 12px;
-      font-weight: 800;
-      gap: 4px;
-      padding: 6px 10px;
-      width: fit-content;
-    }
+.teacher-students__classes span {
+  align-items: center;
+  background: #f1f5f9;
+  border-radius: 4px;
+  color: #334155;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 4px;
+  padding: 6px 10px;
+  width: fit-content;
+}
 
-    :deep(.v-icon) {
-      color: var(--students-blue);
-    }
-  }
+.teacher-students__classes :deep(.v-icon) {
+  color: var(--students-blue);
+}
 
-  &__status {
-    border-radius: 999px;
-    display: inline-flex;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1;
-    padding: 7px 10px;
+.teacher-students__status {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 7px 10px;
+}
 
-    &.is-active {
-      background: #d1fae5;
-      color: #047857;
-    }
+.teacher-students__status.is-active {
+  background: #d1fae5;
+  color: #047857;
+}
 
-    &.is-pending {
-      background: #ffedd5;
-      color: #c2410c;
-    }
-  }
+.teacher-students__status.is-pending {
+  background: #ffedd5;
+  color: #c2410c;
+}
 
-  &__menu {
-    border-radius: 8px !important;
-    color: #94a3b8 !important;
+.teacher-students__menu {
+  border-radius: 8px !important;
+  color: #94a3b8 !important;
+}
 
-    &:hover {
-      background: #eff6ff !important;
-      color: var(--students-blue) !important;
-    }
-  }
+.teacher-students__menu:hover {
+  background: #eff6ff !important;
+  color: var(--students-blue) !important;
+}
 
-  &__empty {
-    align-items: center;
-    color: var(--students-muted);
-    display: grid;
-    gap: 10px;
-    justify-items: center;
-    min-height: 320px;
-    padding: 40px;
-    text-align: center;
+.teacher-students__empty {
+  align-items: center;
+  color: var(--students-muted);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  min-height: 320px;
+  padding: 40px;
+  text-align: center;
+}
 
-    strong {
-      color: var(--students-text);
-      font-size: 18px;
-      font-weight: 800;
-    }
-  }
+.teacher-students__empty strong {
+  color: var(--students-text);
+  font-size: 18px;
+  font-weight: 800;
+}
 
-  &__footer {
-    align-items: center;
-    background: #fff;
-    border-top: 1px solid var(--students-border);
-    color: var(--students-muted);
-    display: flex;
-    font-size: 14px;
-    justify-content: space-between;
-    padding: 16px;
+.teacher-students__footer {
+  align-items: center;
+  background: #fff;
+  border-top: 1px solid var(--students-border);
+  color: var(--students-muted);
+  display: flex;
+  font-size: 14px;
+  justify-content: space-between;
+  padding: 16px;
+}
 
-    button {
-      border: 1px solid var(--students-border);
-      border-radius: 4px;
-      color: #334155;
-      font-size: 14px;
-      font-weight: 600;
-      line-height: 1;
-      margin-left: 4px;
-      min-height: 28px;
-      padding: 0 12px;
-      transition: background 180ms ease;
+.teacher-students__footer button {
+  border: 1px solid var(--students-border);
+  border-radius: 4px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  margin-left: 4px;
+  min-height: 28px;
+  padding: 0 12px;
+  transition: background 180ms ease;
+}
 
-      &:hover:not(:disabled) {
-        background: #f8fafc;
-      }
+.teacher-students__footer button:hover:not(:disabled) {
+  background: #f8fafc;
+}
 
-      &:disabled {
-        color: #94a3b8;
-      }
-    }
-  }
+.teacher-students__footer button:disabled {
+  color: #94a3b8;
+}
 
-  &__dialog {
-    border-radius: 12px !important;
-  }
+.teacher-students__dialog {
+  border-radius: 12px !important;
 }
 
 @media (max-width: 760px) {
-  .teacher-students {
-    &__header {
-      align-items: stretch;
-      flex-direction: column;
-    }
+  .teacher-students__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
-    &__actions {
-      align-items: stretch;
-      flex-direction: column;
-    }
+  .teacher-students__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
-    &__filter,
-    &__create {
-      width: 100%;
-    }
+  .teacher-students__filter,
+  .teacher-students__create {
+    width: 100%;
+  }
 
-    &__footer {
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 12px;
-    }
+  .teacher-students__footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
   }
 }
 </style>
