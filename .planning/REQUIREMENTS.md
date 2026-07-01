@@ -35,8 +35,8 @@
 - [x] **PAGE-02**: `/assistants/[id]` is redesigned with Tailwind shared components while preserving profile, salary summary, assigned classes, salary config, schedule, breakdown, and history behavior.
 - [x] **PAGE-03**: `/audit-logs` is redesigned with Tailwind shared components while preserving filters, table/list display, pagination, and empty/loading states.
 - [x] **PAGE-04**: `/profile` is redesigned with Tailwind shared components while preserving profile loading, edit, timezone selection, save, error, and success behavior.
-- [ ] **PAGE-05**: Redesigned pages match the newer app UI direction across spacing, typography, color, responsive behavior, and state treatment.
-- [ ] **PAGE-06**: Priority pages pass visual parity checks against the intended current UI: no accidental layout shifts, clipped content, unreadable text, broken controls, or missing states.
+- [x] **PAGE-05**: Redesigned pages match the newer app UI direction across spacing, typography, color, responsive behavior, and state treatment.
+- [x] **PAGE-06**: Priority pages pass visual parity checks against the intended current UI: no accidental layout shifts, clipped content, unreadable text, broken controls, or missing states.
 
 ### Verification
 
@@ -93,8 +93,8 @@
 | PAGE-02 | Phase 4 | Complete |
 | PAGE-03 | Phase 4 | Complete |
 | PAGE-04 | Phase 4 | Complete |
-| PAGE-05 | Phase 4 | Pending |
-| PAGE-06 | Phase 4 | Pending |
+| PAGE-05 | Phase 4 | Complete |
+| PAGE-06 | Phase 4 | Complete |
 | VER-01 | Phase 5 | Pending |
 | VER-02 | Phase 5 | Pending |
 | VER-03 | Phase 5 | Pending |
@@ -125,4 +125,4 @@
 
 ---
 *Requirements defined: 2026-06-30*
-*Last updated: 2026-07-01 after Phase 4 Plan 04 completion*
+*Last updated: 2026-07-01 after Phase 4 Plan 06 visual parity gap closure*

@@ -5,10 +5,10 @@ milestone_name: Tailwind UI Migration
 current_phase: 04 - Priority Old Page Redesign
 current_phase_name: priority-old-page-redesign
 status: human verification needed
-stopped_at: Phase 04 Plan 05 visual QA checkpoint
-last_updated: "2026-07-01T16:51:30+07:00"
+stopped_at: Phase 04 Plan 06 complete; visual UAT re-run needed
+last_updated: "2026-07-01T21:05:51+07:00"
 last_activity: 2026-07-01
-last_activity_desc: Phase 04 automated verification passed; desktop/mobile visual QA needed
+last_activity_desc: Phase 04 Plan 06 closed visual parity gaps; desktop/mobile visual UAT re-run needed
 progress:
   total_phases: 5
   completed_phases: 3
@@ -27,9 +27,9 @@ progress:
 ## Current Position
 
 Phase: 04 (priority-old-page-redesign) - IN PROGRESS
-Plan: 04-05 checkpoint
-Status: Human visual QA needed
-Last activity: 2026-07-01 - Phase 04 automated verification passed; desktop/mobile visual QA needed
+Plan: 04-06 complete
+Status: Human visual UAT re-run needed
+Last activity: 2026-07-01 - Phase 04 Plan 06 closed visual parity gaps; desktop/mobile visual UAT re-run needed
 
 ## Project Reference
 
@@ -107,16 +107,17 @@ See: `.planning/ROADMAP.md`
 - Phase 4 Plan 02 redesigned `/assistants/[id]` with Tailwind/shared UI primitives while preserving assistant detail, salary summary/config, assigned classes, schedule, breakdown, history, timezone formatting, i18n labels, and mutation flows.
 - Phase 4 Plan 03 redesigned `/audit-logs` with Tailwind/shared UI primitives while preserving filters, watcher reset behavior, audit query refs, semantic action badges, table columns, loading skeleton, compact empty state, and pagination.
 - Phase 4 Plan 04 redesigned `/profile` with Tailwind/shared UI primitives while preserving profile load/edit/save behavior, timezone fallback/select, inline save feedback, and auth-store profile updates.
-- Phase 4 Plan 05 passed route old-marker scan, UI-kit boundary scan, frontend lint, frontend typecheck, and frontend build; human desktop/mobile visual QA is still required before Phase 4 completion.
+- Phase 4 Plan 05 passed route old-marker scan, UI-kit boundary scan, frontend lint, frontend typecheck, and frontend build; human desktop/mobile visual QA found parity gaps.
+- Phase 4 Plan 06 aligned `/assistants` and `/audit-logs` with Calendar/Dashboard surfaces, made profile editing modal-first from the shell menu, kept `/profile` as a richer fallback account page, and passed frontend lint/typecheck/build plus static scans.
 
 ---
 *State updated: 2026-07-01 after Phase 4 automated verification checkpoint*
 
 ## Session
 
-**Last session:** 2026-07-01T16:51:30+07:00
-**Stopped at:** Phase 04 Plan 05 visual QA checkpoint
-**Resume file:** .planning/phases/04-priority-old-page-redesign/04-VERIFICATION.md
+**Last session:** 2026-07-01T21:05:51+07:00
+**Stopped at:** Phase 04 Plan 06 complete; visual UAT re-run needed
+**Resume file:** .planning/phases/04-priority-old-page-redesign/04-06-SUMMARY.md
 
 ## Performance Metrics
 
@@ -143,3 +144,4 @@ See: `.planning/ROADMAP.md`
 | Phase 04-priority-old-page-redesign P03 | 14min | 2 tasks | audit logs route redesign complete |
 | Phase 04-priority-old-page-redesign P04 | 45min | 2 tasks | profile route redesign complete |
 | Phase 04-priority-old-page-redesign P05 | 12min | 2/3 tasks | automated gates passed; human visual QA checkpoint |
+| Phase 04-priority-old-page-redesign P06 | 55min | 8 tasks | visual parity gap closure complete; UAT re-run needed |
