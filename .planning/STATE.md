@@ -5,15 +5,15 @@ milestone_name: Tailwind UI Migration
 current_phase: 03
 current_phase_name: app-shell-shared-surface-migration
 status: human verification needed
-stopped_at: Phase 03 gap closure complete; UAT recheck needed
-last_updated: "2026-07-01T03:04:33Z"
+stopped_at: Phase 03 residual gap closure complete; UAT recheck needed
+last_updated: "2026-07-01T03:40:00Z"
 last_activity: 2026-07-01
-last_activity_desc: Phase 03 Plan 08 gap closure fixed login social button sizing; UAT recheck needed
+last_activity_desc: Phase 03 Plan 09 kept Google social login icon and text inline; UAT recheck needed
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 23
-  completed_plans: 23
+  total_plans: 24
+  completed_plans: 24
   percent: 100
 ---
 
@@ -27,9 +27,9 @@ progress:
 ## Current Position
 
 Phase: 03 (app-shell-shared-surface-migration) - HUMAN VERIFICATION NEEDED
-Plan: 8 of 8 complete
-Status: Gap closure complete; UAT login social-button recheck required before phase completion
-Last activity: 2026-07-01 - Phase 03 Plan 08 restored login social button and icon dimensions
+Plan: 9 of 9 complete
+Status: Residual gap closure complete; UAT login social-button recheck required before phase completion
+Last activity: 2026-07-01 - Phase 03 Plan 09 kept Google social login icon and text inline
 
 ## Project Reference
 
@@ -101,6 +101,7 @@ See: `.planning/ROADMAP.md`
 - Phase 3 Plan 05 migrated student dashboard and weekly schedule surfaces to Tailwind/Ui primitives while preserving dashboard content states, schedule grouping, online/offline labels, and week navigation emits.
 - Phase 3 Plan 06 migrated assistant and student detail dialogs to Tailwind/Ui primitives while preserving salary, profile, score, and comment mutations and adding score delete confirmation.
 - Phase 3 Plan 08 restored disabled Google/GitHub login social buttons to 42px height and 20px icons using active Tailwind/template sizing in `LoginFormPane.vue`.
+- Phase 3 Plan 09 moved the Google social SVG into `UiButton`'s leading slot and added local no-wrap classes so icon and text stay on one row.
 
 ---
 *State updated: 2026-06-30 after Phase 3 Plan 06 completion*
@@ -130,3 +131,4 @@ See: `.planning/ROADMAP.md`
 | Phase 03-app-shell-shared-surface-migration P05 | 13min | 2 tasks | student dashboard and schedule migration complete |
 | Phase 03-app-shell-shared-surface-migration P06 | 14min | 2 tasks | shared detail dialog migration complete |
 | Phase 03-app-shell-shared-surface-migration P08 | 15min | 1 task | login social button UAT gap closure complete |
+| Phase 03-app-shell-shared-surface-migration P09 | 20min | 1 task | residual Google social button wrap closure complete |

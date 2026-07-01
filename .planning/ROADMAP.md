@@ -15,7 +15,7 @@ This roadmap resets planning for a frontend UI platform milestone. The work remo
 **Mode:** mvp
 **Requirements:** STYLE-01, STYLE-02, STYLE-03, STYLE-04
 **Status:** Complete (2026-06-30)
-**Plans:** 8/8 plans complete
+**Plans:** 9/9 plans complete
 Plans:
 
 - [x] 01-01-PLAN.md — Add minimal Tailwind icon, viewport, toast, pager, and language switcher blockers.
@@ -90,6 +90,7 @@ Plans:
 - [x] 03-06-PLAN.md — Migrate bounded low-risk shared detail dialog areas.
 - [x] 03-07-PLAN.md — Produce final migration inventory, validation evidence, and frontend gates.
 - [x] 03-08-PLAN.md — Close the login social button UAT gap by restoring 42px button and 20px icon sizing.
+- [x] 03-09-PLAN.md — Close the residual Google social button wrapping gap by moving the icon to the leading slot and preventing label wrap.
 
 **Cross-cutting constraints:**
 
@@ -191,4 +192,4 @@ Plans:
 - Old v1 phase plan artifacts were archived under `.planning/archive/v1-polish-phase-plans-2026-06-30/`.
 
 ---
-*Roadmap updated: 2026-07-01 after Phase 3 gap closure; login social-button UAT recheck pending*
+*Roadmap updated: 2026-07-01 after Phase 3 residual login social-button gap closure; UAT recheck pending*

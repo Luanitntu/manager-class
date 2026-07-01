@@ -4,7 +4,7 @@ phase: 03-app-shell-shared-surface-migration
 source:
   - 03-VERIFICATION.md
 started: 2026-07-01T02:10:44Z
-updated: 2026-07-01T10:04:33+07:00
+updated: 2026-07-01T10:40:00+07:00
 ---
 
 # Phase 03 UAT
@@ -37,6 +37,9 @@ reported: "2 nút login with google và github hơi bị thay đổi kích thư�
 severity: cosmetic
 fixed_in: 03-08-PLAN.md
 commit: b702dd7
+follow_up_reported: "Google icon and text still rendered as two rows."
+follow_up_fixed_in: 03-09-PLAN.md
+follow_up_commit: fd39dd4
 
 ### 4. Dialog smoke
 
@@ -72,6 +75,10 @@ blocked: 0
     - "Set both social icons to 20px in the active LoginFormPane template: explicit h-5 w-5 shrink-0 for Google SVG and an AppIcon slot with size 20 for GitHub."
   debug_session: ".planning/phases/03-app-shell-shared-surface-migration/03-UAT.md"
   resolution:
-    fixed_in: 03-08-PLAN.md
-    commit: b702dd7
-    summary: "LoginFormPane now applies local 42px social button sizing and 20px Google/GitHub icon sizing in active Tailwind/template markup."
+    fixed_in:
+      - 03-08-PLAN.md
+      - 03-09-PLAN.md
+    commits:
+      - b702dd7
+      - fd39dd4
+    summary: "LoginFormPane now applies local 42px social button sizing, 20px Google/GitHub icon sizing, moves the Google SVG into the UiButton leading slot, and prevents social labels from wrapping."
