@@ -134,11 +134,12 @@ const onSubmit = handleSubmit(
         <UiButton
           type="button"
           variant="secondary"
-          class="h-[42px] !min-h-[42px] w-full items-center justify-center text-sm"
+          class="h-[42px] !min-h-[42px] w-full items-center justify-center whitespace-nowrap text-sm"
           disabled
           title="Chưa hỗ trợ đăng nhập bằng mạng xã hội"
         >
-          <svg
+          <template #leading>
+            <svg
             class="h-5 w-5 shrink-0"
             viewBox="0 0 24 24"
             aria-hidden="true"
@@ -159,13 +160,14 @@ const onSubmit = handleSubmit(
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               fill="#EA4335"
             />
-          </svg>
+            </svg>
+          </template>
           <span>Google</span>
         </UiButton>
         <UiButton
           type="button"
           variant="secondary"
-          class="h-[42px] !min-h-[42px] w-full items-center justify-center text-sm"
+          class="h-[42px] !min-h-[42px] w-full items-center justify-center whitespace-nowrap text-sm"
           disabled
           title="Chưa hỗ trợ đăng nhập bằng mạng xã hội"
         >
