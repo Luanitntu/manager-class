@@ -42,93 +42,122 @@ async function create() {
 </script>
 
 <template>
-  <div>
-    <div class="d-flex align-center justify-space-between mb-6">
-      <div>
-        <h1 class="text-h5 font-weight-bold mb-1">Assistant Teachers</h1>
-        <p class="text-medium-emphasis ma-0">Assignments and salary.</p>
-      </div>
-      <v-btn color="primary" prepend-icon="mdi-account-plus" @click="createOpen = true">
-        New Assistant
-      </v-btn>
-    </div>
+  <UiPage>
+    <UiPageHeader title="Assistant Teachers" subtitle="Assignments and salary.">
+      <template #actions>
+        <UiButton leading-icon="mdi-account-plus" @click="createOpen = true">
+          Create assistant
+        </UiButton>
+      </template>
+    </UiPageHeader>
 
-    <v-text-field
-      v-model="search"
-      placeholder="Search assistants…"
-      prepend-inner-icon="mdi-magnify"
-      class="mb-4"
-      clearable
-      hide-details
-      style="max-width: 360px"
-    />
-
-    <v-card>
-      <AppSkeleton v-if="isLoading && !assistants.length" variant="list" :rows="5" />
-
-      <v-list v-else-if="assistants.length">
-        <template v-for="(a, i) in assistants" :key="a.id">
-          <v-list-item @click="openDetail(a.id)">
-            <template #prepend>
-              <v-avatar color="primary" size="36">
-                <v-img v-if="avatar(a)" :src="avatar(a)!" />
-                <span v-else class="text-white">{{ a.fullName[0] }}</span>
-              </v-avatar>
+    <div class="grid gap-4">
+      <UiToolbar align="start">
+        <div class="w-full max-w-[360px]">
+          <UiInput v-model="search" placeholder="Search assistants..." aria-label="Search assistants">
+            <template #leading>
+              <AppIcon name="mdi-magnify" :size="18" class="text-[var(--st-muted)]" />
             </template>
-            <v-list-item-title>{{ a.fullName }}</v-list-item-title>
-            <v-list-item-subtitle>
-              {{ a.email }}
-              <template v-if="a.phone"> - {{ a.phone }}</template>
-            </v-list-item-subtitle>
-            <template #append>
-              <div class="d-flex align-center ga-2">
-                <v-chip v-if="a.assistantProfile" size="small" variant="tonal">
-                  {{ salaryLabel[a.assistantProfile.salaryMethod] }} -
-                  {{ Number(a.assistantProfile.salaryRate).toLocaleString() }}
-                </v-chip>
-                <v-chip size="small" variant="tonal">
-                  {{ a._count?.classAssignments ?? 0 }} classes
-                </v-chip>
+            <template v-if="search" #trailing>
+              <UiIconButton
+                label="Clear assistant search"
+                icon="mdi-close"
+                size="compact"
+                @click="search = ''"
+              />
+            </template>
+          </UiInput>
+        </div>
+      </UiToolbar>
+
+      <UiList>
+        <li v-if="isLoading && !assistants.length" class="p-4">
+          <AppSkeleton variant="list" :rows="5" />
+        </li>
+
+        <template v-else-if="assistants.length">
+          <UiListItem
+            v-for="a in assistants"
+            :key="a.id"
+            as="button"
+            type="button"
+            class="w-full cursor-pointer text-left transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-100"
+            @click="openDetail(a.id)"
+          >
+            <template #leading>
+              <UiAvatar :src="avatar(a)" :name="a.fullName" :alt="a.fullName" size="md" />
+            </template>
+
+            <div class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div class="min-w-0">
+                <p class="truncate text-base font-semibold leading-[var(--st-leading-copy)] text-[var(--st-text)]">
+                  {{ a.fullName }}
+                </p>
+                <p class="mt-0.5 flex min-w-0 flex-wrap gap-x-2 gap-y-1 text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+                  <span class="min-w-0 truncate">{{ a.email }}</span>
+                  <span v-if="a.phone" class="min-w-0 truncate">{{ a.phone }}</span>
+                </p>
               </div>
-            </template>
-          </v-list-item>
-          <v-divider v-if="i < assistants.length - 1" />
-        </template>
-      </v-list>
-      <div v-else-if="!isLoading" class="pa-12 text-center text-medium-emphasis">
-        No assistants yet.
-      </div>
-    </v-card>
 
-    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
+              <div class="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+                <UiBadge v-if="a.assistantProfile" tone="primary">
+                  {{ salaryLabel[a.assistantProfile.salaryMethod] }}
+                  {{ Number(a.assistantProfile.salaryRate).toLocaleString() }}
+                </UiBadge>
+                <UiBadge tone="neutral">
+                  {{ a._count?.classAssignments ?? 0 }} classes
+                </UiBadge>
+              </div>
+            </div>
+          </UiListItem>
+        </template>
+
+        <li v-else-if="!isLoading" class="p-4">
+          <UiEmptyState
+            icon="mdi-account-multiple-outline"
+            heading="No assistants found"
+            body="Create an assistant or change your search."
+          >
+            <template #actions>
+              <UiButton leading-icon="mdi-account-plus" @click="createOpen = true">
+                Create assistant
+              </UiButton>
+            </template>
+          </UiEmptyState>
+        </li>
+      </UiList>
+
+      <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
+    </div>
 
     <AssistantDetailDialog v-model="detailOpen" :assistant-id="selectedId" />
 
-    <v-dialog v-model="createOpen" max-width="460">
-      <v-card>
-        <v-card-title>New assistant</v-card-title>
-        <v-card-text>
-          <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mb-4">
-            {{ error }}
-          </v-alert>
-          <v-text-field v-model="form.fullName" label="Full name" />
-          <v-text-field v-model="form.email" label="Email" type="email" />
-          <v-text-field v-model="form.password" label="Temporary password" />
-          <v-text-field v-model="form.phone" label="Phone (optional)" />
-        </v-card-text>
-        <v-card-actions class="px-4 pb-4">
-          <v-spacer />
-          <v-btn variant="text" @click="createOpen = false">Cancel</v-btn>
-          <v-btn
-            color="primary"
+    <UiDialog v-model="createOpen" title="Create assistant" size="sm">
+      <form class="grid gap-4" @submit.prevent="create">
+        <UiAlert v-if="error" tone="error">
+          {{ error }}
+        </UiAlert>
+
+        <UiInput v-model="form.fullName" label="Full name" required autocomplete="name" />
+        <UiInput v-model="form.email" label="Email" type="email" required autocomplete="email" />
+        <UiInput v-model="form.password" label="Temporary password" required autocomplete="new-password" />
+        <UiInput v-model="form.phone" label="Phone (optional)" autocomplete="tel" />
+      </form>
+
+      <template #footer>
+        <UiActionGroup>
+          <UiButton variant="secondary" @click="createOpen = false">
+            Cancel
+          </UiButton>
+          <UiButton
             :loading="createAssistant.isPending.value"
             :disabled="!form.fullName || !form.email || form.password.length < 8"
             @click="create"
           >
-            Create
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+            Create assistant
+          </UiButton>
+        </UiActionGroup>
+      </template>
+    </UiDialog>
+  </UiPage>
 </template>
