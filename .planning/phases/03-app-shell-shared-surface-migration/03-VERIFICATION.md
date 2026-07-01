@@ -1,88 +1,188 @@
-# Phase 03 Verification Evidence
+---
+phase: 03-app-shell-shared-surface-migration
+verified: 2026-07-01T02:10:44Z
+status: human_needed
+score: 7/15 must-haves verified
+behavior_unverified: 8
+overrides_applied: 0
+behavior_unverified_items:
+  - truth: "APP-04 calendar-first teacher workflow remains accessible and visually consistent after shell migration."
+    test: "Login as teacher, open shell and /calendar on desktop and mobile, then create/open/drop a calendar session."
+    expected: "Calendar remains primary, route access works, create/open/drag-drop feedback remains correct, no clipping or overlap."
+    why_human: "Source wiring exists, but runtime navigation, authenticated data, drag/drop, and visual parity require browser UAT."
+  - truth: "APP-05 migrated app shell and shared surfaces preserve visual parity with no broken spacing, overlap, missing controls, or responsive regressions."
+    test: "Review shell, auth, calendar, SessionDialog, dashboards, StudentSchedule, StudentDetailDialog, and AssistantDetailDialog at desktop and mobile widths."
+    expected: "No broken layout, overlap, clipped controls, unreadable text, missing loading/empty/error states, or unintended regressions."
+    why_human: "No screenshots or authenticated browser session were available; only source/manual notes and static gates exist."
+  - truth: "Auth pages preserve validation, loading, error, remember-me, redirect, disabled social-auth, reset, and verify behavior."
+    test: "Exercise login/register/forgot/reset/verify flows with valid and invalid input."
+    expected: "Existing handlers run, validation/errors/loading render, redirects and disabled social buttons behave as before."
+    why_human: "Form ownership and handlers are present in source, but no behavioral test exercises the runtime flows."
+  - truth: "Teacher calendar board preserves month/week behavior, create/open/drop handlers, detail panel, and toast feedback."
+    test: "Use month/week controls, create from cell, open session, drag/drop, and trigger success/error toast."
+    expected: "Events and emits map to TeacherCalendar handlers; saved/drop reload and toast feedback behave correctly."
+    why_human: "Emits and handlers are wired, but drag/drop and toast behavior are not covered by automated tests."
+  - truth: "SessionDialog preserves create/edit/recurrence/delete/status scheduling contracts and saved reload."
+    test: "Create single, create recurring, edit, delete with confirmation, mark complete, reopen, and verify calendar reload."
+    expected: "Existing session mutations run with loading guards/errors; saved emit triggers reload."
+    why_human: "Mutation calls and emits are in source, but scheduling state transitions are untested in this verification."
+  - truth: "Teacher dashboard, student dashboard, and StudentSchedule preserve existing data display, empty/loading states, routes, and week navigation."
+    test: "Open dashboards/schedule with populated, empty, and loading data on desktop/mobile; use week previous/today/next."
+    expected: "Data and actions remain visible; calendar CTA remains prominent; schedule emits still update parent week."
+    why_human: "Props/emits and route wiring exist, but data-state rendering and responsive behavior need browser UAT."
+  - truth: "StudentDetailDialog and AssistantDetailDialog preserve profile/score/comment/salary mutations and confirmations."
+    test: "Open both dialogs, edit salary/profile, add/delete score, add comment, and verify loading/error/empty states."
+    expected: "Existing composable mutations run; destructive score delete is confirmed; data refresh behavior remains intact."
+    why_human: "Composable wiring and confirm dialog exist, but dialog mutation flows are not covered by an automated test."
+  - truth: "Final visual QA evidence includes desktop/mobile notes or screenshots for all Phase 3 migrated surfaces."
+    test: "Review actual screenshots or perform authenticated manual browser QA for each QA matrix row."
+    expected: "Evidence proves shell/auth/calendar/dashboards/schedule/dialogs at both widths."
+    why_human: "The phase artifact honestly records manual/source QA notes only; screenshots were unavailable."
+human_verification:
+  - test: "Teacher shell/calendar smoke"
+    expected: "Teacher shell shows Dashboard and Calendar in daily nav; /calendar opens TeacherCalendar; create/open/drop/session saved reload work at desktop and mobile widths."
+    why_human: "Requires authenticated browser session and calendar interaction."
+  - test: "Student shell/dashboard/schedule smoke"
+    expected: "Student shell shows student calendar/classes/documents/assignments/grades/tests; dashboard and schedule loading/populated/empty states are usable and responsive."
+    why_human: "Requires student data states and viewport inspection."
+  - test: "Auth flow smoke"
+    expected: "Login/register/forgot/reset/verify keep validation, loading, errors, redirects, and disabled social buttons."
+    why_human: "Requires runtime auth route flow testing."
+  - test: "Dialog smoke"
+    expected: "SessionDialog, StudentDetailDialog, and AssistantDetailDialog preserve mutations, confirmations, scroll, loading, empty, and error states without clipping/overlap."
+    why_human: "Requires authenticated data and interactive browser validation."
+---
 
-**Updated:** 2026-07-01T08:48:39+07:00  
-**Scope:** Phase 3 app shell, auth surface, teacher calendar, SessionDialog, dashboards, student schedule, shared detail dialogs, final inventory, and deferred old-UI boundary.
+# Phase 03: App Shell and Shared Surface Migration Verification Report
 
-## Automated Verification
+**Phase Goal:** Replace Vuetify-dependent shell/shared surfaces with Tailwind implementations while preserving navigation, teacher calendar access, and visual parity.
+**Verified:** 2026-07-01T02:10:44Z
+**Status:** human_needed
+**Re-verification:** No, initial frontmatter verification. Existing `03-VERIFICATION.md` had evidence but no frontmatter status.
 
-| Check | Command | Result | Notes |
-| --- | --- | --- | --- |
-| Target-scope old marker scan | `$pattern = '(<)/?v-[a-z]|(<)style|lang="scss"|\.scss|:deep\(\.v-'; rg -n $pattern <Phase 3 target files>; exit 0` | PASS | No matches in `default.vue`, `auth.vue`, auth surfaces, teacher/student calendar targets, dashboards, `StudentSchedule.vue`, `SessionDialog.vue`, `StudentDetailDialog.vue`, or `AssistantDetailDialog.vue`. |
-| Broad app old marker scan | `$pattern = '(<)/?v-[a-z]|(<)style|lang="scss"|\.scss|:deep\(\.v-'; rg -n $pattern client/app` | PASS with deferred matches | Remaining matches are outside Phase 3 target scope and are classified in `03-MIGRATION-INVENTORY.md` as Phase 4 page scope, admin/center out of scope, Phase 5 cleanup, or later general page cleanup. |
-| UI-kit boundary scan | `rg -n '(useApi|useAuthStore|useSessions|useStudents|useAssistants|useAuditLogs|useClasses|fetch\(|\$fetch)' client/app/components/ui; if ($LASTEXITCODE -eq 0) { exit 1 } else { exit 0 }` | PASS | No API, auth store, feature composable, `fetch`, or `$fetch` ownership found in `client/app/components/ui`. |
-| Frontend lint | `$env:Path = "$env:LOCALAPPDATA\nvm\v24.11.1;$env:Path"; npm.cmd --prefix client run lint` | PASS | Exit 0. Existing warnings only in Phase 4 `client/app/pages/audit-logs.vue` lines 59, 61, 63, and 65 for `vue/first-attribute-linebreak`. |
-| Frontend typecheck | `$env:Path = "$env:LOCALAPPDATA\nvm\v24.11.1;$env:Path"; npm.cmd --prefix client run typecheck` | PASS | Exit 0. Existing Volar warning printed: `Load plugin failed: vue-router/volar/sfc-route-blocks`; no type errors. |
-| Frontend build | `$env:Path = "$env:LOCALAPPDATA\nvm\v24.11.1;$env:Path"; npm.cmd --prefix client run build` | PASS | Exit 0. Existing warning-only output: Nuxt i18n optimization warning, sourcemap warnings, chunk-size warning, and Node `fs.Stats` deprecation warning. Build completed. |
+## Goal Achievement
 
-## Backend Verification
+### Observable Truths
 
-Backend checks were not run because Phase 3 Plan 07 changed only planning documentation:
+| # | Truth | Status | Evidence |
+|---|---|---|---|
+| 1 | APP-01 shared app layouts no longer use Vuetify shell primitives. | VERIFIED | Verifier target scan found no `<v-*`, `<style>`, `lang="scss"`, `.scss`, or `:deep(.v-)` in `client/app/layouts/default.vue`, `client/app/layouts/auth.vue`, and auth shell targets. `default.vue` role nav still defines teacher, assistant, student, and admin branches with `/calendar` in teacher/assistant/student daily nav. |
+| 2 | APP-02 reusable dialogs and high-traffic shared components no longer depend on Vuetify primitives in Phase 3 target scope. | VERIFIED | Target scan clean for `SessionDialog.vue`, `StudentDetailDialog.vue`, `AssistantDetailDialog.vue`, calendar components, dashboards, and `StudentSchedule.vue`. Source uses `UiDialog`, `UiConfirmDialog`, `UiSelect`, `UiTabs`, `UiTable`, `UiEmptyState`, `UiButton`, `UiCard`, etc. |
+| 3 | APP-03 remaining old UI/Vuetify usages are inventoried with explicit deferrals. | VERIFIED | `03-MIGRATION-INVENTORY.md` lists target-scope clean status plus exact remaining marker refs grouped as Phase 4 page scope, admin/center out of scope, Phase 5 cleanup, or later general page cleanup. `REQUIREMENTS.md` still marks APP-03 Pending, but code/artifact evidence satisfies the requirement; orchestrator owns status updates. |
+| 4 | APP-04 calendar-first teacher workflow remains accessible and visually consistent. | PRESENT_BEHAVIOR_UNVERIFIED | `/calendar` routes to `TeacherCalendar` for non-students, `default.vue` links Calendar for teacher/assistant, and `TeacherCalendar.vue` wires board/detail/dialog saved reload. Visual consistency and runtime drag/drop/create/open behavior need UAT. |
+| 5 | APP-05 migrated shell/shared surfaces preserve visual parity at desktop and mobile widths. | PRESENT_BEHAVIOR_UNVERIFIED | Source includes responsive Tailwind classes and final QA matrix records manual/source notes. No screenshots/authenticated browser session were available, so visual parity is not independently proven. |
+| 6 | Auth flows preserve validation/loading/error/redirect behavior; UI primitives only display external state. | PRESENT_BEHAVIOR_UNVERIFIED | Auth components use existing handlers/VeeValidate/Zod ownership and build/typecheck pass. No runtime auth flow test was executed. |
+| 7 | Teacher calendar board preserves month/week, create/open/drop, detail, and toast feedback. | PRESENT_BEHAVIOR_UNVERIFIED | `TeacherCalendarBoard.vue` emits `create`, `open`, `drag-start`, `drag-end`, `cell-drop`; `TeacherCalendar.vue` handles reload/toast/session dialog. No browser interaction test exists. |
+| 8 | SessionDialog preserves create/edit/recurrence/delete/status contracts and saved reload. | PRESENT_BEHAVIOR_UNVERIFIED | `SessionDialog.vue` keeps props/emits, `create/update/bulkCreate/remove`, timezone handling, delete confirm, status actions, and `emit('saved')`. No behavioral scheduling test was run. |
+| 9 | Teacher dashboard preserves calendar CTA and current data display. | PRESENT_BEHAVIOR_UNVERIFIED | `TeacherWorkspaceDashboard.vue` consumes props/computed data and links calendar CTA; route page still renders it for TEACHER/ASSISTANT. Browser data-state and visual checks remain human. |
+| 10 | Student dashboard and StudentSchedule preserve data states and week navigation. | PRESENT_BEHAVIOR_UNVERIFIED | `StudentCalendar.vue` passes sessions/weekStart to `StudentSchedule` and handles `previous/next/today`; source wiring exists. Runtime state/rendering needs UAT. |
+| 11 | Detail dialogs preserve student/assistant mutations and destructive confirmation. | PRESENT_BEHAVIOR_UNVERIFIED | `StudentDetailDialog.vue` uses `updateProfile/addScore/deleteScore/addComment` plus `UiConfirmDialog`; `AssistantDetailDialog.vue` uses `updateSalary`. Runtime mutation flow untested. |
+| 12 | Main Phase 3 target scope is scan-clean for old Vuetify/SCSS markers. | VERIFIED | Verifier-owned `rg` over all Phase 3 target files exited 1 with no matches. |
+| 13 | Frontend lint/typecheck/build evidence exists and passes. | VERIFIED | Verifier ran lint/typecheck/build from repo root via `npm.cmd --prefix client`. All exited 0. Lint has four warnings in Phase 4 `audit-logs.vue`; typecheck has existing Volar warning; build has warning-only chunk/sourcemap/deprecation output. |
+| 14 | UI kit boundary remains data-agnostic. | VERIFIED | Verifier `rg` for `useApi`, feature composables, auth store, `fetch(`, and `$fetch` under `client/app/components/ui` returned no matches. |
+| 15 | Backend verification not required. | VERIFIED | Phase 3 target changes are frontend/planning; no server files are in Phase 3 plans. Backend checks skipped per project rule. |
 
-- `.planning/phases/03-app-shell-shared-surface-migration/03-MIGRATION-INVENTORY.md`
-- `.planning/phases/03-app-shell-shared-surface-migration/03-VERIFICATION.md`
+**Score:** 7/15 truths verified. 8 present but behavior/visual-unverified.
 
-No files under `server/` changed, and no frontend source files changed in Plan 07.
+### Required Artifacts
 
-## APP Requirement Evidence
+| Artifact | Expected | Status | Details |
+|---|---|---|---|
+| `client/app/layouts/default.vue` | Role-aware Tailwind shell | VERIFIED | Shell has auth store, route-based drawer close, role nav groups, profile menu, logout, calendar links; target scan clean. |
+| `client/app/layouts/auth.vue` | Auth layout wrapper | VERIFIED | Target scan clean. |
+| `client/app/components/AuthShell.vue` | Tailwind auth brand shell | VERIFIED | Target scan clean; used by recovery/reset/verify pages. |
+| Auth form/page components | Login/register/recovery/reset/verify migration | VERIFIED | Target scan clean; handlers remain in component/page source. |
+| Calendar components | Teacher/student calendar shared surfaces | VERIFIED | Target scan clean; board emits and orchestrator handlers wired. |
+| `client/app/components/SessionDialog.vue` | Calendar-critical dialog | VERIFIED | Substantive source with props/emits, mutations, recurrence, confirm dialog, saved emit. |
+| Dashboard/schedule components | Teacher/student shared surfaces | VERIFIED | Target scan clean and routed from `dashboard.vue` / `StudentCalendar.vue`. |
+| `StudentDetailDialog.vue`, `AssistantDetailDialog.vue` | Shared detail dialogs | VERIFIED | Target scan clean; mutations and confirms wired in source. |
+| `03-MIGRATION-INVENTORY.md` | APP-03 inventory | VERIFIED | Exact target status and broad-app deferrals documented. |
 
-| Requirement | Status | Evidence |
-| --- | --- | --- |
-| APP-01 | COVERED | Plan 03-01 migrated auth shell/pages and preserved role-aware shell behavior; final target scan is clean for layout/auth shell files. |
-| APP-02 | COVERED | Plans 03-02 through 03-06 migrated calendar, SessionDialog, dashboards, schedule, and shared detail dialogs; final target scan is clean. |
-| APP-03 | COVERED | `03-MIGRATION-INVENTORY.md` records exact remaining old UI markers with Phase 4, admin/center, Phase 5 cleanup, and later general page classifications. |
-| APP-04 | COVERED | Plans 03-02, 03-03, and 03-04 preserve teacher calendar entry, calendar board flows, SessionDialog saved reload, and teacher dashboard calendar CTA. |
-| APP-05 | COVERED | Per-plan visual QA notes plus this final QA matrix cover desktop/mobile layout parity, no overlap/clipping, and state preservation for migrated Phase 3 surfaces. |
+### Key Link Verification
 
-## QA Matrix
+| From | To | Via | Status | Details |
+|---|---|---|---|---|
+| `default.vue` | role-aware navigation | auth store role branches | VERIFIED | Teacher/assistant/student nav includes `/calendar`; mobile drawer close handlers preserved. |
+| `pages/calendar.vue` | `TeacherCalendar` / `StudentCalendar` | auth role computed | VERIFIED | Students get `StudentCalendar`; non-students get `TeacherCalendar`; teachers can edit. |
+| `TeacherCalendarBoard.vue` | `TeacherCalendar.vue` | emits | VERIFIED | `create/open/drag-start/drag-end/cell-drop/today/previous/next` are handled by parent. |
+| `TeacherCalendar.vue` | `SessionDialog.vue` | `v-model`, `prefill`, `session`, `@saved=reload` | VERIFIED | Saved reload path exists. |
+| `StudentCalendar.vue` | `StudentSchedule.vue` | props and emits | VERIFIED | `sessions`, `is-loading`, `week-start`, and `previous/next/today` are wired. |
+| `dashboard.vue` | dashboard components | auth/dashboard role | VERIFIED | Student, teacher/assistant, admin dashboard branches remain. |
+| Detail dialogs | feature composables | existing mutations | VERIFIED | Student and assistant mutation composables are imported and called. |
 
-| Area | desktop evidence | mobile evidence | Responsible plans | Result |
-| --- | --- | --- | --- | --- |
-| Shell | Teacher/default and assistant nav retain dashboard/calendar daily group, topbar, language switcher, announcement, profile menu, logout, and teacher calendar quick action. Student nav retains dashboard, student calendar, classes, documents, assignments, grades, and tests. | Drawer remains overlay below `lg`, closes by route/backdrop/Escape via preserved shell behavior, and route labels truncate/wrap without horizontal scroll. | 03-01, 03-07 | PASS |
-| Auth | Login/register keep split visual/form layout, max-width forms, disabled social buttons, validation, loading, redirects, and toast behavior. Forgot/reset/verify states use `AuthShell`, `UiAlert`, `UiSpinner`, semantic icons, and object-specific actions. | Visual pane hides at mobile width; forms stay centered with readable padding and no nested-card layout or clipped controls. | 03-01, 03-07 | PASS |
-| Calendar | Teacher calendar board remains one primary surface with toolbar, 7-column month/week grid, today marker, event rows, cancellation styling, `+N` overflow, create-from-cell, open-from-event, drag/drop, loading skeleton, and detail panel. | Calendar grid keeps minimum width inside horizontal overflow; labels truncate safely, event controls remain reachable, and detail empty/active states do not overlap. | 03-02, 03-07 | PASS |
-| SessionDialog | Create single, create recurring, edit, delete confirmation, mark completed, and reopen paths preserve class/instructor/date/time/topic/weekday/timezone fields, saved reload, loading guards, and API error display. | `UiDialog` bounds height to the viewport, body scrolls internally, and footer groups stack so destructive/status/cancel/save controls do not clip. | 03-03, 03-07 | PASS |
-| Dashboards | Teacher next-session present/empty hero, metrics, upcoming sessions, mini calendar, action items, and calendar CTA remain stable. Student next-session hero, stat cards, urgent sessions, progress, tasks, and study stats remain visible. | Teacher and student dashboard grids stack to one column; long class/session/task text uses min-width, truncation, or wrapping safeguards. | 03-04, 03-05, 03-07 | PASS |
-| Schedule | Student weekly schedule preserves previous/next/today emits, left date rail, grouped day cards, today badge, online/offline labels, and action buttons. | Header/nav stack safely, day rows stack above cards, metadata becomes one column, and action buttons become full-width where needed. | 03-05, 03-07 | PASS |
-| Dialogs | Assistant dialog keeps salary controls, summary metrics, salary table, assigned classes, skeleton, and empty state. Student dialog keeps profile, score form/list/delete confirmation, comments, tabs, skeleton, and empty states. | Dialog body scrolls internally; salary controls/profile/score/comment forms stack; tables and tabs remain horizontally safe; delete confirmation stays explicit. | 03-06, 03-07 | PASS |
+### Data-Flow Trace
 
-Runtime screenshot capture was not performed in this execution context because no authenticated app data/browser session was available. Evidence is manual/source visual QA from migrated templates, prior plan summaries, static marker scans, lint, typecheck, and build.
+| Artifact | Data Variable | Source | Produces Real Data | Status |
+|---|---|---|---|---|
+| `TeacherCalendar.vue` | `sessions` | `fetchSessionRange(range.from, range.to)` | Yes, feature composable | FLOWING |
+| `StudentCalendar.vue` | `sessions` | `fetchSessionRange(range.from, range.to)` | Yes, feature composable | FLOWING |
+| `dashboard.vue` | `data` | `useDashboard()` | Yes, feature composable | FLOWING |
+| `StudentDetailDialog.vue` | `student` | `useStudent(studentId)` | Yes, feature composable | FLOWING |
+| `AssistantDetailDialog.vue` | `assistant`, `salary` | `useAssistant`, `useAssistantSalary` | Yes, feature composables | FLOWING |
+| `03-MIGRATION-INVENTORY.md` | old marker refs | verifier/static `rg` output | Yes, exact file/line refs | FLOWING |
 
-## Source Coverage Audit
+### Behavioral Spot-Checks
 
-| Source | ID | Feature/Requirement | Responsible plan | Status | Notes |
-| --- | --- | --- | --- | --- | --- |
-| GOAL | Phase 3 | Replace Vuetify-dependent shell/shared surfaces while preserving navigation, teacher calendar access, and visual parity. | 03-01..03-07 | COVERED | Shell/auth, calendar, SessionDialog, dashboards, schedule, shared dialogs, inventory, and final gates complete. |
-| REQ | APP-01 | Shared app layouts no longer use Vuetify shell primitives. | 03-01, 03-07 | COVERED | Target scan clean for layouts/auth shell. |
-| REQ | APP-02 | Reusable dialogs and high-traffic shared components no longer depend on Vuetify primitives. | 03-02..03-07 | COVERED | Calendar, SessionDialog, dashboards, schedule, and detail dialogs are target-scope scan clean. |
-| REQ | APP-03 | Remaining old UI/Vuetify usage inventory documented. | 03-06, 03-07 | COVERED | Exact deferred marker inventory exists in `03-MIGRATION-INVENTORY.md`. |
-| REQ | APP-04 | Calendar-first teacher workflow remains accessible and visually consistent. | 03-02, 03-03, 03-04, 03-07 | COVERED | Calendar actions, SessionDialog saved reload, and teacher dashboard calendar CTA preserved. |
-| REQ | APP-05 | Migrated surfaces preserve visual parity with no broken spacing/overlap/missing controls/regressions. | 03-01..03-07 | COVERED | QA Matrix covers desktop and mobile evidence. |
-| RESEARCH | Order | Recommended order: shell/auth, teacher calendar, SessionDialog, teacher dashboard, student dashboard/schedule, low-risk dialogs, inventory/verification. | 03-01..03-07 | COVERED | Phase 3 executed in recommended order. |
-| RESEARCH | No backend unless contract bug | Frontend-only verification unless backend touched. | 03-01..03-07 | COVERED | Backend untouched in Plan 07; no server gates required. |
-| RESEARCH | No package installs | Use local Ui primitives only. | 03-01..03-07 | COVERED | No dependency changes in Plan 07. |
-| RESEARCH | UI-kit boundary | Ui components remain data-agnostic. | 03-07 | COVERED | Boundary scan passed. |
-| CONTEXT | D-01 | Teacher/student/auth/shared priority; admin/center deferred unless shell requires. | 03-01, 03-05, 03-07 | COVERED | Inventory classifies admin/center out of scope. |
-| CONTEXT | D-02 | Tiny low-risk non-core cleanup may be opportunistic. | 03-07 | COVERED | Inventory records no extra Phase 3 cleanup required. |
-| CONTEXT | D-03 | Main scope scan-clean; out-of-scope clearly listed. | 03-02, 03-06, 03-07 | COVERED | Target scan clean; broad scan inventory lists deferred markers. |
-| CONTEXT | D-04 | SessionDialog highest-risk shared dialog. | 03-03 | COVERED | Dedicated SessionDialog plan and final QA coverage. |
-| CONTEXT | D-05 | SessionDialog scheduling correctness over polish. | 03-03 | COVERED | Mutation, recurrence, timezone, delete/status, and saved emit behavior preserved. |
-| CONTEXT | D-06 | Student/Assistant detail dialogs bounded migration or inventory. | 03-06, 03-07 | COVERED | Both target dialogs fully migrated; bounded dialog remainder is none. |
-| CONTEXT | D-07 | Teacher calendar workflow first. | 03-02, 03-04 | COVERED | Calendar before dashboards; teacher CTA preserved. |
-| CONTEXT | D-08 | Teacher dashboard before student dashboard/schedule. | 03-04, 03-05 | COVERED | Execution followed required order. |
-| CONTEXT | D-09 | Calendar parity, no major redesign. | 03-02 | COVERED | Calendar layout and interactions preserved. |
-| CONTEXT | D-10 | Whole auth surface in Phase 3. | 03-01 | COVERED | Auth wrapper/forms/pages migrated. |
-| CONTEXT | D-11 | Auth aligns with Tailwind shell and preserves flows. | 03-01 | COVERED | Validation, loading, submit, redirect, and recovery/verify states preserved. |
-| CONTEXT | D-12 | Auth validation logic stays page/form/composable-owned. | 03-01 | COVERED | Ui primitives display external state only. |
-| CONTEXT | D-13 | QA covers teacher/student/assistant shell branches. | 03-01, 03-07 | COVERED | Shell row in QA Matrix covers teacher/default, student, and assistant branches; admin pages deferred. |
-| CONTEXT | D-14 | QA covers desktop and mobile-width viewports. | 03-01..03-07 | COVERED | Every QA Matrix row includes desktop and mobile evidence. |
-| CONTEXT | D-15 | Evidence includes checklist notes plus screenshots/manual notes. | 03-03, 03-07 | COVERED | Manual/source visual notes plus prior plan summaries used; screenshot capture deferred due auth/browser context. |
+| Behavior | Command | Result | Status |
+|---|---|---|---|
+| Target old-marker scan | `rg -n '(<)/?v-[a-z]|(<)style|lang="scss"|\\.scss|:deep\\(\\.v-' <Phase 3 target files>` | Exit 1, no matches | PASS |
+| Broad old-marker scan | `rg -n '(<)/?v-[a-z]|(<)style|lang="scss"|\\.scss|:deep\\(\\.v-' client/app` | Exit 0 with remaining deferred matches | PASS_WITH_DEFERRALS |
+| UI-kit boundary scan | `rg -n '(useApi|useAuthStore|useSessions|useStudents|useAssistants|useAuditLogs|useClasses|fetch\\(|\\$fetch)' client/app/components/ui` | Exit 1, no matches | PASS |
+| Frontend lint | `npm.cmd --prefix client run lint` | Exit 0; four `audit-logs.vue` warnings | PASS |
+| Frontend typecheck | `npm.cmd --prefix client run typecheck` | Exit 0; existing Volar plugin warning | PASS |
+| Frontend build | `npm.cmd --prefix client run build` | Exit 0; warning-only Nuxt/i18n/sourcemap/chunk/deprecation output | PASS |
 
-## Known Warning Summary
+### Requirements Coverage
 
-- `client/app/pages/audit-logs.vue` lint warnings are pre-existing/Phase 4 scope and lint exits 0.
-- `vue-router/volar/sfc-route-blocks` Volar plugin warning is an existing toolchain warning and typecheck exits 0.
-- Build warnings are warning-only and match prior Phase 3 summaries.
+| Requirement | Source Plan | Description | Status | Evidence |
+|---|---|---|---|---|
+| APP-01 | 03-01, 03-07 | Shared app layouts no longer use Vuetify shell components. | SATISFIED | Target scan clean for shell/auth files; role nav source inspected. |
+| APP-02 | 03-02..03-07 | Reusable dialogs/high-traffic shared components no longer depend on Vuetify primitives. | SATISFIED | Target scan clean for calendar, dialogs, dashboards, schedule; UI primitives wired. |
+| APP-03 | 03-06, 03-07 | Inventory remaining old UI/Vuetify usages after sweep. | SATISFIED_WITH_TRACE_NOTE | Inventory exists with exact refs/deferrals. `REQUIREMENTS.md` status remains Pending; not updated by verifier. |
+| APP-04 | 03-02..03-04, 03-07 | Calendar-first teacher workflow remains accessible and visually consistent. | HUMAN_NEEDED | Access/wiring verified; visual/runtime interaction needs UAT. |
+| APP-05 | 03-01..03-07 | Visual parity, no broken spacing/overlap/missing controls/responsive regressions. | HUMAN_NEEDED | Source/manual QA notes exist; screenshots/runtime visual proof unavailable. |
 
-## Generated Artifacts
+### Anti-Patterns Found
 
-Nuxt generated cache/build outputs during typecheck/build under ignored client build/cache locations. No generated artifacts were intentionally committed.
+| File | Line | Pattern | Severity | Impact |
+|---|---|---|---|---|
+| Phase 3 target files | n/a | `TODO/FIXME/XXX/HACK` | None | No blocker debt markers found in target files. |
+| Phase 3 target files | n/a | `placeholder` | Info | Matches are normal input placeholders, not stubs. |
+| `client/app/pages/classes/index.vue` | 47 | `PLACEHOLDER` | Info | Outside Phase 3 target and modified scope; general cleanup/Phase 5-or-later page debt, not a Phase 3 blocker. |
+
+### Human Verification Required
+
+1. **Teacher shell/calendar smoke**
+
+**Test:** Login as teacher, inspect shell on desktop/mobile, open `/calendar`, create/open/drop a session, save from `SessionDialog`.
+**Expected:** Calendar stays primary and usable; no clipping/overlap; saved/drop paths reload and show feedback.
+**Why human:** Requires authenticated browser and interaction.
+
+2. **Student shell/dashboard/schedule smoke**
+
+**Test:** Login as student, inspect shell/dashboard/schedule loading, populated, and empty states on desktop/mobile.
+**Expected:** Navigation and schedule week controls remain usable; no visual regressions.
+**Why human:** Requires student data states and viewport inspection.
+
+3. **Auth flow smoke**
+
+**Test:** Exercise login/register/forgot/reset/verify with valid/invalid states.
+**Expected:** Validation, loading, errors, redirects, disabled social auth, and recovery/verify states are preserved.
+**Why human:** Runtime auth flows were not automated.
+
+4. **Dialog smoke**
+
+**Test:** Exercise `SessionDialog`, `StudentDetailDialog`, and `AssistantDetailDialog` create/edit/delete/status/salary/comment paths.
+**Expected:** Mutations, confirmations, loading/error/empty states, and internal scroll work without broken layout.
+**Why human:** Source wiring exists, but no behavioral tests/screenshots prove these flows.
+
+### Gaps Summary
+
+No code/artifact blocker gaps found for Phase 3 target scope. Status is `human_needed` because visual parity and interactive state-transition truths are present and wired but not behaviorally proven by screenshots, browser UAT, or automated interaction tests.
+
+---
+
+_Verified: 2026-07-01T02:10:44Z_
+_Verifier: the agent (gsd-verifier)_
+
+## Verification Complete
