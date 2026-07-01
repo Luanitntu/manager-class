@@ -2,6 +2,7 @@
 const { lgAndUp } = useViewport();
 const drawer = ref(false);
 const profileMenuOpen = ref(false);
+const profileDialogOpen = ref(false);
 const profileMenuRef = ref<HTMLElement | null>(null);
 const auth = useAuthStore();
 const { logout } = useAuth();
@@ -160,6 +161,11 @@ function closeDrawerOnMobile() {
 async function handleLogout() {
   profileMenuOpen.value = false;
   await logout();
+}
+
+function openProfileDialog() {
+  profileMenuOpen.value = false;
+  profileDialogOpen.value = true;
 }
 </script>
 
@@ -361,15 +367,15 @@ async function handleLogout() {
             role="menu"
             @keydown.escape.stop="profileMenuOpen = false"
           >
-            <NuxtLink
-              to="/profile"
-              class="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+            <button
+              type="button"
+              class="flex w-full items-center gap-3 px-3 py-2 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
               role="menuitem"
-              @click="profileMenuOpen = false"
+              @click="openProfileDialog"
             >
               <AppIcon name="mdi-account-outline" :size="18" class="text-slate-500" />
               {{ t('nav.profile') }}
-            </NuxtLink>
+            </button>
             <NuxtLink
               v-if="isStudentShell"
               to="/profile"
@@ -407,5 +413,12 @@ async function handleLogout() {
         <slot />
       </div>
     </main>
+
+    <UiDialog v-model="profileDialogOpen" title="Profile" size="lg">
+      <template #description>
+        Update your account details without leaving the current workspace.
+      </template>
+      <ProfileEditorPanel />
+    </UiDialog>
   </div>
 </template>
