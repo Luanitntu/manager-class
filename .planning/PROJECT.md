@@ -29,6 +29,16 @@ Teachers and students can reliably see and act on the right class data through a
 - **Success metric**: The app uses one Tailwind-based UI system for the v1.1 priority surface, has no Vuetify/SCSS package/config dependency surface, and migrated pages look/function like the intended current UI without broken or regressed layouts.
 - **Strategy notes**: Center role remains deferred; this milestone is frontend polish and maintainability.
 
+## Current State
+
+v1.1 Tailwind UI Migration shipped on 2026-07-01. The priority teacher/student surface is Tailwind-first, the shared UI kit is in place, frontend lint/typecheck/build pass, and Phase 5 verification records target smoke/static scans plus authenticated visual QA.
+
+## Next Milestone Goals
+
+- Full-product UI polish for deferred admin/general/student old UI surfaces outside the v1.1 priority smoke scope.
+- Continue teacher/student-first workflows and keep center role deferred unless explicitly re-prioritized.
+- Preserve calendar-first teacher navigation while expanding consistency across remaining pages.
+
 ## Requirements
 
 ### Validated

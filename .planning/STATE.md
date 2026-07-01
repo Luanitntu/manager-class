@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Tailwind UI Migration
 current_phase: 05
-current_phase_name: verification-&-cleanup
-status: complete
-stopped_at: Phase 05 complete
-last_updated: "2026-07-01T16:35:18.415Z"
+status: Awaiting next milestone
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-07-01T16:54:30.223Z"
 last_activity: 2026-07-01
-last_activity_desc: Phase 05 complete
+last_activity_desc: Milestone v1.1 completed and archived
 progress:
   total_phases: 5
   completed_phases: 5
   total_plans: 34
   completed_plans: 34
   percent: 100
+current_phase_name: verification-&-cleanup
 ---
 
 # Project State
@@ -26,17 +26,17 @@ progress:
 
 ## Current Position
 
-Phase: 05 (verification-&-cleanup) - COMPLETE
-Plan: Not started
-Status: Complete
-Last activity: 2026-07-01 — Phase 05 complete
+Phase: Milestone v1.1 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-01 — Milestone v1.1 completed and archived
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-07-01)
 
 **Core value:** Teachers and students can reliably see and act on the right class data through a clean, calendar-first interface.
-**Current focus:** v1.1 Tailwind UI Migration complete; ready for milestone acceptance/cleanup.
+**Current focus:** v1.1 Tailwind UI Migration archived; ready to plan the next milestone.
 
 ## Active Roadmap
 
@@ -77,7 +77,7 @@ See: `.planning/ROADMAP.md`
 
 ## Next Command
 
-`/gsd-execute-phase 5`
+`/gsd-new-milestone`
 
 ## Decisions
 
@@ -94,6 +94,14 @@ See: `.planning/ROADMAP.md`
 - Phase 5 Plan 02 applied no tiny polish because source review found no concrete smoke-target defect without authenticated runtime confirmation.
 - Phase 5 Plan 04 accepted broad old UI markers as classified deferred debt outside v1.1 smoke targets.
 - Phase 5 Plan 04 skipped backend checks because no `server/` files changed.
+
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-07-01:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 05 `05-UAT.md` | approved; 0 open scenarios |
 
 ## Session
 
@@ -130,3 +138,7 @@ See: `.planning/ROADMAP.md`
 | Phase 05-verification-cleanup P01 | 35min | 2 tasks | 3 files |
 | Phase 05-verification-cleanup P02 | 22min | 2 tasks | 14 files |
 | Phase 05-verification-cleanup P04 | 18min | 2 tasks | 2 files |
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
