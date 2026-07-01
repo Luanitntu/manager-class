@@ -40,9 +40,9 @@
 
 ### Verification
 
-- [ ] **VER-01**: Frontend `npm run lint` passes after Vuetify/SCSS removal and page redesign.
-- [ ] **VER-02**: Frontend `npm run typecheck` passes after Vuetify/SCSS removal and page redesign.
-- [ ] **VER-03**: Frontend `npm run build` passes without Vuetify or SCSS dependencies.
+- [x] **VER-01**: Frontend `npm run lint` passes after Vuetify/SCSS removal and page redesign.
+- [x] **VER-02**: Frontend `npm run typecheck` passes after Vuetify/SCSS removal and page redesign.
+- [x] **VER-03**: Frontend `npm run build` passes without Vuetify or SCSS dependencies.
 - [x] **VER-04**: Manual smoke checks cover app shell navigation plus `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` on desktop and mobile-width viewports.
 - [x] **VER-05**: Screenshot or manual visual QA verifies migrated pages on desktop and mobile-width viewports have no broken UI, no overflow/overlap, and no unintended visual regression.
 - [x] **VER-06**: Backend verification is run only if backend files are touched; otherwise the milestone records that backend was not changed.
@@ -95,9 +95,9 @@
 | PAGE-04 | Phase 4 | Complete |
 | PAGE-05 | Phase 4 | Complete |
 | PAGE-06 | Phase 4 | Complete |
-| VER-01 | Phase 5 | Pending |
-| VER-02 | Phase 5 | Pending |
-| VER-03 | Phase 5 | Pending |
+| VER-01 | Phase 5 | Complete |
+| VER-02 | Phase 5 | Complete |
+| VER-03 | Phase 5 | Complete |
 | VER-04 | Phase 5 | Complete |
 | VER-05 | Phase 5 | Complete |
 | VER-06 | Phase 5 | Complete |
