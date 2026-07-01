@@ -58,13 +58,17 @@ async function save() {
 </script>
 
 <template>
-  <div>
-    <h1 class="text-h5 font-weight-bold mb-1">Profile</h1>
-    <p class="text-medium-emphasis mb-6">Manage your account details.</p>
+  <UiPage>
+    <UiPageHeader
+      title="Profile"
+      subtitle="Manage your account details."
+    />
 
-    <AppSkeleton v-if="profileLoading" variant="form" :rows="4" style="max-width: 520px" />
+    <div v-if="profileLoading" class="max-w-[520px]">
+      <AppSkeleton variant="form" :rows="4" />
+    </div>
 
-    <v-card v-else class="pa-6" max-width="520">
+    <UiCard v-else padding="lg" class="max-w-[520px]">
       <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mb-4">
         {{ error }}
       </v-alert>
@@ -72,15 +76,20 @@ async function save() {
         Profile updated.
       </v-alert>
 
-      <v-text-field :model-value="auth.user?.email" label="Email" disabled />
-      <v-text-field v-model="form.fullName" label="Full name" />
-      <v-text-field v-model="form.phone" label="Phone" />
-      <v-autocomplete v-model="form.timezone" :items="timezones" label="Timezone" />
-      <v-chip size="small" class="mb-4">{{ auth.role }}</v-chip>
+      <div class="grid gap-4">
+        <UiInput :model-value="auth.user?.email" label="Email" disabled />
+        <UiInput v-model="form.fullName" label="Full name" autocomplete="name" />
+        <UiInput v-model="form.phone" label="Phone" autocomplete="tel" />
+        <UiSelect v-model="form.timezone" :items="timezones" label="Timezone" />
+        <div class="flex min-w-0 flex-wrap items-center gap-2">
+          <span class="text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-text)]">Role</span>
+          <UiBadge tone="primary">{{ auth.role }}</UiBadge>
+        </div>
+      </div>
 
-      <div class="d-flex justify-end">
+      <div class="mt-6 flex justify-end">
         <v-btn color="primary" :loading="loading" :disabled="loading" @click="save">Save</v-btn>
       </div>
-    </v-card>
-  </div>
+    </UiCard>
+  </UiPage>
 </template>
