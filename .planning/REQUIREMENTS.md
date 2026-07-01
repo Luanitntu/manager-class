@@ -31,7 +31,7 @@
 
 ### Priority Page Redesign
 
-- [ ] **PAGE-01**: `/assistants` is redesigned with Tailwind shared components while preserving search, pagination, create assistant, list, and detail-open behavior.
+- [x] **PAGE-01**: `/assistants` is redesigned with Tailwind shared components while preserving search, pagination, create assistant, list, and detail-open behavior.
 - [ ] **PAGE-02**: `/assistants/[id]` is redesigned with Tailwind shared components while preserving profile, salary summary, assigned classes, salary config, schedule, breakdown, and history behavior.
 - [ ] **PAGE-03**: `/audit-logs` is redesigned with Tailwind shared components while preserving filters, table/list display, pagination, and empty/loading states.
 - [ ] **PAGE-04**: `/profile` is redesigned with Tailwind shared components while preserving profile loading, edit, timezone selection, save, error, and success behavior.
@@ -89,7 +89,7 @@
 | APP-03 | Phase 3 | Complete |
 | APP-04 | Phase 3 | Complete |
 | APP-05 | Phase 3 | Complete |
-| PAGE-01 | Phase 4 | Pending |
+| PAGE-01 | Phase 4 | Complete |
 | PAGE-02 | Phase 4 | Pending |
 | PAGE-03 | Phase 4 | Pending |
 | PAGE-04 | Phase 4 | Pending |
