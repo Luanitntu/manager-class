@@ -69,12 +69,12 @@ async function save() {
     </div>
 
     <UiCard v-else padding="lg" class="max-w-[520px]">
-      <v-alert v-if="error" type="error" variant="tonal" density="compact" class="mb-4">
+      <UiAlert v-if="error" tone="error" class="mb-4">
         {{ error }}
-      </v-alert>
-      <v-alert v-if="saved" type="success" variant="tonal" density="compact" class="mb-4">
+      </UiAlert>
+      <UiAlert v-if="saved" tone="success" class="mb-4">
         Profile updated.
-      </v-alert>
+      </UiAlert>
 
       <div class="grid gap-4">
         <UiInput :model-value="auth.user?.email" label="Email" disabled />
@@ -88,7 +88,9 @@ async function save() {
       </div>
 
       <div class="mt-6 flex justify-end">
-        <v-btn color="primary" :loading="loading" :disabled="loading" @click="save">Save</v-btn>
+        <UiButton :loading="loading" :disabled="loading" @click="save">
+          Save profile
+        </UiButton>
       </div>
     </UiCard>
   </UiPage>
