@@ -5,10 +5,10 @@ milestone_name: Tailwind UI Migration
 current_phase: 04 - Priority Old Page Redesign
 current_phase_name: priority-old-page-redesign
 status: ready to plan
-stopped_at: Phase 04 context gathered
-last_updated: "2026-07-01T07:47:36.898Z"
+stopped_at: Phase 04 UI-SPEC approved
+last_updated: "2026-07-01T15:03:25.254+07:00"
 last_activity: 2026-07-01
-last_activity_desc: Phase 03 UAT passed and transitioned to Phase 4
+last_activity_desc: Phase 04 UI-SPEC approved
 progress:
   total_phases: 5
   completed_phases: 3
@@ -28,8 +28,8 @@ progress:
 
 Phase: 04 (priority-old-page-redesign) - READY TO PLAN
 Plan: Not started
-Status: Phase 03 complete; Phase 04 discussion/planning ready
-Last activity: 2026-07-01 - Phase 03 UAT passed and transitioned to Phase 4
+Status: Phase 03 complete; Phase 04 UI-SPEC approved; planning ready
+Last activity: 2026-07-01 - Phase 04 UI-SPEC approved
 
 ## Project Reference
 
@@ -77,7 +77,7 @@ See: `.planning/ROADMAP.md`
 
 ## Next Command
 
-`/gsd-discuss-phase 4`
+`/gsd-plan-phase 4`
 
 ## Decisions
 
@@ -109,8 +109,8 @@ See: `.planning/ROADMAP.md`
 ## Session
 
 **Last session:** 2026-07-01T07:47:36.837Z
-**Stopped at:** Phase 04 context gathered
-**Resume file:** .planning/phases/04-priority-old-page-redesign/04-CONTEXT.md
+**Stopped at:** Phase 04 UI-SPEC approved
+**Resume file:** .planning/phases/04-priority-old-page-redesign/04-UI-SPEC.md
 
 ## Performance Metrics
 
