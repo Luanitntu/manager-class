@@ -145,6 +145,14 @@ Plans:
 **Mode:** mvp
 **Requirements:** VER-01, VER-02, VER-03, VER-04, VER-05, VER-06
 **Status:** Pending
+**Plans:** 4 plans
+Plans:
+
+- [ ] 05-01-PLAN.md - Run static scans, classify markers, and perform proven-safe cleanup.
+- [ ] 05-02-PLAN.md - Capture desktop/mobile smoke screenshots or exact route blockers.
+- [ ] 05-03-PLAN.md - Complete human smoke and visual QA for Phase 5 targets.
+- [ ] 05-04-PLAN.md - Run frontend gates and consolidate final verification evidence.
+
 **Cross-cutting constraints:**
 
 - Use existing client scripts from `client/`.
