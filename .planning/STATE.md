@@ -4,11 +4,11 @@ milestone: v1.1
 milestone_name: Tailwind UI Migration
 current_phase: 04 - Priority Old Page Redesign
 current_phase_name: priority-old-page-redesign
-status: ready to plan
-stopped_at: Phase 04 UI-SPEC approved
-last_updated: "2026-07-01T15:03:25.254+07:00"
+status: ready to execute
+stopped_at: Phase 04 planned
+last_updated: "2026-07-01T08:23:40.776Z"
 last_activity: 2026-07-01
-last_activity_desc: Phase 04 UI-SPEC approved
+last_activity_desc: Phase 04 planned with 5 verified plans
 progress:
   total_phases: 5
   completed_phases: 3
@@ -26,10 +26,10 @@ progress:
 
 ## Current Position
 
-Phase: 04 (priority-old-page-redesign) - READY TO PLAN
-Plan: Not started
-Status: Phase 03 complete; Phase 04 UI-SPEC approved; planning ready
-Last activity: 2026-07-01 - Phase 04 UI-SPEC approved
+Phase: 04 (priority-old-page-redesign) - READY TO EXECUTE
+Plan: 5 plans ready
+Status: Ready to execute
+Last activity: 2026-07-01 - Phase 04 planned with 5 verified plans
 
 ## Project Reference
 
@@ -47,7 +47,7 @@ See: `.planning/ROADMAP.md`
 | 1 | Complete | Styling platform cutover from Vuetify/SCSS to Tailwind |
 | 2 | Complete | Tailwind design system and shared UI kit |
 | 3 | Complete | App shell and shared surface migration |
-| 4 | Pending | Priority old page redesign |
+| 4 | Planned | Priority old page redesign |
 | 5 | Pending | Verification and cleanup |
 
 ## Key Constraints
@@ -77,7 +77,7 @@ See: `.planning/ROADMAP.md`
 
 ## Next Command
 
-`/gsd-plan-phase 4`
+`/gsd-execute-phase 4`
 
 ## Decisions
 
@@ -102,15 +102,16 @@ See: `.planning/ROADMAP.md`
 - Phase 3 Plan 06 migrated assistant and student detail dialogs to Tailwind/Ui primitives while preserving salary, profile, score, and comment mutations and adding score delete confirmation.
 - Phase 3 Plan 08 restored disabled Google/GitHub login social buttons to 42px height and 20px icons using active Tailwind/template sizing in `LoginFormPane.vue`.
 - Phase 3 Plan 09 moved the Google social SVG into `UiButton`'s leading slot and added local no-wrap classes so icon and text stay on one row.
+- Phase 4 planning produced 5 verified plans for priority old page redesign: `/assistants`, `/assistants/[id]`, `/audit-logs`, `/profile`, and final verification/visual QA.
 
 ---
-*State updated: 2026-07-01 after Phase 3 completion*
+*State updated: 2026-07-01 after Phase 4 planning*
 
 ## Session
 
 **Last session:** 2026-07-01T07:47:36.837Z
-**Stopped at:** Phase 04 UI-SPEC approved
-**Resume file:** .planning/phases/04-priority-old-page-redesign/04-UI-SPEC.md
+**Stopped at:** Phase 04 planned
+**Resume file:** .planning/phases/04-priority-old-page-redesign/04-05-PLAN.md
 
 ## Performance Metrics
 

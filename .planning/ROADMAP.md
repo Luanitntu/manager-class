@@ -112,7 +112,16 @@ Plans:
 **Goal:** Redesign `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` with the shared Tailwind UI kit while preserving behavior.
 **Mode:** mvp
 **Requirements:** PAGE-01, PAGE-02, PAGE-03, PAGE-04, PAGE-05, PAGE-06
-**Status:** Pending
+**Status:** Planned (2026-07-01)
+**Plans:** 5 plans ready
+Plans:
+
+- [ ] 04-01-PLAN.md — Redesign `/assistants` list, search, pagination, create dialog, and detail-open behavior.
+- [ ] 04-02-PLAN.md — Redesign `/assistants/[id]` profile, salary summary/config, assigned classes, tabs, and tables.
+- [ ] 04-03-PLAN.md — Redesign `/audit-logs` filters, table, badges, loading, empty state, and pagination.
+- [ ] 04-04-PLAN.md — Redesign `/profile` compact form, timezone select, role badge, and inline save feedback.
+- [ ] 04-05-PLAN.md — Run Phase 4 static scans, frontend gates, and desktop/mobile visual QA.
+
 **Cross-cutting constraints:**
 
 - Preserve current composables and data flows.
