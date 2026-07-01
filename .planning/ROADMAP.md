@@ -79,7 +79,7 @@ Plans:
 **Mode:** mvp
 **Requirements:** APP-01, APP-02, APP-03, APP-04, APP-05
 **Status:** Human Verification Needed (2026-07-01)
-**Plans:** 7/7 plans complete
+**Plans:** 8/8 plans complete
 Plans:
 
 - [x] 03-01-PLAN.md — Migrate shell preservation checks and the full auth surface.
@@ -89,6 +89,7 @@ Plans:
 - [x] 03-05-PLAN.md — Migrate the student dashboard and StudentSchedule.
 - [x] 03-06-PLAN.md — Migrate bounded low-risk shared detail dialog areas.
 - [x] 03-07-PLAN.md — Produce final migration inventory, validation evidence, and frontend gates.
+- [x] 03-08-PLAN.md — Close the login social button UAT gap by restoring 42px button and 20px icon sizing.
 
 **Cross-cutting constraints:**
 
@@ -190,4 +191,4 @@ Plans:
 - Old v1 phase plan artifacts were archived under `.planning/archive/v1-polish-phase-plans-2026-06-30/`.
 
 ---
-*Roadmap updated: 2026-07-01 after Phase 3 execution; UAT pending*
+*Roadmap updated: 2026-07-01 after Phase 3 gap closure; login social-button UAT recheck pending*

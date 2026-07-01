@@ -1,17 +1,21 @@
 ---
-status: diagnosed
+status: testing
 phase: 03-app-shell-shared-surface-migration
 source:
   - 03-VERIFICATION.md
 started: 2026-07-01T02:10:44Z
-updated: 2026-07-01T09:50:11.3402177+07:00
+updated: 2026-07-01T10:04:33+07:00
 ---
 
 # Phase 03 UAT
 
 ## Current Test
 
-[testing complete]
+number: 3
+name: Auth flow smoke - login social buttons
+expected: |
+  Login/register/forgot/reset/verify keep validation, loading, errors, redirects, and disabled social buttons. Google and GitHub login buttons render at the restored 42px height with 20px icons.
+awaiting: user recheck
 
 ## Tests
 
@@ -28,9 +32,11 @@ result: pass
 ### 3. Auth flow smoke
 
 expected: Login/register/forgot/reset/verify keep validation, loading, errors, redirects, and disabled social buttons.
-result: issue
+result: fixed_pending_recheck
 reported: "2 nút login with google và github hơi bị thay đổi kích thước, icon trong 2 button này cug bị thay đổi kích thước"
 severity: cosmetic
+fixed_in: 03-08-PLAN.md
+commit: b702dd7
 
 ### 4. Dialog smoke
 
@@ -41,15 +47,15 @@ result: pass
 
 total: 4
 passed: 3
-issues: 1
-pending: 0
+issues: 0
+pending: 1
 skipped: 0
 blocked: 0
 
 ## Gaps
 
 - truth: "Login/register/forgot/reset/verify keep validation, loading, errors, redirects, and disabled social buttons."
-  status: failed
+  status: resolved_pending_recheck
   reason: "User reported: 2 nút login with google và github hơi bị thay đổi kích thước, icon trong 2 button này cug bị thay đổi kích thước"
   severity: cosmetic
   test: 3
@@ -65,3 +71,7 @@ blocked: 0
     - "Set login social button height to 42px with Tailwind utility classes on the two UiButton instances."
     - "Set both social icons to 20px in the active LoginFormPane template: explicit h-5 w-5 shrink-0 for Google SVG and an AppIcon slot with size 20 for GitHub."
   debug_session: ".planning/phases/03-app-shell-shared-surface-migration/03-UAT.md"
+  resolution:
+    fixed_in: 03-08-PLAN.md
+    commit: b702dd7
+    summary: "LoginFormPane now applies local 42px social button sizing and 20px Google/GitHub icon sizing in active Tailwind/template markup."
