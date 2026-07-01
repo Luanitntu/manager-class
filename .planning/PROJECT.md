@@ -4,7 +4,7 @@
 
 Schedule Teacher is a teacher-first learning management and class operations app for language teachers. Teachers manage classes, students, schedules, learning materials, payments, reports, and assistant teachers; students use the app to follow their classes, schedules, materials, scores, feedback, and payment status.
 
-The current product already has a broad MVP feature set and a partially refreshed frontend. The v1.1 focus is to finish the UI technology migration: remove Vuetify and SCSS, standardize on a Tailwind-first design system, create reusable shared UI components, and redesign remaining old UI pages so the whole app feels consistent.
+The current product already has a broad MVP feature set and a partially refreshed frontend. The v1.1 UI technology migration is complete: Vuetify and SCSS were removed from the active priority surface, the shared Tailwind UI kit is established, and priority teacher workflow pages were redesigned and verified.
 
 ## Core Value
 
@@ -26,7 +26,7 @@ Teachers and students can reliably see and act on the right class data through a
 
 - **Customer**: Individual teachers first; language centers later.
 - **Revenue model**: Future SaaS subscriptions; not part of this milestone.
-- **Success metric**: The app uses one Tailwind-based UI system, has no Vuetify/SCSS dependency surface, and migrated pages look/function like the intended current UI without broken or regressed layouts.
+- **Success metric**: The app uses one Tailwind-based UI system for the v1.1 priority surface, has no Vuetify/SCSS package/config dependency surface, and migrated pages look/function like the intended current UI without broken or regressed layouts.
 - **Strategy notes**: Center role remains deferred; this milestone is frontend polish and maintainability.
 
 ## Requirements
@@ -41,13 +41,11 @@ Teachers and students can reliably see and act on the right class data through a
 - Phase 2 Tailwind design system and shared UI kit is complete: docs, layout/control/data/feedback/overlay primitives, proof migrations, handoff, and frontend lint/typecheck/build pass.
 - Phase 3 app shell and shared surface migration is complete: auth shell, teacher/student calendar surfaces, SessionDialog, dashboards, StudentSchedule, and detail dialogs were migrated to Tailwind/shared UI components, UAT passed, and frontend lint/typecheck/build pass.
 - Phase 4 priority old page redesign is complete: `/assistants`, `/assistants/[id]`, `/audit-logs`, shell profile modal, and `/profile` preserve behavior, pass UAT, and are acceptable for this milestone.
+- Phase 5 verification and cleanup is complete: frontend lint/typecheck/build pass, target smoke/static scans pass, authenticated human visual QA passed for shell/calendar/priority routes on desktop and mobile, backend checks were skipped because no backend files changed, and deferred broad old UI markers are documented.
 
 ### Active
 
-- [ ] Replace remaining Vuetify component markup with Tailwind/shared UI components across the frontend.
-- [ ] Preserve or replace needed UI primitives with Tailwind-based shared components.
-- [ ] Sweep the full app for remaining old UI patterns and migrate or explicitly document deferred areas.
-- [ ] Run frontend lint, typecheck, and build after migration; run backend checks only if backend code is touched.
+- [ ] Future full-product UI polish: migrate or redesign remaining deferred admin/general/student old UI surfaces outside the v1.1 priority smoke scope.
 
 ### Out of Scope
 
@@ -65,7 +63,8 @@ Teachers and students can reliably see and act on the right class data through a
 - Phase 2 added `client/app/components/ui` with shared Tailwind primitives, migrated `AppSkeleton`, `TablePager`, `AppToast`, and `ClassLocation`, and documented Phase 3/4 adoption in `.planning/phases/02-tailwind-design-system-shared-ui-kit/02-HANDOFF.md`.
 - Phase 3 migrated the high-traffic app shell/shared surfaces and closed UAT gaps around login social button dimensions/wrapping.
 - Phase 4 completed the priority old UI pages and moved profile editing to a modal-first shell flow, while keeping `/profile` as a richer fallback page.
-- The user accepted Phase 4 but noted broader whole-codebase UI consistency/polish should be handled by a future milestone.
+- Phase 5 proved the v1.1 priority surface is stable with passing frontend lint/typecheck/build, clean target/package/config scans, smoke evidence, authenticated human UAT, and no backend changes.
+- The user accepted Phase 4 and Phase 5 records broader whole-codebase UI consistency/polish as future milestone work.
 - Tailwind 4 is already installed through `tailwindcss` and `@tailwindcss/vite`.
 - Current old UI target pages include `client/app/pages/assistants/index.vue`, `client/app/pages/assistants/[id].vue`, `client/app/pages/audit-logs.vue`, and `client/app/pages/profile.vue`.
 - Many pages/components still use `<v-*>` components, so migration must be staged to avoid breaking the whole app at once.
@@ -86,11 +85,11 @@ Teachers and students can reliably see and act on the right class data through a
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| v1.1 removes Vuetify and SCSS | The user wants Tailwind as the single styling foundation | Phase 1 platform surface complete; remaining Vuetify component markup is planned for later phases |
+| v1.1 removes Vuetify and SCSS | The user wants Tailwind as the single styling foundation | Phase 5 verified no Vuetify/Sass/SCSS package/config surface and no old markers in priority smoke targets |
 | Tailwind design system comes before page redesign | Tokens and component conventions prevent one-off Tailwind markup across pages | Phase 2 complete; downstream phases should consume `client/app/components/ui` |
 | Visual parity is a release gate | Tailwind migration should not make the UI look broken, shifted, or unexpectedly different | Phase 3 UAT caught and closed login social button regressions before completion |
 | `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` are priority pages | User identified these as old UI pages needing redesign | Phase 4 complete and UAT passed |
-| Whole-app UI polish should be a future milestone | Phase 4 priority pages are acceptable, but the user still sees broad visual inconsistency across the codebase | Deferred beyond v1.1 Phase 4 |
+| Whole-app UI polish should be a future milestone | Phase 5 broad scan still finds old UI markers outside the priority teacher/student smoke scope | Deferred beyond v1.1 Phase 5 |
 | Center role remains deferred | Prevents scope creep during UI platform migration | Pending |
 
 ## Evolution
@@ -111,4 +110,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state.
 
 ---
-*Last updated: 2026-07-01 after Phase 4 completion*
+*Last updated: 2026-07-01 after Phase 5 completion*
