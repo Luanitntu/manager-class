@@ -6,6 +6,8 @@ import {
   useAssistantMutations,
 } from '~/composables/useAssistants';
 
+type BadgeTone = 'info' | 'success' | 'danger';
+
 const route = useRoute();
 const { t, locale } = useI18n();
 const userTz = useUserTimezone();
@@ -19,26 +21,24 @@ const avatar = useAvatar();
 
 const tab = ref('schedule');
 
-// A class the assistant is involved with — either formally in charge of the whole
-// class (ClassAssistant) or just teaching some of its sessions (session instructor),
-// or both. Unifies the two relationships so the card isn't contradictory.
 interface ClassInvolvement {
   id: string;
   name: string;
   level?: string | null;
   color?: string | null;
-  inCharge: boolean; // assigned to the whole class
-  sessions: number; // sessions this assistant instructs in this class
+  inCharge: boolean;
+  sessions: number;
 }
+
 const involvement = computed<ClassInvolvement[]>(() => {
   const map = new Map<string, ClassInvolvement>();
   for (const ca of assistant.value?.classAssignments ?? []) {
     map.set(ca.class.id, { ...ca.class, inCharge: true, sessions: 0 });
   }
   for (const s of sessions.value ?? []) {
-    const e = map.get(s.class.id);
-    if (e) {
-      e.sessions += 1;
+    const existing = map.get(s.class.id);
+    if (existing) {
+      existing.sessions += 1;
     } else {
       map.set(s.class.id, {
         id: s.class.id,
@@ -52,10 +52,28 @@ const involvement = computed<ClassInvolvement[]>(() => {
   }
   return [...map.values()];
 });
+
 const totalSessionsCount = computed(() => sessions.value?.length ?? 0);
+const statusColor: Record<string, BadgeTone> = { SCHEDULED: 'info', COMPLETED: 'success', CANCELLED: 'danger' };
+const methodLabel = computed<Record<string, string>>(() => ({
+  PER_SESSION: t('assistant.perSession'),
+  PER_HOUR: t('assistant.perHour'),
+  PER_CLASS: t('assistant.perClass'),
+}));
+const salaryMethodItems = computed(() => [
+  { value: 'PER_SESSION', title: t('assistant.perSession') },
+  { value: 'PER_HOUR', title: t('assistant.perHour') },
+  { value: 'PER_CLASS', title: t('assistant.perClass') },
+]);
+const tabItems = computed(() => [
+  { value: 'schedule', label: t('assistant.schedule') },
+  { value: 'breakdown', label: t('assistant.salaryBreakdown') },
+  { value: 'history', label: t('assistant.salaryHistory') },
+]);
+
 function roleLabel(c: ClassInvolvement) {
   if (c.inCharge) {
-    return c.sessions > 0 ? `${t('assistant.inCharge')} · ${c.sessions} ${t('assistant.sessionsShort')}` : t('assistant.inCharge');
+    return c.sessions > 0 ? `${t('assistant.inCharge')} - ${c.sessions} ${t('assistant.sessionsShort')}` : t('assistant.inCharge');
   }
   return `${t('assistant.teaches')} ${c.sessions} ${t('assistant.sessionsShort')}`;
 }
@@ -70,21 +88,13 @@ function timeRange(start: string, end: string) {
   return `${utcToWallParts(start, userTz.value).time} - ${utcToWallParts(end, userTz.value).time}`;
 }
 function fmtDate(iso?: string | null) {
-  return iso ? new Date(iso).toLocaleDateString('vi-VN') : '—';
+  return iso ? new Date(iso).toLocaleDateString('vi-VN') : '-';
 }
 function fmtMonth(m: string) {
   const [y, mo] = m.split('-');
   return `${mo}/${y}`;
 }
 
-const statusColor: Record<string, string> = { SCHEDULED: 'info', COMPLETED: 'success', CANCELLED: 'error' };
-const methodLabel = computed<Record<string, string>>(() => ({
-  PER_SESSION: t('assistant.perSession'),
-  PER_HOUR: t('assistant.perHour'),
-  PER_CLASS: t('assistant.perClass'),
-}));
-
-// ── Edit dialogs ────────────────────────────────────────────────────────────
 const profileOpen = ref(false);
 const profileForm = reactive({ phone: '', level: '', hometown: '' });
 function openProfile() {
@@ -94,7 +104,7 @@ function openProfile() {
   profileOpen.value = true;
 }
 
-const salaryForm = reactive({ salaryMethod: 'PER_SESSION', salaryRate: 0, effectiveFrom: '' });
+const salaryForm = reactive({ salaryMethod: 'PER_SESSION', salaryRate: 0 as string | number, effectiveFrom: '' });
 watch(
   assistant,
   (a) => {
@@ -108,7 +118,6 @@ watch(
   { immediate: true },
 );
 
-// Sends the full profile+salary payload (the endpoint accepts both).
 function payload(extra: Record<string, unknown>) {
   return {
     salaryMethod: salaryForm.salaryMethod,
@@ -134,266 +143,336 @@ async function saveProfile() {
 </script>
 
 <template>
-  <div>
-    <v-btn variant="text" prepend-icon="mdi-arrow-left" to="/assistants" class="mb-4">
+  <UiPage>
+    <UiButton variant="ghost" leading-icon="mdi-arrow-left" to="/assistants" class="mb-4">
       {{ t('assistant.backToList') }}
-    </v-btn>
+    </UiButton>
 
-    <div v-if="assistant" class="d-flex align-center ga-3 mb-6">
-      <v-avatar color="primary" size="56">
-        <v-img v-if="avatar(assistant)" :src="avatar(assistant)!" />
-        <span v-else class="text-white text-h6">{{ assistant.fullName[0] }}</span>
-      </v-avatar>
-      <div>
-        <div class="d-flex align-center ga-2 flex-wrap">
-          <h1 class="text-h5 font-weight-bold">{{ assistant.fullName }}</h1>
-          <v-chip v-if="assistant.assistantProfile?.level" size="small" color="info" variant="tonal">
-            {{ assistant.assistantProfile.level }}
-          </v-chip>
-        </div>
-        <div class="text-medium-emphasis">{{ assistant.email }}</div>
-      </div>
-    </div>
+    <AppSkeleton v-if="!assistant" variant="detail" />
 
-    <v-row>
-      <!-- Profile -->
-      <v-col cols="12" md="6">
-        <v-card class="pa-5 h-100">
-          <div class="d-flex align-center justify-space-between mb-3">
-            <h3 class="text-subtitle-1 font-weight-bold">{{ t('assistant.profile') }}</h3>
-            <v-btn size="small" variant="text" prepend-icon="mdi-pencil" @click="openProfile">
-              {{ t('assistant.editProfile') }}
-            </v-btn>
+    <template v-else>
+      <div class="mb-6 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex min-w-0 items-center gap-3">
+          <UiAvatar :src="avatar(assistant)" :name="assistant.fullName" :alt="assistant.fullName" size="lg" />
+          <div class="min-w-0">
+            <div class="flex min-w-0 flex-wrap items-center gap-2">
+              <h1 class="truncate text-2xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+                {{ assistant.fullName }}
+              </h1>
+              <UiBadge v-if="assistant.assistantProfile?.level" tone="info">
+                {{ assistant.assistantProfile.level }}
+              </UiBadge>
+            </div>
+            <p class="mt-1 min-w-0 truncate text-base font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+              {{ assistant.email }}
+            </p>
           </div>
-          <v-list density="compact" class="py-0">
-            <v-list-item class="px-0" prepend-icon="mdi-email-outline" :title="assistant?.email" :subtitle="t('auth.email')" />
-            <v-list-item class="px-0" prepend-icon="mdi-phone-outline" :title="assistant?.phone || '—'" :subtitle="t('assistant.phone')" />
-            <v-list-item class="px-0" prepend-icon="mdi-school-outline" :title="assistant?.assistantProfile?.level || '—'" :subtitle="t('assistant.level')" />
-            <v-list-item class="px-0" prepend-icon="mdi-map-marker-outline" :title="assistant?.assistantProfile?.hometown || '—'" :subtitle="t('assistant.hometown')" />
-          </v-list>
-        </v-card>
-      </v-col>
-
-      <!-- Salary summary -->
-      <v-col cols="12" md="6">
-        <v-card class="pa-5 h-100">
-          <h3 class="text-subtitle-1 font-weight-bold mb-3">{{ t('assistant.salarySummary') }}</h3>
-          <v-row dense>
-            <v-col cols="6">
-              <div class="text-h6 font-weight-bold text-success">{{ money(summary?.thisMonth.totalAmount) }}</div>
-              <div class="text-caption text-medium-emphasis">{{ t('assistant.thisMonth') }}</div>
-            </v-col>
-            <v-col cols="6">
-              <div class="text-h6 font-weight-bold">{{ money(summary?.total.totalAmount) }}</div>
-              <div class="text-caption text-medium-emphasis">{{ t('assistant.totalSalary') }}</div>
-            </v-col>
-            <v-col cols="4">
-              <div class="text-subtitle-1 font-weight-bold">{{ summary?.total.totalSessions ?? 0 }}</div>
-              <div class="text-caption text-medium-emphasis">{{ t('assistant.sessions') }}</div>
-            </v-col>
-            <v-col cols="4">
-              <div class="text-subtitle-1 font-weight-bold">{{ summary?.total.totalHours ?? 0 }}</div>
-              <div class="text-caption text-medium-emphasis">{{ t('assistant.hours') }}</div>
-            </v-col>
-            <v-col cols="4">
-              <div class="text-subtitle-1 font-weight-bold">{{ fmtDate(summary?.nextPayroll) }}</div>
-              <div class="text-caption text-medium-emphasis">{{ t('assistant.nextPayroll') }}</div>
-            </v-col>
-          </v-row>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- Assigned classes (whole-class + per-session, unified) -->
-    <v-card class="pa-5 mt-4">
-      <div class="d-flex align-center justify-space-between mb-3">
-        <h3 class="text-subtitle-1 font-weight-bold">{{ t('assistant.assignedClasses') }}</h3>
-        <div class="d-flex ga-4">
-          <span class="text-caption text-medium-emphasis">
-            <b class="text-body-1">{{ involvement.length }}</b> {{ t('assistant.classes') }}
-          </span>
-          <span class="text-caption text-medium-emphasis">
-            <b class="text-body-1">{{ totalSessionsCount }}</b> {{ t('assistant.sessions') }}
-          </span>
         </div>
+        <UiButton variant="secondary" leading-icon="mdi-pencil" @click="openProfile">
+          {{ t('assistant.editProfile') }}
+        </UiButton>
       </div>
-      <v-list v-if="involvement.length" class="py-0">
-        <v-list-item v-for="c in involvement" :key="c.id" :to="`/classes/${c.id}`" class="px-0">
-          <template #prepend>
-            <v-avatar :color="c.color || 'primary'" size="32" rounded="lg">
-              <v-icon size="18" color="white">mdi-google-classroom</v-icon>
-            </v-avatar>
-          </template>
-          <v-list-item-title class="font-weight-medium">
-            {{ c.name }}<span v-if="c.level" class="text-caption text-medium-emphasis"> · {{ c.level }}</span>
-          </v-list-item-title>
-          <template #append>
-            <v-chip size="small" :color="c.inCharge ? 'primary' : 'secondary'" variant="tonal">
+
+      <div class="grid gap-4 lg:grid-cols-2">
+        <UiCard padding="lg">
+          <h2 class="mb-4 text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+            {{ t('assistant.profile') }}
+          </h2>
+          <div class="grid gap-3">
+            <div class="flex min-w-0 items-start gap-3">
+              <AppIcon name="mdi-email-outline" :size="20" class="mt-1 shrink-0 text-[var(--st-muted)]" />
+              <div class="min-w-0">
+                <p class="text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">{{ t('auth.email') }}</p>
+                <p class="break-words text-base font-normal leading-[var(--st-leading-copy)] text-[var(--st-text)]">{{ assistant.email }}</p>
+              </div>
+            </div>
+            <div class="flex min-w-0 items-start gap-3">
+              <AppIcon name="mdi-phone-outline" :size="20" class="mt-1 shrink-0 text-[var(--st-muted)]" />
+              <div class="min-w-0">
+                <p class="text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">{{ t('assistant.phone') }}</p>
+                <p class="break-words text-base font-normal leading-[var(--st-leading-copy)] text-[var(--st-text)]">{{ assistant.phone || '-' }}</p>
+              </div>
+            </div>
+            <div class="flex min-w-0 items-start gap-3">
+              <AppIcon name="mdi-school-outline" :size="20" class="mt-1 shrink-0 text-[var(--st-muted)]" />
+              <div class="min-w-0">
+                <p class="text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">{{ t('assistant.level') }}</p>
+                <p class="break-words text-base font-normal leading-[var(--st-leading-copy)] text-[var(--st-text)]">{{ assistant.assistantProfile?.level || '-' }}</p>
+              </div>
+            </div>
+            <div class="flex min-w-0 items-start gap-3">
+              <AppIcon name="mdi-map-marker-outline" :size="20" class="mt-1 shrink-0 text-[var(--st-muted)]" />
+              <div class="min-w-0">
+                <p class="text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">{{ t('assistant.hometown') }}</p>
+                <p class="break-words text-base font-normal leading-[var(--st-leading-copy)] text-[var(--st-text)]">{{ assistant.assistantProfile?.hometown || '-' }}</p>
+              </div>
+            </div>
+          </div>
+        </UiCard>
+
+        <UiCard padding="lg">
+          <h2 class="mb-4 text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+            {{ t('assistant.salarySummary') }}
+          </h2>
+          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <UiMetricCard :label="t('assistant.thisMonth')" :value="money(summary?.thisMonth.totalAmount)">
+              <template #icon><AppIcon name="mdi-cash-clock" :size="20" /></template>
+            </UiMetricCard>
+            <UiMetricCard :label="t('assistant.totalSalary')" :value="money(summary?.total.totalAmount)">
+              <template #icon><AppIcon name="mdi-cash-multiple" :size="20" /></template>
+            </UiMetricCard>
+            <UiMetricCard :label="t('assistant.sessions')" :value="summary?.total.totalSessions ?? 0">
+              <template #icon><AppIcon name="mdi-calendar-check-outline" :size="20" /></template>
+            </UiMetricCard>
+            <UiMetricCard :label="t('assistant.hours')" :value="summary?.total.totalHours ?? 0">
+              <template #icon><AppIcon name="mdi-clock-outline" :size="20" /></template>
+            </UiMetricCard>
+            <UiMetricCard class="sm:col-span-2 xl:col-span-2" :label="t('assistant.nextPayroll')" :value="fmtDate(summary?.nextPayroll)">
+              <template #icon><AppIcon name="mdi-calendar-arrow-right" :size="20" /></template>
+            </UiMetricCard>
+          </div>
+        </UiCard>
+      </div>
+
+      <UiCard class="mt-4" padding="lg">
+        <div class="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 class="text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+            {{ t('assistant.assignedClasses') }}
+          </h2>
+          <div class="flex flex-wrap gap-2">
+            <UiBadge tone="neutral">{{ involvement.length }} {{ t('assistant.classes') }}</UiBadge>
+            <UiBadge tone="neutral">{{ totalSessionsCount }} {{ t('assistant.sessions') }}</UiBadge>
+          </div>
+        </div>
+
+        <div v-if="involvement.length" class="divide-y divide-[var(--st-border)]">
+          <NuxtLink
+            v-for="c in involvement"
+            :key="c.id"
+            :to="`/classes/${c.id}`"
+            class="flex min-w-0 flex-col gap-3 py-3 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-100 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div class="flex min-w-0 items-center gap-3">
+              <span
+                class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--st-radius)] bg-[var(--st-primary)] text-white"
+                :style="{ backgroundColor: c.color || 'var(--st-primary)' }"
+              >
+                <AppIcon name="mdi-google-classroom" :size="18" />
+              </span>
+              <div class="min-w-0">
+                <p class="truncate text-base font-semibold leading-[var(--st-leading-copy)] text-[var(--st-text)]">
+                  {{ c.name }}
+                </p>
+                <p v-if="c.level" class="text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+                  {{ c.level }}
+                </p>
+              </div>
+            </div>
+            <UiBadge :tone="c.inCharge ? 'primary' : 'info'">
               {{ roleLabel(c) }}
-            </v-chip>
-          </template>
-        </v-list-item>
-      </v-list>
-      <div v-else class="text-caption text-medium-emphasis">{{ t('assistant.noClasses') }}</div>
-    </v-card>
+            </UiBadge>
+          </NuxtLink>
+        </div>
 
-    <!-- Salary configuration -->
-    <v-card class="pa-5 mt-4">
-      <h3 class="text-subtitle-1 font-weight-bold mb-3">{{ t('assistant.salaryConfig') }}</h3>
-      <v-row>
-        <v-col cols="12" md="4">
-          <v-select
+        <UiEmptyState
+          v-else
+          icon="mdi-google-classroom"
+          heading="No class assignments yet"
+          body="Assign this assistant from a class."
+        />
+      </UiCard>
+
+      <UiCard class="mt-4" padding="lg">
+        <h2 class="mb-4 text-xl font-semibold leading-[var(--st-leading-tight)] text-[var(--st-text)]">
+          {{ t('assistant.salaryConfig') }}
+        </h2>
+        <div class="grid gap-4 md:grid-cols-3">
+          <UiSelect
             v-model="salaryForm.salaryMethod"
-            :items="[
-              { value: 'PER_SESSION', title: t('assistant.perSession') },
-              { value: 'PER_HOUR', title: t('assistant.perHour') },
-              { value: 'PER_CLASS', title: t('assistant.perClass') },
-            ]"
+            :items="salaryMethodItems"
             :label="t('assistant.method')"
-            hide-details
+            :disabled="updateSalary.isPending.value"
           />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="salaryForm.salaryRate" type="number" :label="t('assistant.rate')" hide-details />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="salaryForm.effectiveFrom" type="date" :label="t('assistant.effectiveFrom')" hide-details />
-        </v-col>
-      </v-row>
-      <div class="d-flex justify-end mt-3">
-        <v-btn color="primary" :loading="updateSalary.isPending.value" @click="saveSalary">
-          {{ t('common.save') }}
-        </v-btn>
-      </div>
+          <UiInput
+            v-model="salaryForm.salaryRate"
+            type="number"
+            :label="t('assistant.rate')"
+            :disabled="updateSalary.isPending.value"
+          />
+          <UiInput
+            v-model="salaryForm.effectiveFrom"
+            type="date"
+            :label="t('assistant.effectiveFrom')"
+            :disabled="updateSalary.isPending.value"
+          />
+        </div>
+        <div class="mt-4 flex justify-end">
+          <UiButton :loading="updateSalary.isPending.value" @click="saveSalary">
+            Save salary settings
+          </UiButton>
+        </div>
 
-      <template v-if="(summary?.rates?.length ?? 0) > 1">
-        <v-divider class="my-3" />
-        <div class="text-caption text-medium-emphasis mb-2">{{ t('assistant.rateHistory') }}</div>
-        <div class="d-flex flex-column ga-1">
-          <div v-for="(r, i) in summary?.rates ?? []" :key="i" class="d-flex align-center justify-space-between text-body-2">
-            <span>
-              <v-icon size="14" class="mr-1">mdi-calendar-arrow-right</v-icon>{{ fmtDate(r.effectiveFrom) }}
-              <span class="text-caption text-medium-emphasis">· {{ methodLabel[r.method] }}</span>
-            </span>
-            <span class="font-weight-medium">{{ money(r.rate) }}</span>
+        <div v-if="(summary?.rates?.length ?? 0) > 1" class="mt-4 border-t border-[var(--st-border)] pt-4">
+          <p class="mb-2 text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+            {{ t('assistant.rateHistory') }}
+          </p>
+          <div class="grid gap-2">
+            <div
+              v-for="(r, i) in summary?.rates ?? []"
+              :key="i"
+              class="flex min-w-0 items-center justify-between gap-3 text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-text)]"
+            >
+              <span class="min-w-0">
+                <AppIcon name="mdi-calendar-arrow-right" :size="14" class="mr-1 inline text-[var(--st-muted)]" />
+                {{ fmtDate(r.effectiveFrom) }}
+                <span class="text-[var(--st-muted)]">- {{ methodLabel[r.method] }}</span>
+              </span>
+              <span class="shrink-0 font-semibold">{{ money(r.rate) }}</span>
+            </div>
           </div>
         </div>
-      </template>
-    </v-card>
+      </UiCard>
 
-    <!-- Schedule + Salary history -->
-    <v-card class="mt-4">
-      <v-tabs v-model="tab" color="primary">
-        <v-tab value="schedule">{{ t('assistant.schedule') }}</v-tab>
-        <v-tab value="breakdown">{{ t('assistant.salaryBreakdown') }}</v-tab>
-        <v-tab value="history">{{ t('assistant.salaryHistory') }}</v-tab>
-      </v-tabs>
-      <v-card-text>
-        <v-window v-model="tab">
-          <v-window-item value="schedule">
-            <v-table density="comfortable">
-              <thead>
+      <UiCard class="mt-4" padding="none">
+        <UiTabs v-model="tab" :items="tabItems" :label="t('assistant.salarySummary')">
+          <div v-if="tab === 'schedule'" class="px-4 pb-4">
+            <UiTable caption="Assistant schedule">
+              <thead class="bg-slate-50 text-sm font-semibold text-[var(--st-muted)]">
                 <tr>
-                  <th>{{ t('session.class') }}</th>
-                  <th>{{ t('session.date') }}</th>
-                  <th>{{ t('assistant.time') }}</th>
-                  <th>{{ t('session.lessonTopic') }}</th>
-                  <th>{{ t('assistant.status') }}</th>
+                  <th class="px-4 py-3">{{ t('session.class') }}</th>
+                  <th class="px-4 py-3">{{ t('session.date') }}</th>
+                  <th class="px-4 py-3">{{ t('assistant.time') }}</th>
+                  <th class="px-4 py-3">{{ t('session.lessonTopic') }}</th>
+                  <th class="px-4 py-3">{{ t('assistant.status') }}</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr v-for="s in sessions ?? []" :key="s.id">
-                  <td>
-                    <v-chip size="small" :color="s.class.color || 'primary'" variant="tonal">{{ s.class.name }}</v-chip>
+              <tbody class="divide-y divide-[var(--st-border)]">
+                <tr v-for="s in sessions ?? []" :key="s.id" class="min-h-12">
+                  <td class="px-4 py-3">
+                    <UiBadge tone="primary">{{ s.class.name }}</UiBadge>
                   </td>
-                  <td class="text-no-wrap">{{ dayOf(s.startTime) }}</td>
-                  <td class="text-no-wrap">{{ timeRange(s.startTime, s.endTime) }}</td>
-                  <td>{{ s.lessonTopic || '—' }}</td>
-                  <td>
-                    <v-chip size="x-small" :color="statusColor[s.status]" variant="tonal">{{ s.status }}</v-chip>
+                  <td class="whitespace-nowrap px-4 py-3">{{ dayOf(s.startTime) }}</td>
+                  <td class="whitespace-nowrap px-4 py-3">{{ timeRange(s.startTime, s.endTime) }}</td>
+                  <td class="px-4 py-3">{{ s.lessonTopic || '-' }}</td>
+                  <td class="px-4 py-3">
+                    <UiBadge :tone="statusColor[s.status]">{{ s.status }}</UiBadge>
                   </td>
                 </tr>
                 <tr v-if="!sessions?.length">
-                  <td colspan="5" class="text-center text-medium-emphasis pa-6">{{ t('assistant.noSessions') }}</td>
+                  <td colspan="5" class="px-4 py-8 text-center text-sm font-normal text-[var(--st-muted)]">
+                    No sessions scheduled
+                  </td>
                 </tr>
               </tbody>
-            </v-table>
-          </v-window-item>
+            </UiTable>
+          </div>
 
-          <v-window-item value="breakdown">
-            <v-table density="comfortable">
-              <thead>
+          <div v-else-if="tab === 'breakdown'" class="px-4 pb-4">
+            <UiTable caption="Assistant salary breakdown">
+              <thead class="bg-slate-50 text-sm font-semibold text-[var(--st-muted)]">
                 <tr>
-                  <th>{{ t('session.class') }}</th>
-                  <th class="text-right">{{ t('assistant.sessions') }}</th>
-                  <th class="text-right">{{ t('assistant.hours') }}</th>
-                  <th class="text-right">{{ t('assistant.amount') }}</th>
+                  <th class="px-4 py-3">{{ t('session.class') }}</th>
+                  <th class="px-4 py-3 text-right">{{ t('assistant.sessions') }}</th>
+                  <th class="px-4 py-3 text-right">{{ t('assistant.hours') }}</th>
+                  <th class="px-4 py-3 text-right">{{ t('assistant.amount') }}</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr v-for="b in summary?.byClass ?? []" :key="b.classId">
-                  <td class="font-weight-medium">{{ b.className }}</td>
-                  <td class="text-right">{{ b.sessionCount }}</td>
-                  <td class="text-right">{{ b.hours }}</td>
-                  <td class="text-right">{{ money(b.amount) }}</td>
+              <tbody class="divide-y divide-[var(--st-border)]">
+                <tr v-for="b in summary?.byClass ?? []" :key="b.classId" class="min-h-12">
+                  <td class="px-4 py-3 font-semibold">{{ b.className }}</td>
+                  <td class="px-4 py-3 text-right">{{ b.sessionCount }}</td>
+                  <td class="px-4 py-3 text-right">{{ b.hours }}</td>
+                  <td class="px-4 py-3 text-right">{{ money(b.amount) }}</td>
                 </tr>
                 <tr v-if="!summary?.byClass?.length">
-                  <td colspan="4" class="text-center text-medium-emphasis pa-6">{{ t('assistant.noSessions') }}</td>
+                  <td colspan="4" class="px-4 py-8 text-center text-sm font-normal text-[var(--st-muted)]">
+                    No salary records yet
+                  </td>
                 </tr>
               </tbody>
-              <tfoot v-if="summary?.byClass?.length">
-                <tr class="font-weight-bold">
-                  <td>{{ t('assistant.grandTotal') }}</td>
-                  <td class="text-right">{{ summary?.total.totalSessions }}</td>
-                  <td class="text-right">{{ summary?.total.totalHours }}</td>
-                  <td class="text-right text-success">{{ money(summary?.total.totalAmount) }}</td>
+              <tfoot v-if="summary?.byClass?.length" class="border-t border-[var(--st-border)] bg-slate-50 font-semibold">
+                <tr>
+                  <td class="px-4 py-3">{{ t('assistant.grandTotal') }}</td>
+                  <td class="px-4 py-3 text-right">{{ summary?.total.totalSessions }}</td>
+                  <td class="px-4 py-3 text-right">{{ summary?.total.totalHours }}</td>
+                  <td class="px-4 py-3 text-right text-emerald-700">{{ money(summary?.total.totalAmount) }}</td>
                 </tr>
               </tfoot>
-            </v-table>
-          </v-window-item>
+            </UiTable>
+          </div>
 
-          <v-window-item value="history">
-            <v-table density="comfortable">
-              <thead>
+          <div v-else class="px-4 pb-4">
+            <UiTable caption="Assistant salary history">
+              <thead class="bg-slate-50 text-sm font-semibold text-[var(--st-muted)]">
                 <tr>
-                  <th>{{ t('assistant.thisMonth') }}</th>
-                  <th class="text-right">{{ t('assistant.sessions') }}</th>
-                  <th class="text-right">{{ t('assistant.hours') }}</th>
-                  <th class="text-right">{{ t('assistant.totalSalary') }}</th>
+                  <th class="px-4 py-3">{{ t('assistant.thisMonth') }}</th>
+                  <th class="px-4 py-3 text-right">{{ t('assistant.sessions') }}</th>
+                  <th class="px-4 py-3 text-right">{{ t('assistant.hours') }}</th>
+                  <th class="px-4 py-3 text-right">{{ t('assistant.totalSalary') }}</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr v-for="h in summary?.history ?? []" :key="h.month">
-                  <td class="font-weight-medium">{{ fmtMonth(h.month) }}</td>
-                  <td class="text-right">{{ h.sessions }}</td>
-                  <td class="text-right">{{ h.hours }}</td>
-                  <td class="text-right font-weight-bold text-success">{{ money(h.amount) }}</td>
+              <tbody class="divide-y divide-[var(--st-border)]">
+                <tr v-for="h in summary?.history ?? []" :key="h.month" class="min-h-12">
+                  <td class="px-4 py-3 font-semibold">{{ fmtMonth(h.month) }}</td>
+                  <td class="px-4 py-3 text-right">{{ h.sessions }}</td>
+                  <td class="px-4 py-3 text-right">{{ h.hours }}</td>
+                  <td class="px-4 py-3 text-right font-semibold text-emerald-700">{{ money(h.amount) }}</td>
                 </tr>
                 <tr v-if="!summary?.history?.length">
-                  <td colspan="4" class="text-center text-medium-emphasis pa-6">{{ t('assistant.noSessions') }}</td>
+                  <td colspan="4" class="px-4 py-8 text-center text-sm font-normal text-[var(--st-muted)]">
+                    No salary history yet
+                  </td>
                 </tr>
               </tbody>
-            </v-table>
-          </v-window-item>
-        </v-window>
-      </v-card-text>
-    </v-card>
+            </UiTable>
+          </div>
+        </UiTabs>
+      </UiCard>
 
-    <!-- Edit profile dialog -->
-    <v-dialog v-model="profileOpen" max-width="440">
-      <v-card>
-        <v-card-title>{{ t('assistant.editProfile') }}</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="profileForm.phone" :label="t('assistant.phone')" prepend-inner-icon="mdi-phone-outline" />
-          <v-text-field v-model="profileForm.level" :label="t('assistant.level')" prepend-inner-icon="mdi-school-outline" placeholder="VD: N2 Japanese" />
-          <v-text-field v-model="profileForm.hometown" :label="t('assistant.hometown')" prepend-inner-icon="mdi-map-marker-outline" />
-        </v-card-text>
-        <v-card-actions class="px-4 pb-4">
-          <v-spacer />
-          <v-btn variant="text" @click="profileOpen = false">{{ t('common.cancel') }}</v-btn>
-          <v-btn color="primary" :loading="updateSalary.isPending.value" @click="saveProfile">{{ t('common.save') }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+      <UiDialog v-model="profileOpen" :title="t('assistant.editProfile')" size="sm">
+        <form class="grid gap-4" @submit.prevent="saveProfile">
+          <UiInput
+            v-model="profileForm.phone"
+            :label="t('assistant.phone')"
+            :disabled="updateSalary.isPending.value"
+            autocomplete="tel"
+          >
+            <template #leading>
+              <AppIcon name="mdi-phone-outline" :size="18" class="text-[var(--st-muted)]" />
+            </template>
+          </UiInput>
+          <UiInput
+            v-model="profileForm.level"
+            :label="t('assistant.level')"
+            placeholder="VD: N2 Japanese"
+            :disabled="updateSalary.isPending.value"
+          >
+            <template #leading>
+              <AppIcon name="mdi-school-outline" :size="18" class="text-[var(--st-muted)]" />
+            </template>
+          </UiInput>
+          <UiInput
+            v-model="profileForm.hometown"
+            :label="t('assistant.hometown')"
+            :disabled="updateSalary.isPending.value"
+          >
+            <template #leading>
+              <AppIcon name="mdi-map-marker-outline" :size="18" class="text-[var(--st-muted)]" />
+            </template>
+          </UiInput>
+        </form>
+
+        <template #footer>
+          <UiActionGroup>
+            <UiButton variant="secondary" :disabled="updateSalary.isPending.value" @click="profileOpen = false">
+              {{ t('common.cancel') }}
+            </UiButton>
+            <UiButton :loading="updateSalary.isPending.value" @click="saveProfile">
+              Save profile
+            </UiButton>
+          </UiActionGroup>
+        </template>
+      </UiDialog>
+    </template>
+  </UiPage>
 </template>
