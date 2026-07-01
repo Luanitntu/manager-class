@@ -113,14 +113,14 @@ Plans:
 **Mode:** mvp
 **Requirements:** PAGE-01, PAGE-02, PAGE-03, PAGE-04, PAGE-05, PAGE-06
 **Status:** In Progress (2026-07-01)
-**Plans:** 4/5 plans complete
+**Plans:** 4/5 plans complete; Plan 05 automated gates passed, human visual QA pending
 Plans:
 
 - [x] 04-01-PLAN.md — Redesign `/assistants` list, search, pagination, create dialog, and detail-open behavior.
 - [x] 04-02-PLAN.md — Redesign `/assistants/[id]` profile, salary summary/config, assigned classes, tabs, and tables.
 - [x] 04-03-PLAN.md — Redesign `/audit-logs` filters, table, badges, loading, empty state, and pagination.
 - [x] 04-04-PLAN.md — Redesign `/profile` compact form, timezone select, role badge, and inline save feedback.
-- [ ] 04-05-PLAN.md — Run Phase 4 static scans, frontend gates, and desktop/mobile visual QA.
+- [ ] 04-05-PLAN.md — Run Phase 4 static scans, frontend gates, and desktop/mobile visual QA. Automated gates passed; desktop/mobile visual QA pending.
 
 **Cross-cutting constraints:**
 
