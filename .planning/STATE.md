@@ -5,15 +5,15 @@ milestone_name: Tailwind UI Migration
 current_phase: 04 - Priority Old Page Redesign
 current_phase_name: priority-old-page-redesign
 status: in progress
-stopped_at: Phase 04 Plan 01 complete
-last_updated: "2026-07-01T08:51:51Z"
+stopped_at: Phase 04 Plan 02 complete
+last_updated: "2026-07-01T09:13:00Z"
 last_activity: 2026-07-01
-last_activity_desc: Phase 04 Plan 01 completed: /assistants redesigned
+last_activity_desc: Phase 04 Plan 02 completed: /assistants/[id] redesigned
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 24
-  completed_plans: 24
+  completed_plans: 25
   percent: 60
 ---
 
@@ -27,9 +27,9 @@ progress:
 ## Current Position
 
 Phase: 04 (priority-old-page-redesign) - IN PROGRESS
-Plan: 04-02 next
-Status: Phase 04 Plan 01 complete
-Last activity: 2026-07-01 - Phase 04 Plan 01 completed: /assistants redesigned
+Plan: 04-03 next
+Status: Phase 04 Plan 02 complete
+Last activity: 2026-07-01 - Phase 04 Plan 02 completed: /assistants/[id] redesigned
 
 ## Project Reference
 
@@ -104,15 +104,16 @@ See: `.planning/ROADMAP.md`
 - Phase 3 Plan 09 moved the Google social SVG into `UiButton`'s leading slot and added local no-wrap classes so icon and text stay on one row.
 - Phase 4 planning produced 5 verified plans for priority old page redesign: `/assistants`, `/assistants/[id]`, `/audit-logs`, `/profile`, and final verification/visual QA.
 - Phase 4 Plan 01 redesigned `/assistants` with Tailwind/shared UI primitives while preserving search, pagination, create assistant, list rows, and detail-open behavior.
+- Phase 4 Plan 02 redesigned `/assistants/[id]` with Tailwind/shared UI primitives while preserving assistant detail, salary summary/config, assigned classes, schedule, breakdown, history, timezone formatting, i18n labels, and mutation flows.
 
 ---
 *State updated: 2026-07-01 after Phase 4 planning*
 
 ## Session
 
-**Last session:** 2026-07-01T07:47:36.837Z
-**Stopped at:** Phase 04 Plan 01 complete
-**Resume file:** .planning/phases/04-priority-old-page-redesign/04-02-PLAN.md
+**Last session:** 2026-07-01T09:13:00Z
+**Stopped at:** Phase 04 Plan 02 complete
+**Resume file:** .planning/phases/04-priority-old-page-redesign/04-03-PLAN.md
 
 ## Performance Metrics
 
@@ -135,3 +136,4 @@ See: `.planning/ROADMAP.md`
 | Phase 03-app-shell-shared-surface-migration P08 | 15min | 1 task | login social button UAT gap closure complete |
 | Phase 03-app-shell-shared-surface-migration P09 | 20min | 1 task | residual Google social button wrap closure complete |
 | Phase 04-priority-old-page-redesign P01 | 28min | 2 tasks | assistants list route redesign complete |
+| Phase 04-priority-old-page-redesign P02 | 56min | 3 tasks | assistant detail route redesign complete |
