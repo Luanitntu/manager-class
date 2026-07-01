@@ -5,10 +5,10 @@ milestone_name: Tailwind UI Migration
 current_phase: 04 - Priority Old Page Redesign
 current_phase_name: priority-old-page-redesign
 status: in progress
-stopped_at: Phase 04 Plan 03 complete
-last_updated: "2026-07-01T09:27:12Z"
+stopped_at: Phase 04 Plan 04 complete
+last_updated: "2026-07-01T09:43:07Z"
 last_activity: 2026-07-01
-last_activity_desc: Phase 04 Plan 03 completed: /audit-logs redesigned
+last_activity_desc: Phase 04 Plan 04 completed: /profile redesigned
 progress:
   total_phases: 5
   completed_phases: 3
@@ -27,9 +27,9 @@ progress:
 ## Current Position
 
 Phase: 04 (priority-old-page-redesign) - IN PROGRESS
-Plan: 04-04 next
-Status: Phase 04 Plan 03 complete
-Last activity: 2026-07-01 - Phase 04 Plan 03 completed: /audit-logs redesigned
+Plan: 04-05 next
+Status: Phase 04 Plan 04 complete
+Last activity: 2026-07-01 - Phase 04 Plan 04 completed: /profile redesigned
 
 ## Project Reference
 
@@ -47,7 +47,7 @@ See: `.planning/ROADMAP.md`
 | 1 | Complete | Styling platform cutover from Vuetify/SCSS to Tailwind |
 | 2 | Complete | Tailwind design system and shared UI kit |
 | 3 | Complete | App shell and shared surface migration |
-| 4 | Planned | Priority old page redesign |
+| 4 | In Progress | Priority old page redesign |
 | 5 | Pending | Verification and cleanup |
 
 ## Key Constraints
@@ -106,15 +106,16 @@ See: `.planning/ROADMAP.md`
 - Phase 4 Plan 01 redesigned `/assistants` with Tailwind/shared UI primitives while preserving search, pagination, create assistant, list rows, and detail-open behavior.
 - Phase 4 Plan 02 redesigned `/assistants/[id]` with Tailwind/shared UI primitives while preserving assistant detail, salary summary/config, assigned classes, schedule, breakdown, history, timezone formatting, i18n labels, and mutation flows.
 - Phase 4 Plan 03 redesigned `/audit-logs` with Tailwind/shared UI primitives while preserving filters, watcher reset behavior, audit query refs, semantic action badges, table columns, loading skeleton, compact empty state, and pagination.
+- Phase 4 Plan 04 redesigned `/profile` with Tailwind/shared UI primitives while preserving profile load/edit/save behavior, timezone fallback/select, inline save feedback, and auth-store profile updates.
 
 ---
-*State updated: 2026-07-01 after Phase 4 Plan 03 completion*
+*State updated: 2026-07-01 after Phase 4 Plan 04 completion*
 
 ## Session
 
-**Last session:** 2026-07-01T09:27:12Z
-**Stopped at:** Phase 04 Plan 03 complete
-**Resume file:** .planning/phases/04-priority-old-page-redesign/04-04-PLAN.md
+**Last session:** 2026-07-01T09:43:07Z
+**Stopped at:** Phase 04 Plan 04 complete
+**Resume file:** .planning/phases/04-priority-old-page-redesign/04-05-PLAN.md
 
 ## Performance Metrics
 
@@ -139,3 +140,4 @@ See: `.planning/ROADMAP.md`
 | Phase 04-priority-old-page-redesign P01 | 28min | 2 tasks | assistants list route redesign complete |
 | Phase 04-priority-old-page-redesign P02 | 56min | 3 tasks | assistant detail route redesign complete |
 | Phase 04-priority-old-page-redesign P03 | 14min | 2 tasks | audit logs route redesign complete |
+| Phase 04-priority-old-page-redesign P04 | 45min | 2 tasks | profile route redesign complete |
