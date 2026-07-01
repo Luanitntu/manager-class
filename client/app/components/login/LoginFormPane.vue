@@ -134,12 +134,12 @@ const onSubmit = handleSubmit(
         <UiButton
           type="button"
           variant="secondary"
-          class="w-full"
+          class="h-[42px] !min-h-[42px] w-full items-center justify-center text-sm"
           disabled
           title="Chưa hỗ trợ đăng nhập bằng mạng xã hội"
         >
           <svg
-            class="login-social-icon"
+            class="h-5 w-5 shrink-0"
             viewBox="0 0 24 24"
             aria-hidden="true"
           >
@@ -165,11 +165,13 @@ const onSubmit = handleSubmit(
         <UiButton
           type="button"
           variant="secondary"
-          class="w-full"
+          class="h-[42px] !min-h-[42px] w-full items-center justify-center text-sm"
           disabled
           title="Chưa hỗ trợ đăng nhập bằng mạng xã hội"
-          leading-icon="mdi-github"
         >
+          <template #leading>
+            <AppIcon name="mdi-github" :size="20" />
+          </template>
           <span>GitHub</span>
         </UiButton>
       </div>
