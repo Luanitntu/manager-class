@@ -112,8 +112,8 @@ Plans:
 **Goal:** As a teacher, I want to use the redesigned assistants, assistant detail, audit logs, and profile pages with the shared Tailwind UI kit while preserving existing behavior, so that I can manage my workspace through a consistent, stable, and readable interface.
 **Mode:** mvp
 **Requirements:** PAGE-01, PAGE-02, PAGE-03, PAGE-04, PAGE-05, PAGE-06
-**Status:** In Progress (2026-07-01)
-**Plans:** 6/6 plans complete; Plan 06 closed human UAT visual parity gaps and Phase 4 is ready for UAT re-run
+**Status:** Complete (2026-07-01)
+**Plans:** 6/6 plans complete
 Plans:
 
 - [x] 04-01-PLAN.md — Redesign `/assistants` list, search, pagination, create dialog, and detail-open behavior.
@@ -202,4 +202,4 @@ Plans:
 - Old v1 phase plan artifacts were archived under `.planning/archive/v1-polish-phase-plans-2026-06-30/`.
 
 ---
-*Roadmap updated: 2026-07-01 after Phase 3 completion; Phase 4 ready*
+*Roadmap updated: 2026-07-01 after Phase 4 completion*
