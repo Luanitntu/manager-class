@@ -1,8 +1,8 @@
 ---
 phase: 04-priority-old-page-redesign
-status: human_needed
+status: gaps_found
 created: "2026-07-01T16:51:30+07:00"
-updated: "2026-07-01T16:51:30+07:00"
+updated: "2026-07-01T20:38:10.2622740+07:00"
 source:
   - 04-01-SUMMARY.md
   - 04-02-SUMMARY.md
@@ -16,13 +16,15 @@ requirements:
   - PAGE-04
   - PAGE-05
   - PAGE-06
-next_action: "Run human desktop/mobile visual QA for the four priority routes."
-next_command: "$gsd-verify-work 4"
+next_action: "Execute 04-06 visual parity gap closure plan."
+next_command: "$gsd-execute-phase 4 --gaps-only"
 ---
 
 # Phase 04 Verification
 
 Phase 04 redesigned `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` with Tailwind/shared UI primitives while preserving existing route-owned composables and behavior.
+
+Human UAT completed in `04-UAT.md`: automated gates and `/assistants/[id]` passed, but visual parity gaps remain for `/assistants`, `/audit-logs`, `/profile`, and the overall Phase 4 page set.
 
 ## Automated Checks
 
@@ -43,12 +45,12 @@ Phase 04 redesigned `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/prof
 | PAGE-02 | Automated pass | `04-02-SUMMARY.md`; `/assistants/[id]` uses shared UI primitives and preserves profile, salary summary/config, assigned classes, schedule, breakdown, and history behavior. |
 | PAGE-03 | Automated pass | `04-03-SUMMARY.md`; `/audit-logs` uses shared UI primitives and preserves filters, table display, pagination, loading, and empty states. |
 | PAGE-04 | Automated pass | `04-04-SUMMARY.md`; `/profile` uses shared UI primitives and preserves profile loading, editing, timezone selection, save, error, and success behavior. |
-| PAGE-05 | Needs human visual QA | Static and build gates pass, but desktop/mobile visual consistency still needs manual route inspection. |
-| PAGE-06 | Needs human visual QA | Static and build gates pass, but no-overflow/no-overlap/no-clipping/no-missing-state evidence still needs manual route inspection. |
+| PAGE-05 | Gap found | Human UAT reports the four pages are internally consistent but do not sufficiently match newer codebase pages like Calendar/Dashboard. |
+| PAGE-06 | Gap found | Human UAT found visual polish/parity issues even though no functional blockers were reported. |
 
-## Human Verification Needed
+## Human Verification Result
 
-Run desktop and mobile-width checks for:
+Desktop/mobile human QA covered:
 
 1. `/assistants`
    - Loading list, populated list, empty list/search, pagination.
@@ -83,6 +85,15 @@ Pass criteria:
 - No missing loading, empty, error, success, or disabled states.
 - Focus and keyboard access remain usable for inputs, buttons, tabs, dialogs, and pagination.
 
+## UAT Gaps
+
+- `/assistants` has required behavior and states but does not feel polished or consistent with Calendar.
+- `/audit-logs` has required filters/table/states but does not match newer Calendar/Dashboard visual language.
+- `/profile` is too sparse as a standalone page; the primary profile flow should be modal-first from the shell profile menu or the route should become richer.
+- The Phase 4 pages are somewhat consistent with each other but not with newer codebase UI.
+
+Gap closure plan: `04-06-PLAN.md`.
+
 ## Result
 
-Automated verification passed. Phase 04 remains pending human visual QA before it can be marked complete.
+Automated verification passed, but human UAT found visual parity gaps. Phase 04 should not be marked complete until `04-06-PLAN.md` is executed and UAT is rerun.

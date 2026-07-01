@@ -109,18 +109,19 @@ Plans:
 
 ### Phase 4: Priority Old Page Redesign
 
-**Goal:** Redesign `/assistants`, `/assistants/[id]`, `/audit-logs`, and `/profile` with the shared Tailwind UI kit while preserving behavior.
+**Goal:** As a teacher, I want to use the redesigned assistants, assistant detail, audit logs, and profile pages with the shared Tailwind UI kit while preserving existing behavior, so that I can manage my workspace through a consistent, stable, and readable interface.
 **Mode:** mvp
 **Requirements:** PAGE-01, PAGE-02, PAGE-03, PAGE-04, PAGE-05, PAGE-06
 **Status:** In Progress (2026-07-01)
-**Plans:** 4/5 plans complete; Plan 05 automated gates passed, human visual QA pending
+**Plans:** 5/6 plans complete; Plan 06 planned to close human UAT visual parity gaps
 Plans:
 
 - [x] 04-01-PLAN.md — Redesign `/assistants` list, search, pagination, create dialog, and detail-open behavior.
 - [x] 04-02-PLAN.md — Redesign `/assistants/[id]` profile, salary summary/config, assigned classes, tabs, and tables.
 - [x] 04-03-PLAN.md — Redesign `/audit-logs` filters, table, badges, loading, empty state, and pagination.
 - [x] 04-04-PLAN.md — Redesign `/profile` compact form, timezone select, role badge, and inline save feedback.
-- [ ] 04-05-PLAN.md — Run Phase 4 static scans, frontend gates, and desktop/mobile visual QA. Automated gates passed; desktop/mobile visual QA pending.
+- [x] 04-05-PLAN.md — Run Phase 4 static scans, frontend gates, and desktop/mobile visual QA. Automated gates passed; human UAT found visual parity gaps.
+- [ ] 04-06-PLAN.md — Close visual parity UAT gaps by aligning Phase 4 pages with Calendar/Dashboard and making profile modal-first or richer.
 
 **Cross-cutting constraints:**
 
