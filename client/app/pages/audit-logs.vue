@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useAuditLogs } from '~/composables/useAudit';
 
+type BadgeTone = 'neutral' | 'primary' | 'info' | 'success' | 'danger';
+
 const action = ref('');
 const entityType = ref('');
 const from = ref('');
@@ -24,16 +26,16 @@ const actionOptions = [
   { value: 'RECORDED', title: 'Ghi nhận' },
 ];
 
-const actionColor: Record<string, string> = {
+const actionTone: Record<string, BadgeTone> = {
   CREATED: 'success',
   UPDATED: 'info',
-  DELETED: 'error',
+  DELETED: 'danger',
   RECORDED: 'primary',
 };
 
-function colorFor(a: string) {
-  const key = Object.keys(actionColor).find((k) => a.includes(k));
-  return key ? actionColor[key] : 'grey';
+function toneFor(a: string): BadgeTone {
+  const key = Object.keys(actionTone).find((k) => a.includes(k));
+  return key ? (actionTone[key] ?? 'neutral') : 'neutral';
 }
 
 function fmt(iso: string) {
@@ -49,57 +51,92 @@ function clearFilters() {
 </script>
 
 <template>
-  <div>
-    <h1 class="text-h5 font-weight-bold mb-1">Audit Logs</h1>
-    <p class="text-medium-emphasis mb-6">Important actions performed in your tenant.</p>
+  <UiPage>
+    <UiPageHeader title="Audit Logs" subtitle="Important actions performed in your tenant." />
 
-    <AppSkeleton v-if="isLoading && !logs.length" variant="table" :rows="6" :columns="4" />
+    <div class="grid gap-4">
+      <UiToolbar align="start">
+        <div class="w-full min-w-[180px] sm:w-[200px]">
+          <UiSelect v-model="action" :items="actionOptions" label="Hành động" />
+        </div>
 
-    <div class="d-flex ga-3 mb-4 flex-wrap align-center">
-      <v-select v-model="action" :items="actionOptions" label="Hành động" hide-details density="comfortable"
-        style="max-width: 200px" />
-      <v-text-field v-model="entityType" label="Loại đối tượng" placeholder="User, Class…" hide-details clearable
-        density="comfortable" style="max-width: 200px" />
-      <v-text-field v-model="from" type="date" label="Từ ngày" hide-details density="comfortable"
-        style="max-width: 170px" />
-      <v-text-field v-model="to" type="date" label="Đến ngày" hide-details density="comfortable"
-        style="max-width: 170px" />
-      <v-btn variant="text" prepend-icon="mdi-filter-off" @click="clearFilters">Xóa lọc</v-btn>
+        <div class="w-full min-w-[180px] sm:w-[200px]">
+          <UiInput v-model="entityType" label="Loại đối tượng" placeholder="User, Class..." />
+        </div>
+
+        <div class="w-full min-w-[160px] sm:w-[170px]">
+          <UiInput v-model="from" type="date" label="Từ ngày" />
+        </div>
+
+        <div class="w-full min-w-[160px] sm:w-[170px]">
+          <UiInput v-model="to" type="date" label="Đến ngày" />
+        </div>
+
+        <UiButton variant="ghost" leading-icon="mdi-filter-off" class="self-end" @click="clearFilters">
+          Xóa lọc
+        </UiButton>
+      </UiToolbar>
+
+      <UiCard padding="none">
+        <div v-if="isLoading && !logs.length" class="p-4">
+          <AppSkeleton variant="table" :rows="6" :columns="4" />
+        </div>
+
+        <UiTable v-else caption="Audit log entries" :empty="!logs.length">
+          <thead v-if="logs.length">
+            <tr class="border-b border-[var(--st-border)]">
+              <th class="min-w-[180px] px-4 py-3 text-left text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+                When
+              </th>
+              <th class="min-w-[220px] px-4 py-3 text-left text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+                Actor
+              </th>
+              <th class="min-w-[160px] px-4 py-3 text-left text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+                Action
+              </th>
+              <th class="min-w-[180px] px-4 py-3 text-left text-sm font-semibold leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+                Entity
+              </th>
+            </tr>
+          </thead>
+
+          <tbody v-if="logs.length" class="divide-y divide-[var(--st-border)]">
+            <tr v-for="l in logs" :key="l.id" class="min-h-12">
+              <td class="whitespace-nowrap px-4 py-3 text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+                {{ fmt(l.createdAt) }}
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex min-w-0 flex-wrap gap-x-1 text-sm leading-[var(--st-leading-copy)]">
+                  <span class="max-w-[220px] truncate font-normal text-[var(--st-text)]">
+                    {{ l.actor?.fullName ?? '-' }}
+                  </span>
+                  <span v-if="l.actor?.role" class="font-normal text-[var(--st-muted)]">
+                    ({{ l.actor.role }})
+                  </span>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <UiBadge :tone="toneFor(l.action)">
+                  {{ l.action.replace(/_/g, ' ') }}
+                </UiBadge>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-sm font-normal leading-[var(--st-leading-copy)] text-[var(--st-muted)]">
+                {{ l.entityType }}<span v-if="l.entityId"> - {{ l.entityId.slice(0, 8) }}</span>
+              </td>
+            </tr>
+          </tbody>
+
+          <template #empty>
+            <UiEmptyState
+              icon="mdi-clipboard-text-clock-outline"
+              heading="No audit logs found"
+              body="Adjust filters to view matching activity."
+            />
+          </template>
+        </UiTable>
+      </UiCard>
+
+      <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
     </div>
-
-    <v-card>
-      <v-table>
-        <thead>
-          <tr>
-            <th>When</th>
-            <th>Actor</th>
-            <th>Action</th>
-            <th>Entity</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="l in logs" :key="l.id">
-            <td class="text-caption">{{ fmt(l.createdAt) }}</td>
-            <td>
-              {{ l.actor?.fullName ?? '—' }}
-              <span class="text-caption text-medium-emphasis">({{ l.actor?.role }})</span>
-            </td>
-            <td>
-              <v-chip :color="colorFor(l.action)" size="small" variant="tonal">
-                {{ l.action.replace(/_/g, ' ') }}
-              </v-chip>
-            </td>
-            <td class="text-caption">
-              {{ l.entityType }}<span v-if="l.entityId"> · {{ l.entityId.slice(0, 8) }}</span>
-            </td>
-          </tr>
-          <tr v-if="!logs.length && !isLoading">
-            <td colspan="4" class="text-center text-medium-emphasis pa-6">No audit entries yet.</td>
-          </tr>
-        </tbody>
-      </v-table>
-    </v-card>
-
-    <TablePager v-if="meta" v-model:page="page" v-model:limit="limit" :meta="meta" />
-  </div>
+  </UiPage>
 </template>
