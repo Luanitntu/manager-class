@@ -15,7 +15,7 @@ This roadmap resets planning for a frontend UI platform milestone. The work remo
 **Mode:** mvp
 **Requirements:** STYLE-01, STYLE-02, STYLE-03, STYLE-04
 **Status:** Complete (2026-06-30)
-**Plans:** 9/9 plans complete
+**Plans:** 8/8 plans complete
 Plans:
 
 - [x] 01-01-PLAN.md — Add minimal Tailwind icon, viewport, toast, pager, and language switcher blockers.
@@ -78,8 +78,8 @@ Plans:
 **Goal:** Replace Vuetify-dependent shell/shared surfaces with Tailwind implementations while preserving navigation, teacher calendar access, and visual parity.
 **Mode:** mvp
 **Requirements:** APP-01, APP-02, APP-03, APP-04, APP-05
-**Status:** Human Verification Needed (2026-07-01)
-**Plans:** 8/8 plans complete
+**Status:** Complete (2026-07-01)
+**Plans:** 9/9 plans complete
 Plans:
 
 - [x] 03-01-PLAN.md — Migrate shell preservation checks and the full auth surface.
@@ -192,4 +192,4 @@ Plans:
 - Old v1 phase plan artifacts were archived under `.planning/archive/v1-polish-phase-plans-2026-06-30/`.
 
 ---
-*Roadmap updated: 2026-07-01 after Phase 3 residual login social-button gap closure; UAT recheck pending*
+*Roadmap updated: 2026-07-01 after Phase 3 completion; Phase 4 ready*

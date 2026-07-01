@@ -25,7 +25,7 @@
 
 - [x] **APP-01**: Shared app layouts no longer use Vuetify shell components such as `v-app`, `v-main`, `v-navigation-drawer`, `v-app-bar`, or `v-list`.
 - [x] **APP-02**: Reusable dialogs and high-traffic shared components no longer depend on Vuetify primitives.
-- [ ] **APP-03**: The app has a documented inventory of remaining old UI/Vuetify usages after the migration sweep, with none left in v1.1 scope unless explicitly deferred.
+- [x] **APP-03**: The app has a documented inventory of remaining old UI/Vuetify usages after the migration sweep, with none left in v1.1 scope unless explicitly deferred.
 - [x] **APP-04**: Calendar-first teacher workflow remains accessible and visually consistent after shell migration.
 - [x] **APP-05**: Migrated app shell and shared surfaces preserve visual parity with the intended current UI, with no broken spacing, overlapping text, missing controls, or responsive layout regressions.
 
@@ -86,7 +86,7 @@
 | UIKIT-05 | Phase 2 | Complete |
 | APP-01 | Phase 3 | Complete |
 | APP-02 | Phase 3 | Complete |
-| APP-03 | Phase 3 | Pending |
+| APP-03 | Phase 3 | Complete |
 | APP-04 | Phase 3 | Complete |
 | APP-05 | Phase 3 | Complete |
 | PAGE-01 | Phase 4 | Pending |

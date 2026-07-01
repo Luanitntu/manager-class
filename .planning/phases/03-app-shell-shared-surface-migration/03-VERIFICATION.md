@@ -1,11 +1,11 @@
 ---
 phase: 03-app-shell-shared-surface-migration
 verified: 2026-07-01T02:10:44Z
-status: human_needed
-score: 7/15 must-haves verified
-behavior_unverified: 8
-overrides_applied: 0
-behavior_unverified_items:
+status: passed
+score: 15/15 must-haves verified
+behavior_unverified: 0
+overrides_applied: 8
+behavior_verified_by_uat_items:
   - truth: "APP-04 calendar-first teacher workflow remains accessible and visually consistent after shell migration."
     test: "Login as teacher, open shell and /calendar on desktop and mobile, then create/open/drop a calendar session."
     expected: "Calendar remains primary, route access works, create/open/drag-drop feedback remains correct, no clipping or overlap."
@@ -57,8 +57,8 @@ human_verification:
 
 **Phase Goal:** Replace Vuetify-dependent shell/shared surfaces with Tailwind implementations while preserving navigation, teacher calendar access, and visual parity.
 **Verified:** 2026-07-01T02:10:44Z
-**Status:** human_needed
-**Re-verification:** No, initial frontmatter verification. Existing `03-VERIFICATION.md` had evidence but no frontmatter status.
+**Status:** passed
+**Re-verification:** Yes. Human UAT completed in `03-UAT.md` with 4/4 tests passed after gap closure plans 03-08 and 03-09.
 
 ## Goal Achievement
 
@@ -150,7 +150,7 @@ human_verification:
 | Phase 3 target files | n/a | `placeholder` | Info | Matches are normal input placeholders, not stubs. |
 | `client/app/pages/classes/index.vue` | 47 | `PLACEHOLDER` | Info | Outside Phase 3 target and modified scope; general cleanup/Phase 5-or-later page debt, not a Phase 3 blocker. |
 
-### Human Verification Required
+### Human Verification Completed
 
 1. **Teacher shell/calendar smoke**
 
@@ -176,9 +176,16 @@ human_verification:
 **Expected:** Mutations, confirmations, loading/error/empty states, and internal scroll work without broken layout.
 **Why human:** Source wiring exists, but no behavioral tests/screenshots prove these flows.
 
+### UAT Completion
+
+`03-UAT.md` completed on 2026-07-01 with 4 passed, 0 issues, 0 pending. The login social button cosmetic gap was resolved by:
+
+- `03-08-PLAN.md` / `b702dd7` - restored 42px button height and 20px social icon sizing.
+- `03-09-PLAN.md` / `fd39dd4` - moved the Google SVG into the leading slot and prevented social label wrapping.
+
 ### Gaps Summary
 
-No code/artifact blocker gaps found for Phase 3 target scope. Status is `human_needed` because visual parity and interactive state-transition truths are present and wired but not behaviorally proven by screenshots, browser UAT, or automated interaction tests.
+No open code/artifact blocker gaps remain for Phase 3 target scope. Visual parity and interaction-heavy truths were accepted through UAT.
 
 ---
 

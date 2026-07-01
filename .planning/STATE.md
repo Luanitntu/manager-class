@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Tailwind UI Migration
-current_phase: 03
-current_phase_name: app-shell-shared-surface-migration
-status: human verification needed
-stopped_at: Phase 03 residual gap closure complete; UAT recheck needed
-last_updated: "2026-07-01T03:40:00Z"
+current_phase: 04
+current_phase_name: priority-old-page-redesign
+status: ready to plan
+stopped_at: Phase 03 complete; ready to plan Phase 04
+last_updated: "2026-07-01T03:50:00Z"
 last_activity: 2026-07-01
-last_activity_desc: Phase 03 Plan 09 kept Google social login icon and text inline; UAT recheck needed
+last_activity_desc: Phase 03 complete, transitioned to Phase 4
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 24
   completed_plans: 24
-  percent: 100
+  percent: 60
 ---
 
 # Project State
@@ -22,21 +22,21 @@ progress:
 **Project:** Schedule Teacher
 **Initialized:** 2026-06-21
 **Current Milestone:** v1.1 Tailwind UI Migration
-**Current Phase:** 03 - App Shell & Shared Surface Migration
+**Current Phase:** 04 - Priority Old Page Redesign
 
 ## Current Position
 
-Phase: 03 (app-shell-shared-surface-migration) - HUMAN VERIFICATION NEEDED
-Plan: 9 of 9 complete
-Status: Residual gap closure complete; UAT login social-button recheck required before phase completion
-Last activity: 2026-07-01 - Phase 03 Plan 09 kept Google social login icon and text inline
+Phase: 04 (priority-old-page-redesign) - READY TO PLAN
+Plan: Not started
+Status: Phase 03 complete; Phase 04 discussion/planning ready
+Last activity: 2026-07-01 - Phase 03 UAT passed and transitioned to Phase 4
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-30)
+See: `.planning/PROJECT.md` (updated 2026-07-01)
 
 **Core value:** Teachers and students can reliably see and act on the right class data through a clean, calendar-first interface.
-**Current focus:** Complete Phase 03 UAT for visual parity and interaction-heavy shell/calendar/dialog flows.
+**Current focus:** Phase 04 priority old page redesign.
 
 ## Active Roadmap
 
@@ -46,7 +46,7 @@ See: `.planning/ROADMAP.md`
 |-------|--------|-------|
 | 1 | Complete | Styling platform cutover from Vuetify/SCSS to Tailwind |
 | 2 | Complete | Tailwind design system and shared UI kit |
-| 3 | In Progress | App shell and shared surface migration |
+| 3 | Complete | App shell and shared surface migration |
 | 4 | Pending | Priority old page redesign |
 | 5 | Pending | Verification and cleanup |
 
@@ -77,7 +77,7 @@ See: `.planning/ROADMAP.md`
 
 ## Next Command
 
-`/gsd-verify-work 03`
+`/gsd-discuss-phase 4`
 
 ## Decisions
 
@@ -104,12 +104,12 @@ See: `.planning/ROADMAP.md`
 - Phase 3 Plan 09 moved the Google social SVG into `UiButton`'s leading slot and added local no-wrap classes so icon and text stay on one row.
 
 ---
-*State updated: 2026-06-30 after Phase 3 Plan 06 completion*
+*State updated: 2026-07-01 after Phase 3 completion*
 
 ## Session
 
-**Last session:** 2026-06-30T23:13:49+07:00
-**Stopped at:** Completed 03-06-PLAN.md
+**Last session:** 2026-07-01T10:50:00+07:00
+**Stopped at:** Phase 03 complete, ready to plan Phase 04
 **Resume file:** None
 
 ## Performance Metrics
